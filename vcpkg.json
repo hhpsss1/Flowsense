@@ -1,0 +1,10 @@
+{
+  "name": "velocity-cs2",
+  "version-string": "1.0.0",
+  "dependencies": [
+    {
+      "name": "freetype",
+      "default-features": false
+    }
+  ]
+}

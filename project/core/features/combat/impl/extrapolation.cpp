@@ -143,7 +143,37 @@ namespace features::combat {
 			ticks_to_extrapolate = delta_ticks;
 		}
 
-		const auto velocity = memory::read<math::vector3>( pawn + SCHEMA( "C_BaseEntity", "m_vecVelocity"_hash ) );
+		// Скорость - из истории рекордов, НЕ лайв. Сим стартует от позы
+		// latest.origin (прошлое), а лайв-скорость уже новая: после
+		// контр-стрейфа/остановки/прыжка она смотрит в другую сторону и сим
+		// уезжает мимо цели - бот "не трекает" и мажет вдогонку. Скорость
+		// тренда (latest - prev) согласована с точкой старта по времени.
+		math::vector3 velocity{};
+		const shared::lagcomp::record* prev_rec{ nullptr };
+		float history_dt{ 0.0f };
+
+		if ( it->second.size( ) > 1 && it->second[ 1 ].valid )
+		{
+			prev_rec = &it->second[ 1 ];
+			history_dt = latest.simulation_time - prev_rec->simulation_time;
+
+			if ( history_dt > 0.0f )
+			{
+				const auto origin_delta = latest.origin - prev_rec->origin;
+				velocity = {
+					origin_delta.x / history_dt,
+					origin_delta.y / history_dt,
+					origin_delta.z / history_dt
+				};
+			}
+		}
+
+		if ( history_dt <= 0.0f )
+		{
+			// Один рекорд в истории - тренда нет, откат к лайв-скорости.
+			velocity = memory::read<math::vector3>( pawn + SCHEMA( "C_BaseEntity", "m_vecVelocity"_hash ) );
+		}
+
 		const auto speed = std::sqrtf( velocity.x * velocity.x + velocity.y * velocity.y );
 
 		if ( speed < 0.1f )
@@ -163,36 +193,45 @@ namespace features::combat {
 
 		float direction_change = 0.0f;
 
-		if ( it->second.size( ) > 1 )
+		// Джиттер-гейт в одном временном домене: сравниваем соседние сегменты
+		// истории (v1 = latest-prev, v0 = prev-older). Раньше сравнивались
+		// лайв-скорость (настоящее) и смещение рекордов (прошлое) - при любом
+		// контр-стрейфе угол улетал за 35° и экстраполяция отказывала ровно
+		// тогда, когда была нужнее всего.
+		if ( prev_rec && it->second.size( ) > 2 )
 		{
-			const auto& prev = it->second[ 1 ];
-			if ( prev.valid )
+			const auto& older = it->second[ 2 ];
+			if ( older.valid )
 			{
-				const auto dt = latest.simulation_time - prev.simulation_time;
-				if ( dt > 0.0f )
+				const auto dt0 = prev_rec->simulation_time - older.simulation_time;
+				if ( dt0 > 0.0f )
 				{
-					const auto origin_delta = latest.origin - prev.origin;
-					float prev_dir = 0.0f;
+					const auto displacement = prev_rec->origin - older.origin;
+					float prev_dir = direction;
 
-					if ( origin_delta.x != 0.0f || origin_delta.y != 0.0f )
+					if ( displacement.x != 0.0f || displacement.y != 0.0f )
 					{
-						prev_dir = std::atan2f( origin_delta.y, origin_delta.x ) * ( 180.0f / 3.14159265f );
+						prev_dir = std::atan2f( displacement.y, displacement.x ) * ( 180.0f / 3.14159265f );
 					}
 
-				auto angle_diff = direction - prev_dir;
-				while ( angle_diff > 180.0f ) angle_diff -= 360.0f;
-				while ( angle_diff < -180.0f ) angle_diff += 360.0f;
+					auto angle_diff = direction - prev_dir;
+					while ( angle_diff > 180.0f ) angle_diff -= 360.0f;
+					while ( angle_diff < -180.0f ) angle_diff += 360.0f;
 
-				if ( std::fabsf( angle_diff ) > 35.0f )
-				{
-					if ( !quiet )
+					if ( std::fabsf( angle_diff ) > 35.0f )
 					{
-						logging::console::print( xs( "[extrap] {:x} | skip: direction change too large ({:.1f} deg)\n" ), pawn, angle_diff );
+						if ( !quiet )
+						{
+							logging::console::print( xs( "[extrap] {:x} | skip: direction change too large ({:.1f} deg)\n" ), pawn, angle_diff );
+						}
+						return std::nullopt;
 					}
-					return std::nullopt;
-				}
 
-				direction_change = ( angle_diff / dt ) * cstypes::tick_interval;
+					const auto total_dt = latest.simulation_time - older.simulation_time;
+					if ( total_dt > 0.0f )
+					{
+						direction_change = ( angle_diff / total_dt ) * cstypes::tick_interval;
+					}
 				}
 			}
 		}

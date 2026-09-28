@@ -16,6 +16,24 @@ namespace logging {
 
 		inline thread_local bool emitting{};
 
+		// Hitlog-канал: хит/мисс логи всегда проходят, даже когда включена
+		// чистая консоль. Всё остальное через print() в clean-режиме дропается.
+		inline thread_local bool hitlog_bypass{};
+		inline std::atomic_bool clean_console{ false };
+
+		inline void set_clean_console( bool enabled )
+		{
+			clean_console.store( enabled, std::memory_order_relaxed );
+		}
+
+		template <typename... args_t>
+		void print_hitlog( std::string_view fmt, args_t&&... args )
+		{
+			hitlog_bypass = true;
+			print( fmt, std::forward<args_t>( args )... );
+			hitlog_bypass = false;
+		}
+
 	} // namespace console
 
 	namespace popup {

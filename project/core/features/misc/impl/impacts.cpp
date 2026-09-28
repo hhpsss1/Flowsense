@@ -30,6 +30,9 @@ namespace features::misc {
 
 	void impacts::on_frame_stage_notify( )
 	{
+		// Синк флага чистой консоли каждый кадр (logging-слой настроек не видит).
+		logging::console::set_clean_console( settings::g_misc.m_impacts.clean_console.value );
+
 		this->tick_pending_particle_destroys( );
 
 		// Frame-stage updates can overlap Present, which renders the same impact vectors.
@@ -905,7 +908,7 @@ namespace features::misc {
 
 			if ( cfg.console_log.value )
 			{
-				logging::console::print( xs( "{}" ), plain_msg );
+				logging::console::print_hitlog( xs( "{}" ), plain_msg );
 			}
 
 			if ( chat_cfg.enabled.value && chat_cfg.hit.value )
@@ -962,7 +965,7 @@ namespace features::misc {
 
 			if ( cfg.console_log.value )
 			{
-				logging::console::print( xs( "{}" ), plain_msg );
+				logging::console::print_hitlog( xs( "{}" ), plain_msg );
 			}
 
 			if ( chat_cfg.enabled.value && chat_cfg.miss.value )
@@ -1219,8 +1222,8 @@ namespace features::misc {
 		constexpr auto fade_ratio{ 0.8f };
 		constexpr auto entry_spacing{ 3.0f };
 		constexpr auto margin{ 10.0f };
-		constexpr auto base_x{ margin };
 		const auto [screen_w, screen_h] = xdraw::viewport_size( );
+		(void) screen_h;
 
 	constexpr auto h{ 20.0f };
 	constexpr auto r{ 0.0f };
@@ -1241,8 +1244,8 @@ namespace features::misc {
 		static const auto miss_icon = xdraw::load_svg( R"(<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 6C1.5 6.59095 1.6164 7.17611 1.84254 7.72208C2.06869 8.26804 2.40016 8.76412 2.81802 9.18198C3.23588 9.59984 3.73196 9.93131 4.27792 10.1575C4.82389 10.3836 5.40905 10.5 6 10.5C6.59095 10.5 7.17611 10.3836 7.72208 10.1575C8.26804 9.93131 8.76412 9.59984 9.18198 9.18198C9.59984 8.76412 9.93131 8.26804 10.1575 7.72208C10.3836 7.17611 10.5 6.59095 10.5 6C10.5 5.40905 10.3836 4.82389 10.1575 4.27792C9.93131 3.73196 9.59984 3.23588 9.18198 2.81802C8.76412 2.40016 8.26804 2.06869 7.72208 1.84254C7.17611 1.6164 6.59095 1.5 6 1.5C5.40905 1.5 4.82389 1.6164 4.27792 1.84254C3.73196 2.06869 3.23588 2.40016 2.81802 2.81802C2.40016 3.23588 2.06869 3.73196 1.84254 4.27792C1.6164 4.82389 1.5 5.40905 1.5 6Z" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.25 8.02525C7.08706 7.85896 6.89258 7.72684 6.67794 7.63665C6.4633 7.54646 6.23282 7.5 6 7.5C5.76718 7.5 5.5367 7.54646 5.32206 7.63665C5.10742 7.72684 4.91294 7.85896 4.75 8.02525" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 4.625C4.75 5.125 3.75 5.125 3.5 4.625" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 4.625C8.25 5.125 7.25 5.125 7 4.625" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/></svg>)", 1.0f, &miss_icon_w, &miss_icon_h );
 
 		const auto inner_h = h - inner_pad * 2.0f;
-		auto hit_y_offset{ 0.0f };
-		auto miss_y_offset{ 0.0f };
+		// Единая стопка хит/мисс логов в верхнем правом углу, новые сверху.
+		auto y_offset{ 0.0f };
 
 		for ( auto it = this->m_logs.begin( ); it != this->m_logs.end( ); )
 		{
@@ -1402,8 +1405,8 @@ namespace features::misc {
 				const auto text_pill_w = text_total_w + text_pad_x * 2.0f;
 				const auto total_w = inner_pad + icon_size + inner_pad + text_pill_w + inner_pad;
 
-				const auto x = it->is_miss ? ( static_cast< float >( screen_w ) - margin - total_w - slide_x ) : ( base_x + slide_x );
-				const auto y = static_cast< float >( screen_h ) - margin - h - ( it->is_miss ? miss_y_offset : hit_y_offset );
+				const auto x = static_cast< float >( screen_w ) - margin - total_w - slide_x;
+				const auto y = margin + y_offset;
 
 				draw_list.rect_filled( x, y, total_w, h, scale_alpha( s.window_bg ), xdraw::corner_radius{ r } );
 				draw_list.rect( x, y, total_w, h, scale_alpha( tokens::col_border ), xdraw::corner_radius{ r }, 1.0f );
@@ -1430,14 +1433,7 @@ namespace features::misc {
 					tx += span.w;
 				}
 
-				if ( it->is_miss )
-				{
-					miss_y_offset += h + entry_spacing;
-				}
-				else
-				{
-					hit_y_offset += h + entry_spacing;
-				}
+				y_offset += h + entry_spacing;
 			}
 
 				++it;

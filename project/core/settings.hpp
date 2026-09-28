@@ -29,7 +29,7 @@ namespace settings {
 				config::val<float> max_fov{ 180.0f };
 
 				config::val<int> hitchance{ 80 };
-				config::val<int> min_damage{ 101 };
+				config::val<int> min_damage{ 25 };
 
 				xui::setting min_damage_hp_plus_one{ false, {}, "min damage hp+1", "ragebot" };
 
@@ -1497,6 +1497,7 @@ namespace settings {
 			xui::setting hit_log{ true, {}, "hit logs", "impacts" };
 			config::val<float> hit_log_duration{ 3.5f, "impacts", "hit log duration" };
 			xui::setting console_log{ true, {}, "console logs", "impacts" };
+			xui::setting clean_console{ true, {}, "clean console", "impacts" };
 
 			xui::setting miss_log{ true, {}, "miss logs", "impacts" };
 			config::val<float> miss_log_duration{ 4.5f, "impacts", "miss log duration" };

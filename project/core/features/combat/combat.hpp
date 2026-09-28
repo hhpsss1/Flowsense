@@ -357,6 +357,14 @@ namespace features::combat {
 			[[nodiscard]] bool has_modified_angles( ) const { return this->m_should_correct || this->m_modified_angles.y != this->m_old_angles.y; }
 			[[nodiscard]] const math::vector3& get_modified_angles( ) const { return this->m_modified_angles; }
 
+			// Real camera basis snapshotted before the fake angles were
+			// installed (replay-stable across create_move passes of one
+			// command). Movement features must derive their world-space
+			// target from THIS, not from the fake command viewangles -
+			// otherwise strafing aims around the antiaim yaw and the wish
+			// direction misses, which bleeds speed and fights the bhop.
+			[[nodiscard]] const math::vector3& get_real_angles( ) const { return this->m_intent_angles; }
+
 			// True while antiaim is actively rewriting this command's angles
 			// with a non-trivial yaw/pitch change - i.e. movement had to be
 			// re-based onto the fake viewangles. The input alignment delta

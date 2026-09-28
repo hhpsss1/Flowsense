@@ -410,6 +410,9 @@ namespace hooks {
 				features::movement::g_edgejump.on_create_move( current_cmd );
 				features::movement::g_edgestop.on_create_move( current_cmd );
 				features::movement::g_jumpbug.on_create_move( current_cmd );
+				// Стрейфер ДО бхопа: ему нужен оригинальный зажатый in_jump
+				// (гейт), а бхоп ниже срезает jump-бит в воздухе под edge.
+				features::movement::g_test_strafer.on_create_move( current_cmd );
 				features::movement::g_bhop.on_create_move( current_cmd );
 				features::movement::g_fastladder.on_create_move( current_cmd );
 				if ( trace )
@@ -436,7 +439,6 @@ namespace hooks {
 
 				diag::set_exception_phase( "create_move: post-combat movement" );
 				features::combat::g_misc.duckpeek( ).on_create_move( current_cmd );
-				features::movement::g_test_strafer.on_create_move( current_cmd );
 				features::movement::g_airstrafe.on_create_move( current_cmd );
 				// Apply after airstrafe so rage autostop owns the final air-movement command.
 				features::combat::g_misc.autostop( ).on_create_move( current_cmd );
@@ -458,7 +460,27 @@ namespace hooks {
 
 			diag::set_exception_phase( "create_move: final subtick" );
 			const auto final_base = current_cmd->csgo_user_cmd.mutable_base( );
-			if ( final_base && final_base->subtick_moves_size( ) > 0
+			// Зероим базовые мувы только если реально есть аналоговые
+			// subtick-дельты движения. Jump-only степы бхопа (кнопки, без
+			// аналоговых дельт) иначе убивали бы WASD на тике приземления -
+			// в воздухе нечем рулить и хоп рассыпается. Биты как в
+			// input::apply::has_move_subticks: 0x8/0x10 = analog deltas.
+			auto has_move_subtick = false;
+			if ( final_base )
+			{
+				for ( auto i = 0; i < final_base->subtick_moves_size( ); ++i )
+				{
+					if ( const auto step = final_base->mutable_subtick_moves( i ) )
+					{
+						if ( step->m_has_bits.test( 0x8 ) || step->m_has_bits.test( 0x10 ) )
+						{
+							has_move_subtick = true;
+							break;
+						}
+					}
+				}
+			}
+			if ( final_base && has_move_subtick
 				&& !features::movement::g_test_strafer.handled_this_tick( )
 				&& !features::combat::g_rage.should_stop( )
 				&& !features::combat::g_rage.should_stop_between_shots( ) )

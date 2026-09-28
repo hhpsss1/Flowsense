@@ -1063,6 +1063,19 @@ namespace features::combat {
 				auto extrap = g_shared.lc( ).extrapolate( pawn );
 				if ( !extrap.has_value( ) )
 				{
+					// Нет валидных лаговых поз и экстраполяция отказала.
+					// Live-снапшот сцены можно целить только по стоячей цели:
+					// у движущейся рендер-поза не совпадёт с позой, к которой
+					// сервер отмотает на штампуемом тике, - выстрел уйдёт в
+					// spread/lagcomp/autowall. Движущихся призраков скипаем до
+					// появления настоящих рекордов, стоячих (частый случай -
+					// кемпер с backwards AA) по-прежнему engaging.
+					const auto live_vel = memory::read<math::vector3>( pawn + SCHEMA( "C_BaseEntity", "m_vecVelocity"_hash ) );
+					if ( !std::isfinite( live_vel.x ) || !std::isfinite( live_vel.y ) || live_vel.length_2d( ) > 10.0f )
+					{
+						continue;
+					}
+
 					// No usable lag records and extrapolation refuses (e.g. the
 					// target is standing completely still or the extrapolation
 					// budget is exceeded). The enemy is still alive and shootable,
@@ -3083,7 +3096,7 @@ namespace features::combat {
 		{
 			const auto hitgroup_name = systems::g_hitboxes.hitgroup_to_name( tgt.hit.hitgroup );
 			const auto bt_delta = g_shared.ctx( ).current_tick - tgt.hit.record->tick;
-			logging::console::print(
+			logging::console::print_hitlog(
 				xs( "[rage] shot target hp {} for {:.0f} in {} (hc {:.0f}%, bt {}t{})" ),
 				tgt.hit.health,
 				tgt.hit.damage,
@@ -3602,7 +3615,7 @@ namespace features::combat {
 	{
 		if ( override_active )
 		{
-			return static_cast< float >( config.min_damage_override_value );
+			return std::clamp( static_cast< float >( config.min_damage_override_value ), 1.0f, 100.0f );
 		}
 
 		const auto hp = static_cast< float >( target_health );
@@ -3612,7 +3625,9 @@ namespace features::combat {
 			return hp + 1.0f;
 		}
 
-		const auto base = static_cast< float >( config.min_damage );
+		// Значения >100 (дефолтные 101) против 100hp всегда вырождались в
+		// "только летал" - бот молчал без оверрайда. Клампим к вменяемому.
+		const auto base = std::clamp( static_cast< float >( config.min_damage ), 1.0f, 100.0f );
 
 		if ( config.adaptive_min_damage.value )
 		{
@@ -3624,7 +3639,7 @@ namespace features::combat {
 				return hp + 1.0f;
 			}
 
-			return std::min( base, std::max( base * 0.5f, hp * 0.55f ) );
+			return std::min( { base, hp + 1.0f, std::max( base * 0.5f, hp * 0.55f ) } );
 		}
 
 		if ( hp < base )

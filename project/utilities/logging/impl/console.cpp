@@ -17,6 +17,12 @@ namespace logging::console {
 			return;
 		}
 
+		// Чистая консоль: пропускаем только хит/мисс логи, весь остальной
+		// спам (сигнатуры, экстраполяция, предикт и т.д.) дропается.
+		if ( !hitlog_bypass && clean_console.load( std::memory_order_relaxed ) ) {
+			return;
+		}
+
 		const bool was_emitting = emitting;
 		emitting = true;
 		diag::write( diag::level::info, text );

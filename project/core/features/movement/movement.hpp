@@ -102,7 +102,6 @@ namespace features::movement {
 
 		std::uintptr_t m_last_buttons{};
 		std::uintptr_t m_last_pressed{};
-		int m_substep_counter{};
 		bool m_handled_this_tick{};
 	};
 

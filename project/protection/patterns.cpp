@@ -189,9 +189,9 @@ const ::protection::addresses::address_t& engine_client_cmd = ADDRESS_IMPL(
 		"client.dll:488B0D*????????488D3452~");
 
 const ::protection::addresses::address_t& generate_primitives = ADDRESS_IMPL(
-			::protection::addresses::hash("scenesystem.dll:488D05*????????488907488B7C2448+20~"),
+			::protection::addresses::hash("scenesystem.dll:488BC4488958204C89401848895010488948085556574154415541564157488DA8????????4881EC????????440F2940"),
 			::protection::addresses::address_type::pattern,
-			"scenesystem.dll:488D05*????????488907488B7C2448+20~");
+			"scenesystem.dll:488BC4488958204C89401848895010488948085556574154415541564157488DA8????????4881EC????????440F2940");
 
 	const ::protection::addresses::address_t& get_aim_punch = ADDRESS_IMPL(
 		::protection::addresses::hash("client.dll:150000488D542420>E8????????F30F1015????????"),

@@ -191,6 +191,23 @@ namespace rendering {
 					xui::end_popup( );
 				}
 
+				xui::checkbox( "Hit logs", impacts.hit_log );
+				if ( xui::begin_popup( "##hitlog_popup", 220.0f ) )
+				{
+					xui::slider_float( "Duration##hitlog", impacts.hit_log_duration, 0.5f, 10.0f, "%.1fs" );
+					xui::end_popup( );
+				}
+
+				xui::checkbox( "Miss logs", impacts.miss_log );
+				if ( xui::begin_popup( "##misslog_popup", 220.0f ) )
+				{
+					xui::slider_float( "Duration##misslog", impacts.miss_log_duration, 0.5f, 10.0f, "%.1fs" );
+					xui::end_popup( );
+				}
+
+				xui::checkbox( "Console logs", impacts.console_log );
+				xui::checkbox( "Clean console", impacts.clean_console );
+
 				// xui::checkbox( "Chat logs", m.m_chat_logs.enabled );
 				// if ( xui::begin_popup( "##chatlogs_popup", 220.0f ) )
 				// {

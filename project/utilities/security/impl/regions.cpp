@@ -7,7 +7,7 @@ namespace security::regions {
 
 		std::vector<region> regions{};
 
-	} // namespace detail
+	}
 
 	void add( std::uintptr_t base, std::size_t size )
 	{
@@ -41,4 +41,4 @@ namespace security::regions {
 		return false;
 	}
 
-} // namespace security::regions
+}

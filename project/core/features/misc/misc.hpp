@@ -4,6 +4,8 @@
 
 #include <core/systems/systems.hpp>
 
+struct lua_State;
+
 namespace features::misc {
 
 	class projectile_trajectory
@@ -39,12 +41,9 @@ namespace features::misc {
 		[[nodiscard]] bool should_stop( ) const { return this->m_needs_air_stop; }
 		[[nodiscard]] const std::vector<in_flight_grenade>& in_flight( ) const { return this->m_in_flight; }
 
-		/// Max damage an HE at the trajectory endpoint would deal to the best enemy target.
 		[[nodiscard]] int max_enemy_damage( const trajectory& traj, std::uintptr_t weapon_hash, const systems::local::snapshot& local ) const;
-		/// Damage an enemy HE at the trajectory endpoint would deal to the local player.
 		[[nodiscard]] int damage_to_local( const trajectory& traj, std::uintptr_t weapon_hash, const systems::local::snapshot& local ) const;
 
-		/// Skip collision with thrower only for opening sim ticks so the nade clears the hand/body.
 		static constexpr int k_thrower_collision_skip_ticks{ 18 };
 
 	private:
@@ -57,7 +56,9 @@ namespace features::misc {
 		static constexpr auto k_stop_speed_sq{ 400.0f };
 		static constexpr auto k_steep_bounce_speed_sq{ 96000.0f };
 		static constexpr auto k_steep_bounce_normal_z{ 0.7f };
-		static constexpr auto k_max_ticks{ 4096 };
+
+
+		static constexpr auto k_max_ticks{ 384 };
 		static constexpr auto k_ticks_per_point{ 2 };
 		static constexpr auto k_max_bounces{ 20 };
 		static constexpr auto k_max_delay_ticks{ 32 };
@@ -233,16 +234,15 @@ namespace features::misc {
 		void play_hit_effect( std::uintptr_t victim_pawn );
 		void play_death_effect( std::uintptr_t victim_pawn );
 
-		// Shared spawn helper: creates a particle effect, sets color on cp_color_index,
-		// binds it to victim_pawn on cp_bind_index (and optionally cp_bind_extra_index,
-		// -1 to skip). Returns the effect index, or invalid on failure.
 		std::uint32_t spawn_death_particle( const char* particle_path, std::uintptr_t victim_pawn, const math::vector3& color, int cp_color_index, int cp_bind_index, int cp_bind_extra_index, bool& loaded_flag );
 
-		// Per-style death effect variants.
 		void play_death_effect_fade( std::uintptr_t victim_pawn );
 		void play_death_effect_stars( std::uintptr_t victim_pawn );
+		void play_death_effect_killstars( std::uintptr_t victim_pawn );
+		void play_death_effect_sparks( std::uintptr_t victim_pawn );
+		void play_death_effect_explosion( std::uintptr_t victim_pawn, const char* particle_path, bool& loaded_flag );
+		void play_death_effect_smoke( std::uintptr_t victim_pawn );
 
-		// Prune particles scheduled to auto-destroy (called every frame_stage_notify).
 		void tick_pending_particle_destroys( );
 
 		void play_bullet_impact_effect( const math::vector3& position );
@@ -258,9 +258,12 @@ namespace features::misc {
 
 		bool m_death_effect_loaded{};
 		bool m_death_stars_loaded{};
+		bool m_death_killstars_loaded{};
+		bool m_death_sparks_loaded{};
+		bool m_death_explosion_loaded{};
+		bool m_death_c4_loaded{};
+		bool m_death_smoke_loaded{};
 
-		// Auto-destroy queue: (effect_index, destroy_after_time). Used to keep the
-		// weather-authored stars particle from lingering after a kill.
 		struct pending_particle_destroy
 		{
 			std::uint32_t effect_index{};
@@ -331,6 +334,78 @@ namespace features::misc {
 		std::uint32_t m_last_weapon{};
 	};
 
+	class lua
+	{
+	public:
+		void on_render( xdraw::draw_list& draw_list );
+		void on_create_move( systems::input::usercmd* cmd );
+
+		void set_enabled( bool enabled ) { this->m_enabled = enabled; }
+		[[nodiscard]] bool enabled( ) const { return this->m_enabled; }
+		void request_reload( ) { this->m_reload_requested = true; }
+		[[nodiscard]] const std::string& last_error( ) const { return this->m_error; }
+		[[nodiscard]] int script_count( ) const { return static_cast< int >( this->m_scripts.size( ) ); }
+		[[nodiscard]] std::vector<std::string> script_names( ) const;
+		[[nodiscard]] std::string scripts_directory_name( ) const;
+		void set_config_name( const std::string& name ) { this->m_config_name = name; }
+		[[nodiscard]] const std::string& config_name( ) const { return this->m_config_name; }
+
+		[[nodiscard]] bool is_script_enabled( const std::string& name ) const
+		{
+			if ( !m_enabled )
+			{
+				return false;
+			}
+			return m_disabled_scripts.count( name ) == 0;
+		}
+		void toggle_script( const std::string& name )
+		{
+			if ( m_disabled_scripts.count( name ) )
+			{
+				m_disabled_scripts.erase( name );
+			}
+			else
+			{
+				m_disabled_scripts.insert( name );
+			}
+			m_reload_requested = true;
+		}
+		void enable_all_scripts( ) { m_disabled_scripts.clear( ); m_reload_requested = true; }
+		void disable_all_scripts( )
+		{
+			for ( const auto& s : m_scripts )
+			{
+				m_disabled_scripts.insert( s.path.filename( ).string( ) );
+			}
+			m_reload_requested = true;
+		}
+		[[nodiscard]] const std::unordered_set<std::string>& disabled_scripts( ) const { return m_disabled_scripts; }
+
+	private:
+		void ensure_state( );
+		void bind_api( lua_State* state );
+		void reload( );
+		[[nodiscard]] bool needs_reload( ) const;
+
+		struct script
+		{
+			std::filesystem::path path{};
+			std::filesystem::file_time_type mtime{};
+			bool loaded{};
+		};
+
+		lua_State* m_state{};
+		std::vector<script> m_scripts{};
+		std::unordered_set<std::string> m_disabled_scripts{};
+		std::string m_config_name{};
+		std::string m_error{};
+		mutable std::mutex m_mutex{};
+		mutable std::chrono::steady_clock::time_point m_last_scan{};
+		bool m_initialized{};
+		bool m_enabled{ true };
+		bool m_reload_requested{};
+	};
+
 	class dlight
 	{
 	public:
@@ -380,10 +455,6 @@ namespace features::misc {
 		void do_player_alpha_changing( );
 		void do_reveal_radar( ) const;
 		void do_name_changing( );
-		void do_anti_afk( );
-		void do_quickswitch( );
-		void do_quick_plant( );
-		void do_no_land_inaccuracy( );
 		void do_sniper_crosshair_patch( );
 		bool m_is_alpha_changed{};
 		bool m_name_changer_active{};
@@ -393,59 +464,39 @@ namespace features::misc {
 		std::size_t m_clantag_index{};
 		float m_last_spawntime{};
 
-		// Anti-afk: jump roughly every 30s while alive.
-		float m_next_anti_afk_time{ 30.0f };
-		// Quickswitch: forces a slot1->slot2 swap after every shot so the
-		// weapon's next-attack delay is bypassed (cancels reload animation).
-		bool m_quickswitch_swap{};
-		// No land inaccuracy: resets the inaccuracy penalty the frame we touch
-		// the ground so the first shot after landing is fully accurate.
-		bool m_was_on_ground{};
-
-		// Sniper crosshair patch state.
 		bool m_sniper_crosshair_patched{};
 		std::uint8_t m_patch_original_bytes[ 6 ]{};
 	};
 
-	// this is so ghetto but fuck it for now it works
 
 	class c_panel_2d {
 	public:
-		const void* m_vtable;          //0x0000
-		c_ui_panel* m_panel;           //0x0008 — CUIPanel*, pass directly to the UI engine run_script
-		std::uint64_t m_tooltip_handle; //0x0010 — CPanoramaHandle_t
-		void* m_v8_pointer;            //0x0018
+		const void* m_vtable;
+		c_ui_panel* m_panel;
+		std::uint64_t m_tooltip_handle;
+		void* m_v8_pointer;
 	};
 
 	class c_ui_panel {
 	public:
-		void* m_vtable;                //0x0000
-		std::uint8_t m_pad_08 [0x20];  //0x0008
-		std::uint32_t m_child_count;   //0x0028
-		std::uint8_t m_pad_2c [0x04];  //0x002C
-		c_ui_panel** m_children;       //0x0030
-		std::uint64_t m_child_capacity; //0x0038
-		std::uint8_t m_pad_40 [0xD4];  //0x0040
-		std::uint8_t m_flags;          //0x0114 — EPanelFlag bits
-		std::uint8_t m_pad_115 [0x02]; //0x0115
-		std::int8_t m_shutting_down;   //0x0117
-		std::uint8_t m_unknown_flags;  //0x0118
+		void* m_vtable;
+		std::uint8_t m_pad_08 [0x20];
+		std::uint32_t m_child_count;
+		std::uint8_t m_pad_2c [0x04];
+		c_ui_panel** m_children;
+		std::uint64_t m_child_capacity;
+		std::uint8_t m_pad_40 [0xD4];
+		std::uint8_t m_flags;
+		std::uint8_t m_pad_115 [0x02];
+		std::int8_t m_shutting_down;
+		std::uint8_t m_unknown_flags;
 
 		[[nodiscard]] bool is_visible() const {
 			return ( m_flags & 0x01 ) != 0;
 		}
 	};
 
-	//class c_ui_engine {
-	//public:
-	//	void run_script (c_ui_panel* panel, const char* script) {
-	//		const auto vmt = *reinterpret_cast<std::uintptr_t*>(this);
-	//		const auto fn = *reinterpret_cast<std::uintptr_t*>(vmt + 77 * sizeof (std::uintptr_t));
 
-	//		using fn_t = void (__thiscall*)(c_ui_engine*, c_ui_panel*, const char*, const char*, std::uint64_t);
-	//		reinterpret_cast<fn_t>(fn)(this, panel, script, nullptr, 0);
-	//	}
-	//};
 
 	struct panel_data_t {
 		std::uint8_t pad_0000 [8];
@@ -458,19 +509,19 @@ namespace features::misc {
 
 	class c_ui_engine {
 	public:
-		void* m_vtable; //0x0000
-		std::uint8_t pad_0000 [0x220]; //0x002C
-		panel_data_t* m_panels_array; //0x0228
-		int32_t m_panel_count; //0x0230
-		std::uint8_t pad_0001 [0x3CC]; //0x002C
-		void* m_isolate; //0x0600
-		std::uint8_t pad_0002 [0x2E0]; //0x002C
+		void* m_vtable;
+		std::uint8_t pad_0000 [0x220];
+		panel_data_t* m_panels_array;
+		int32_t m_panel_count;
+		std::uint8_t pad_0001 [0x3CC];
+		void* m_isolate;
+		std::uint8_t pad_0002 [0x2E0];
 
-		void* m_panel_stack [63]; //0x08E8
-		int32_t m_panel_stack_depth; //0x0AE0
-		std::uint8_t pad_0003 [0x8C]; //0x002C
-		void* m_script_cache; //0x0B70
-		std::uint8_t pad_0004 [0x10]; //0x002C
+		void* m_panel_stack [63];
+		int32_t m_panel_stack_depth;
+		std::uint8_t pad_0003 [0x8C];
+		void* m_script_cache;
+		std::uint8_t pad_0004 [0x10];
 
 		void run_script (c_ui_panel* panel, const char* script);
 
@@ -478,8 +529,8 @@ namespace features::misc {
 
 	class c_panorama_ui_engine {
 	private:
-		std::uint8_t pad_0001 [40]; //0x002C
-		c_ui_engine* m_ui_engine; //0x0028
+		std::uint8_t pad_0001 [40];
+		c_ui_engine* m_ui_engine;
 	public:
 		c_ui_engine* get_ui_engine ();
 	};
@@ -523,10 +574,8 @@ namespace features::misc {
 		int                                                  m_throttle {};
 		int                                                  m_init_throttle {};
 
-		// The persistent HUD panel hosts scripts; the scoreboard itself is rebuilt
-		// whenever it is opened and is resolved from JavaScript at update time.
 		c_ui_engine* m_ui_engine {};
 		c_ui_panel* m_script_panel {};
 	};
 
-} // namespace features::misc
+}

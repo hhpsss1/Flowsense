@@ -18,7 +18,7 @@ namespace features::misc {
 
 		typedef __int64(__fastcall* send_message_client_t)(void* hud_voice, const char* text, unsigned int color_or_id, std::uint8_t* flags);
 
-	} // namespace chat_detail
+	}
 
 	std::string chat_logs::controller_name( std::uintptr_t controller )
 	{
@@ -118,7 +118,7 @@ namespace features::misc {
 
 		const auto vote_option = memory::call<int>( PATTERN( patterns::game_event_get_int ), event, "vote_option", 0 );
 
-		std::string msg = "\x0A\x02[nexoria.cx] \x01" + voter_name + " voted " + ( vote_option == 0 ? "\x04YES\x01" : "\x02NO\x01" );
+		std::string msg = "\x0A\x02[aetheris] \x01" + voter_name + " voted " + ( vote_option == 0 ? "\x04YES\x01" : "\x02NO\x01" );
 
 		const auto entityid_key = cstypes::event_hash{ 0, "entityid" };
 		const auto target = memory::call<std::uintptr_t>( PATTERN( patterns::game_event_get_controller ), event, &entityid_key );
@@ -166,7 +166,7 @@ namespace features::misc {
 
 	void chat_logs::print_hit( const std::string& name, int damage, const std::string& hitgroup, int health, const std::string& reason, std::uint32_t weapon_type )
 	{
-		std::string msg = "\x0A\x02[nexoria.cx] \x01";
+		std::string msg = "\x0A\x02[aetheris] \x01";
 
 		if ( weapon_type == cstypes::weapon_type::taser )
 		{
@@ -190,7 +190,7 @@ namespace features::misc {
 
 	void chat_logs::print_miss( const std::string& name, const std::string& group, const char* reason, float hitchance, float damage, bool forced, std::uint32_t weapon_type )
 	{
-		std::string msg = "\x0A\x02[nexoria.cx] \x01";
+		std::string msg = "\x0A\x02[aetheris] \x01";
 
 		if ( weapon_type == cstypes::weapon_type::knife )
 		{
@@ -214,4 +214,4 @@ namespace features::misc {
 		this->print( msg );
 	}
 
-} // namespace features::misc
+}

@@ -1,0 +1,3 @@
+C:/Users/laura/Music/aetheris.win/main project/build-portable/CMakeFiles/aetheris.dir
+C:/Users/laura/Music/aetheris.win/main project/build-portable/CMakeFiles/edit_cache.dir
+C:/Users/laura/Music/aetheris.win/main project/build-portable/CMakeFiles/rebuild_cache.dir

@@ -9,7 +9,7 @@ namespace steam {
 
 		inline std::uintptr_t user_interface{};
 
-	} // namespace detail
+	}
 
 	bool user::initialize( )
 	{
@@ -22,4 +22,4 @@ namespace steam {
 		return memory::call<std::uint64_t>( MODULE_EXPORT( "steam_api64.dll:SteamAPI_ISteamUser_GetSteamID" ), detail::user_interface );
 	}
 
-} // namespace steam
+}

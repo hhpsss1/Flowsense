@@ -51,8 +51,6 @@ namespace config {
 		{
 			std::vector<field> fields{};
 			nlohmann::json defaults{};
-			// Snapshot of compile-time defaults before apply_blank_profile; legacy share codes (delta v1)
-			// encode diffs against this baseline, not against the blank defaults snapshot.
 			nlohmann::json factory_defaults{};
 			bool initialized{};
 		};
@@ -88,7 +86,7 @@ namespace config {
 			v.erase( std::remove_if( v.begin( ), v.end( ), [ ptr ]( const field& f ) { return f.ptr == ptr; } ), v.end( ) );
 		}
 
-	} // namespace detail
+	}
 
 	template <typename T>
 	struct val
@@ -434,7 +432,7 @@ namespace config {
 #endif
 		}
 
-	} // namespace serial
+	}
 
 	namespace base64 {
 
@@ -505,7 +503,7 @@ namespace config {
 			return out;
 		}
 
-	} // namespace base64
+	}
 
 	namespace crypto {
 
@@ -519,11 +517,10 @@ namespace config {
 			}
 		}
 
-	} // namespace crypto
+	}
 
-	// New v2 format magic: 'N' 'X' 'C' 'F' (Nexoria Config File)
 	inline constexpr std::uint8_t k_magic[ 4 ]{ 0x4E, 0x58, 0x43, 0x46 };
-	inline constexpr std::uint8_t k_config_format_version{ 2 }; // v2: magic + version + crc32
+	inline constexpr std::uint8_t k_config_format_version{ 2 };
 
 	namespace compress {
 
@@ -550,7 +547,6 @@ namespace config {
 			return buf;
 		}
 
-		// New v2 deflate with magic header, version, and CRC32
 		inline std::vector<std::uint8_t> deflate_v2( const std::string& input )
 		{
 			const auto bound = LZ4_compressBound( static_cast< int >( input.size( ) ) );
@@ -559,7 +555,6 @@ namespace config {
 				return {};
 			}
 
-			// LZ4 compressed data first
 			std::vector<std::uint8_t> lz4_buf( 4 + bound );
 
 			const auto src_size = static_cast< std::uint32_t >( input.size( ) );
@@ -573,10 +568,8 @@ namespace config {
 
 			lz4_buf.resize( 4 + static_cast< std::size_t >( compressed ) );
 
-			// Calculate CRC32 of LZ4 data
 			const auto crc = util::crc32( lz4_buf.data( ), lz4_buf.size( ) );
 
-			// Build final buffer: magic(4) + version(1) + crc32(4) + lz4_data
 			std::vector<std::uint8_t> buf;
 			buf.reserve( 9 + lz4_buf.size( ) );
 
@@ -615,43 +608,35 @@ namespace config {
 			return out;
 		}
 
-		// Inflate v2 format with magic, version, and CRC32 validation
 		inline std::optional<std::string> inflate_v2( const std::uint8_t* data, std::size_t len )
 		{
-			// Minimum: magic(4) + version(1) + crc32(4) = 9 bytes
 			if ( len < 9 )
 			{
 				return std::nullopt;
 			}
 
-			// Verify magic
 			if ( std::memcmp( data, k_magic, 4 ) != 0 )
 			{
 				return std::nullopt;
 			}
 
-			// Verify version
 			if ( data[ 4 ] != k_config_format_version )
 			{
 				return std::nullopt;
 			}
 
-			// Read CRC32
 			std::uint32_t stored_crc{};
 			std::memcpy( &stored_crc, data + 5, 4 );
 
-			// LZ4 data starts at offset 9
 			const auto* lz4_data = data + 9;
 			const auto lz4_len = len - 9;
 
-			// Verify CRC32
 			const auto calc_crc = util::crc32( lz4_data, lz4_len );
 			if ( calc_crc != stored_crc )
 			{
 				return std::nullopt;
 			}
 
-			// Read original size from LZ4 header
 			if ( lz4_len < 4 )
 			{
 				return std::nullopt;
@@ -677,7 +662,7 @@ namespace config {
 			return out;
 		}
 
-	} // namespace compress
+	}
 
 
 	inline constexpr int k_version{ 2 };
@@ -825,9 +810,6 @@ namespace config {
 			++applied_fields;
 		}
 
-		// A configuration with no recognised fields is not a usable profile.  Do
-		// not report success (or leave the user with a partially applied profile)
-		// when an incompatible/corrupt file was selected.
 		return applied_fields != 0;
 	}
 
@@ -910,7 +892,8 @@ namespace config {
 
 	namespace registry {
 
-		inline constexpr wchar_t k_dir[ ]{ L"C:\\nexoria" };
+		inline constexpr wchar_t k_dir[ ]{ L"C:\\aetheris\\rage configs" };
+		inline constexpr wchar_t k_legacy_dir[ ]{ L"C:\\aetheris" };
 		inline constexpr wchar_t k_ext[ ]{ L".cfg" };
 
 		inline std::wstring sanitize_name( std::wstring_view name )
@@ -951,7 +934,69 @@ namespace config {
 
 		inline bool ensure_dir( )
 		{
-			return CreateDirectoryW( k_dir, nullptr ) != 0 || GetLastError( ) == ERROR_ALREADY_EXISTS;
+
+
+			wchar_t built[ 260 ]{};
+			std::size_t len{ 0 };
+
+			for ( const wchar_t* p = k_dir; ; ++p )
+			{
+				const auto c = *p;
+				if ( c == L'\\' || c == L'\0' )
+				{
+					if ( len > 0 )
+					{
+						built[ len ] = L'\0';
+						CreateDirectoryW( built, nullptr );
+					}
+				}
+				if ( c == L'\0' )
+				{
+					break;
+				}
+				if ( len + 1 < 260 )
+				{
+					built[ len++ ] = c;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
+			const auto ok = GetFileAttributesW( k_dir ) != INVALID_FILE_ATTRIBUTES;
+
+
+
+			static auto migrated{ false };
+			if ( ok && !migrated )
+			{
+				migrated = true;
+
+				if ( _wcsicmp( k_dir, k_legacy_dir ) != 0 )
+				{
+					const std::wstring pattern = std::wstring{ k_legacy_dir } + L"\\*.cfg";
+					WIN32_FIND_DATAW fd{};
+					HANDLE find = FindFirstFileW( pattern.c_str( ), &fd );
+					if ( find != INVALID_HANDLE_VALUE )
+					{
+						do
+						{
+							if ( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+							{
+								continue;
+							}
+							const std::wstring src = std::wstring{ k_legacy_dir } + L"\\" + fd.cFileName;
+							const std::wstring dst = std::wstring{ k_dir } + L"\\" + fd.cFileName;
+							MoveFileW( src.c_str( ), dst.c_str( ) );
+						}
+						while ( FindNextFileW( find, &fd ) );
+						FindClose( find );
+					}
+				}
+			}
+
+			return ok;
 		}
 
 		inline bool save( std::wstring_view name )
@@ -964,11 +1009,9 @@ namespace config {
 
 			const auto json_str = to_json( ).dump( -1 );
 
-			// Use v2 format with magic header, version, and CRC32
 			auto compressed = compress::deflate_v2( json_str );
 			if ( compressed.empty( ) )
 			{
-				// Fallback to v1 if v2 fails
 				compressed = compress::deflate( json_str );
 				if ( compressed.empty( ) )
 				{
@@ -979,9 +1022,6 @@ namespace config {
 			auto encrypted = compressed;
 			crypto::xor_buffer( encrypted.data( ), encrypted.size( ) );
 
-			// Write to a sibling temporary file and atomically replace the old
-			// profile only after all bytes are on disk.  A crash or short write can
-			// no longer turn an existing config into an unreadable empty file.
 			const auto temp_path = file_path + L"." + std::to_wstring( GetCurrentProcessId( ) ) + L".tmp";
 			HANDLE file = CreateFileW( temp_path.c_str( ), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
 			if ( file == INVALID_HANDLE_VALUE )
@@ -1042,7 +1082,6 @@ namespace config {
 				return false;
 			}
 
-			// Decrypt first
 			auto decrypted = buf;
 			crypto::xor_buffer( decrypted.data( ), decrypted.size( ) );
 
@@ -1068,9 +1107,6 @@ namespace config {
 #endif
 				};
 
-			// Try v2 first, then the two supported legacy encodings.  A failed
-			// decode is deliberately non-destructive: the active config remains in
-			// memory instead of being replaced by an all-off blank profile.
 			if ( try_apply( compress::inflate_v2( decrypted.data( ), decrypted.size( ) ) )
 				|| try_apply( compress::inflate( decrypted.data( ), decrypted.size( ) ) )
 				|| try_apply( compress::inflate( buf.data( ), buf.size( ) ) ) )
@@ -1119,7 +1155,7 @@ namespace config {
 			return names;
 		}
 
-	} // namespace registry
+	}
 
 	namespace share_detail {
 
@@ -1216,7 +1252,7 @@ namespace config {
 #endif
 		}
 
-	} // namespace share_detail
+	}
 
 	inline std::string export_share( )
 	{
@@ -1282,6 +1318,6 @@ namespace config {
 		return import_share( input );
 	}
 
-} // namespace config
+}
 
 

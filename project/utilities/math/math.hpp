@@ -119,6 +119,6 @@ namespace math {
 		[[nodiscard]] float rad_to_deg( float radians );
 		[[nodiscard]] float normalize_yaw( float yaw );
 
-	} // namespace helpers
+	}
 
-} // namespace math
+}

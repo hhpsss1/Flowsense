@@ -29,7 +29,6 @@ namespace systems {
 			return false;
 		}
 
-		// Optional chat-log listeners; absent events are skipped without failing the system.
 		register_listener( xs( "vote_cast" ), [ ]( void* event ) { features::misc::g_chat_logs.on_vote_cast( reinterpret_cast< std::uintptr_t >( event ) ); } );
 		register_listener( xs( "player_info" ), [ ]( void* event ) { features::misc::g_chat_logs.on_player_info( reinterpret_cast< std::uintptr_t >( event ) ); } );
 
@@ -122,4 +121,4 @@ namespace systems {
 		return current_listener->debug_id;
 	}
 
-} // namespace systems
+}

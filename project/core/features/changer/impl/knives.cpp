@@ -22,15 +22,9 @@ namespace features::changer {
 			return;
 		}
 
-		// The menu edits skins.data on its own thread; snapshot under its mutex
-		// so iterating here can never walk a freed node.
 		settings::changer::applied_skin selected_skin_copy{};
 		const econ_item_system::item_def* selected_knife_def{ nullptr };
 
-		// A profile normally has one knife entry, but old/imported profiles can
-		// retain a default-knife entry beside the selected model.  unordered_map
-		// iteration made that choice random, which is why switching profiles could
-		// fall back to a default knife with the wrong animation set.
 		{
 			std::lock_guard<std::recursive_mutex> lock{ settings::g_changer.skins.mx };
 
@@ -195,24 +189,19 @@ namespace features::changer {
 
 	void knives::apply( std::uintptr_t weapon, std::uintptr_t iv, const econ_item_system::item_def* def, const settings::changer::applied_skin* skin, std::uintptr_t pawn, std::uint32_t handle, bool& did_update )
 	{
-		// Force item view cache miss - always fall back to weapon-level fields.
 		memory::write<std::uint32_t>( iv + SCHEMA( "C_EconItemView", "m_iItemIDHigh"_hash ), 0xFFFFFFFF );
 		memory::write<std::uint32_t>( iv + SCHEMA( "C_EconItemView", "m_iItemIDLow"_hash ), 0 );
 		memory::write<bool>( iv + SCHEMA( "C_EconItemView", "m_bInitialized"_hash ), true );
 		memory::write<std::uint16_t>( iv + SCHEMA( "C_EconItemView", "m_iItemDefinitionIndex"_hash ), static_cast< std::uint16_t >( def->def_index ) );
 		memory::write<std::int32_t>( iv + SCHEMA( "C_EconItemView", "m_iEntityQuality"_hash ), 3 );
 
-		// Subclass from the selected knife's def_index
 		memory::write<std::uint32_t>( weapon + SCHEMA( "C_BaseEntity", "m_nSubclassID"_hash ), detail::make_subclass_token( def->def_index ) );
 
-		// Fallback fields
 		memory::write<int>( weapon + SCHEMA( "C_EconEntity", "m_nFallbackPaintKit"_hash ), skin->paint_kit_id );
 		memory::write<float>( weapon + SCHEMA( "C_EconEntity", "m_flFallbackWear"_hash ), skin->wear );
 		memory::write<int>( weapon + SCHEMA( "C_EconEntity", "m_nFallbackSeed"_hash ), skin->seed );
 		memory::write<int>( weapon + SCHEMA( "C_EconEntity", "m_nFallbackStatTrak"_hash ), skin->stattrak ? skin->stattrak_value : -1 );
 
-		// Refresh the model after the fallback fields are written so the
-		// precache/material rebuild picks up the new paint kit.
 		if ( !def->model_player.empty( ) )
 		{
 			memory::call<void>( PATTERN( patterns::set_model ), weapon, def->model_player.c_str( ) );
@@ -240,9 +229,6 @@ namespace features::changer {
 			}
 		}
 
-		// Profile changes do not change the active-weapon handle.  Force the HUD
-		// model refresh path anyway so its animation graph is rebuilt for the new
-		// knife model instead of retaining the previous/default sequence.
 		this->m_last_active_handle = 0;
 
 		const auto custom_name = iv + SCHEMA( "C_EconItemView", "m_szCustomName"_hash );
@@ -264,14 +250,13 @@ namespace features::changer {
 			detail::add_stattrak_entity( weapon, iv );
 		}
 
-		// Deferred-spawn aware charm sync (handles id=0 cleanup too).
 		detail::sync_keychain( handle, weapon, iv, skin->keychain );
 
 		this->m_last_cosmetic = detail::cosmetic_state{ handle, detail::make_cosmetic_config( *skin ) };
 
 		memory::call<void>( PATTERN( patterns::apply_econ_customization ), weapon, true );
-		memory::call_vfunc<void>( weapon, 113, true );
-		memory::call_vfunc<void>( weapon, 200 );
+		memory::call_vfunc<void>( weapon, 110, true );
+		memory::call_vfunc<void>( weapon, 195 );
 		memory::call_vfunc<void>( weapon, 105, true );
 		memory::call<void>( PATTERN( patterns::update_subclass ), weapon );
 		memory::call<void>( detail::regenerate_weapon_skin_fn( ), weapon, false );
@@ -337,16 +322,13 @@ namespace features::changer {
 			detail::clear_hud_weapon_icon_for( hud_weapon );
 		}
 
-		// Notify game of customization changes (same as apply() does)
 		memory::call<void>( PATTERN( patterns::apply_econ_customization ), weapon, true );
-		memory::call_vfunc<void>( weapon, 113, true );
-		memory::call_vfunc<void>( weapon, 200 );
+		memory::call_vfunc<void>( weapon, 110, true );
+		memory::call_vfunc<void>( weapon, 195 );
 		memory::call_vfunc<void>( weapon, 105, true );
 		memory::call<void>( PATTERN( patterns::update_subclass ), weapon );
 		memory::call<void>( detail::regenerate_weapon_skin_fn( ), weapon, false );
 
-		// Note: detail::regenerate_skins() and clear_hud_weapon_icons() are called
-		// by on_frame_stage_notify() after restore() sets did_update = true
 
 		this->m_overridden = false;
 	}
@@ -369,4 +351,4 @@ namespace features::changer {
 		memory::call<void>( PATTERN( patterns::weapon_set_mesh_group_mask ), view_model_scene_node, uses_old_model ? std::uint64_t{ 1 } : std::uint64_t{ 2 } );
 	}
 
-} // namespace features::changer
+}

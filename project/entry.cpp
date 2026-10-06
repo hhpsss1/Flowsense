@@ -154,9 +154,6 @@ namespace {
 			return EXCEPTION_CONTINUE_SEARCH;
 		}
 
-		// The host or Steam may replace the single process-wide last-chance
-		// filter after injection. Re-arm it at first chance and preserve the
-		// displaced handler so the host still receives the crash after us.
 		const auto displaced_filter =
 			SetUnhandledExceptionFilter(diag_unhandled_exception_filter);
 		if (displaced_filter != diag_unhandled_exception_filter)
@@ -172,7 +169,7 @@ namespace {
 				info,
 				diag::g_exception_scope_depth
 				? diag::g_exception_phase
-				: "first-chance fault in nexoria DLL");
+				: "first-chance fault in aetheris DLL");
 			return EXCEPTION_CONTINUE_SEARCH;
 		}
 
@@ -296,6 +293,17 @@ namespace {
 #define INIT_WARN( msg ) INIT_FAIL( msg )
 #endif
 
+// Non-critical init stages: a false return OR a fault must degrade to a
+// warning, never kill the whole cheat (menu/ESP must survive a dead
+// subsystem). Only addresses + cheat hooks stay fatal (see below).
+#define SOFT_INIT( expr, msg ) \
+	do { \
+		auto __soft_ok = false; \
+		__try { __soft_ok = ( expr ); } \
+		__except ( EXCEPTION_EXECUTE_HANDLER ) { __soft_ok = false; } \
+		if ( !__soft_ok ) { INIT_WARN( msg ); } \
+	} while ( 0 )
+
 	DWORD WINAPI init_thread_impl(LPVOID param)
 	{
 		const auto module_handle = static_cast<HMODULE>(param);
@@ -340,61 +348,24 @@ namespace {
 
 		diag::step("stage: logging");
 		{
-			if (!logging::console::initialize())
-			{
-#if defined( DEV )
-				INIT_WARN("failed to initialize console logging.");
-#else
-				INIT_FAIL("failed to initialize console logging.");
-#endif
-			}
-
-			if (!logging::popup::initialize())
-			{
-#if defined( DEV )
-				INIT_WARN("failed to initialize popup logging.");
-#else
-				INIT_FAIL("failed to initialize popup logging.");
-#endif
-			}
+			SOFT_INIT( logging::console::initialize( ), "failed to initialize console logging." );
+			SOFT_INIT( logging::popup::initialize( ), "failed to initialize popup logging." );
 		}
 
 		diag::step("stage: integrity");
 		{
-			if (!security::integrity::initialize())
-			{
-				INIT_FAIL("failed to initialize integrity checks.");
-			}
+			SOFT_INIT( security::integrity::initialize( ), "failed to initialize integrity checks." );
 
 #if defined( DEV )
 			install_game_crash_capture();
 			install_termination_capture();
 #endif
 
-			if (!threadpool::initialize())
-			{
-				INIT_FAIL("failed to initialize thread pool.");
-			}
-
-			if (!steam::http::initialize())
-			{
-				INIT_FAIL("failed to initialize steam http.");
-			}
-
-			if (!steam::friends::initialize())
-			{
-				INIT_FAIL("failed to initialize steam friends.");
-			}
-
-			if (!steam::user::initialize())
-			{
-				INIT_FAIL("failed to initialize steam user.");
-			}
-
-			if (!steam::utils::initialize())
-			{
-				INIT_FAIL("failed to initialize steam utils.");
-			}
+			SOFT_INIT( threadpool::initialize( ), "failed to initialize thread pool." );
+			SOFT_INIT( steam::http::initialize( ), "failed to initialize steam http." );
+			SOFT_INIT( steam::friends::initialize( ), "failed to initialize steam friends." );
+			SOFT_INIT( steam::user::initialize( ), "failed to initialize steam user." );
+			SOFT_INIT( steam::utils::initialize( ), "failed to initialize steam utils." );
 		}
 
 		diag::step("stage: addresses");
@@ -413,47 +384,24 @@ namespace {
 			{
 				INIT_FAIL("failed to initialize function addresses.");
 			}
-
-			memory::print_pattern_scan_summary();
 		}
 
 		diag::step("stage: systems");
 		{
-			if (!systems::materials::initialize())
-			{
-				INIT_FAIL("failed to initialize materials system.");
-			}
-
-			if (!systems::events::initialize())
-			{
-				INIT_FAIL("failed to initialize event system.");
-			}
-
-			if (!systems::g_icons.initialize())
-			{
-				INIT_FAIL("failed to initialize vpk parse system.");
-			}
-
-			if (!systems::g_model_preview.initialize())
-			{
-				INIT_FAIL("failed to initialize model preview system.");
-			}
+			SOFT_INIT( systems::materials::initialize( ), "failed to initialize materials system." );
+			SOFT_INIT( systems::events::initialize( ), "failed to initialize event system." );
+			SOFT_INIT( systems::g_icons.initialize( ), "failed to initialize vpk parse system." );
+			SOFT_INIT( systems::g_model_preview.initialize( ), "failed to initialize model preview system." );
 		}
 
 		diag::step("stage: econ");
 		{
-			if (!features::changer::g_econ_item_system.initialize())
-			{
-				INIT_FAIL("failed to initialize econ item system.");
-			}
+			SOFT_INIT( features::changer::g_econ_item_system.initialize( ), "failed to initialize econ item system." );
 		}
 
 		diag::step("stage: hooks");
 		{
-			if (!hooks::utility::initialize())
-			{
-				INIT_FAIL("failed to initialize utility hooks.");
-			}
+			SOFT_INIT( hooks::utility::initialize( ), "failed to initialize utility hooks." );
 
 			if (!hooks::cheat::initialize())
 			{
@@ -463,14 +411,16 @@ namespace {
 
 		diag::step("stage: cvars");
 		{
-			if (!addresses::globals::cvar->unlock_all())
-			{
-				INIT_FAIL("failed to unlock hidden cvars.");
-			}
+			SOFT_INIT( addresses::globals::cvar && addresses::globals::cvar->unlock_all( ), "failed to unlock hidden cvars." );
 		}
 
 		diag::step("stage: skyboxes");
-		features::world::g_scene.discover_skyboxes();
+		__try {
+			features::world::g_scene.discover_skyboxes();
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+			INIT_WARN("skybox discovery faulted.");
+		}
 
 		diag::step("stage: done");
 		return 1;
@@ -497,7 +447,64 @@ namespace {
 		}
 	}
 
-} // namespace
+	DWORD WINAPI unload_worker( LPVOID )
+	{
+		xui::overlays::close_all( );
+
+		if ( g_vectored_exception_handler )
+		{
+			RemoveVectoredExceptionHandler( g_vectored_exception_handler );
+			g_vectored_exception_handler = nullptr;
+		}
+
+		const auto previous_filter =
+			g_previous_exception_filter.exchange(
+				nullptr,
+				std::memory_order_acq_rel );
+		const auto current_filter =
+			SetUnhandledExceptionFilter( previous_filter );
+		if ( current_filter != diag_unhandled_exception_filter )
+		{
+			SetUnhandledExceptionFilter( current_filter );
+		}
+
+#if defined( DEV )
+		g_terminate_process_hook.reset( );
+		g_minidump_hook.reset( );
+#endif
+
+		features::esp::player::g_chams.bt( ).shutdown( );
+		features::esp::player::g_chams.os( ).shutdown( );
+
+		features::world::g_weather.release( );
+		rendering::g_menu.shutdown( );
+
+		systems::events::shutdown( );
+		hooks::utility::shutdown( );
+		hooks::cheat::shutdown( );
+
+#if !defined( DEV )
+		CoUninitialize( );
+#endif
+
+		FreeLibraryAndExitThread( diag::g_module, 0 );
+		return 0;
+	}
+
+	std::atomic<bool> g_unloading{ false };
+
+}
+
+void diag::request_unload( )
+{
+	bool expected = false;
+	if ( !g_unloading.compare_exchange_strong( expected, true ) )
+	{
+		return;
+	}
+
+	CloseHandle( CreateThread( nullptr, 0, unload_worker, nullptr, 0, nullptr ) );
+}
 
 extern "C" int __stdcall entry(HMODULE module_handle, DWORD reason, LPVOID reserved)
 {

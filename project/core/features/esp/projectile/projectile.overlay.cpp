@@ -47,7 +47,7 @@ namespace features::esp::projectile {
 		constexpr auto fade_speed{ 3.0f };
 		constexpr auto anchor_world_offset_z{ 80.0f };
 
-	} // namespace detail
+	}
 
 	void overlay::on_render( xdraw::draw_list& draw_list, xdraw::draw_list& middle_draw_list )
 	{
@@ -280,14 +280,12 @@ namespace features::esp::projectile {
 		const auto pulse_t = std::sinf( now * detail::pulse_speed ) * 0.5f + 0.5f;
 		const auto pulse_scale = detail::pulse_min_scale + pulse_t * ( detail::pulse_max_scale - detail::pulse_min_scale );
 
-		// Background ring (subtle, dim)
 		{
 			const auto& bg = cfg.background_color.value;
 			const auto ba = static_cast< std::uint8_t >( static_cast< float >( bg.a ) * alpha * 0.5f );
 			draw_list.circle( cx, cy, detail::ring_radius, xdraw::color{ bg.r, bg.g, bg.b, ba }, 1.5f, detail::segments );
 		}
 
-		// Countdown ring - depletes clockwise from top as timer runs out
 		const auto arc_end = timer_frac * two_pi;
 		if ( arc_end > 0.01f )
 		{
@@ -310,7 +308,6 @@ namespace features::esp::projectile {
 			const auto span = std::span<const float>( arc_pts.data( ), arc_pts.size( ) );
 			draw_list.polyline( span, arc_tint, false, detail::ring_thickness );
 
-			// Pulsing glow on the arc head (the leading edge of the countdown)
 			{
 				const auto glow_a = static_cast< std::uint8_t >( static_cast< float >( arc_col.a ) * alpha * ( 0.3f + pulse_t * 0.4f ) );
 				const auto head_a = -half_pi + arc_end;
@@ -327,7 +324,6 @@ namespace features::esp::projectile {
 			}
 		}
 
-		// Inner filled circle (subtle backdrop for icon)
 		{
 			const auto& bg = cfg.background_color.value;
 			const auto ba = static_cast< std::uint8_t >( static_cast< float >( bg.a ) * alpha * 0.85f );
@@ -335,7 +331,6 @@ namespace features::esp::projectile {
 			draw_list.circle_filled( cx, cy, inner_r, xdraw::color{ bg.r, bg.g, bg.b, ba }, detail::segments );
 		}
 
-		// Icon
 		const auto& icon_col = cfg.icon_color.value;
 		const auto icon_a = static_cast< std::uint8_t >( static_cast< float >( icon_col.a ) * alpha );
 		const auto icon_tint = xdraw::color{ icon_col.r, icon_col.g, icon_col.b, icon_a };
@@ -363,7 +358,6 @@ namespace features::esp::projectile {
 			}
 		}
 
-		// Arrow (off-screen) - clean chevron style
 		if ( has_arrow )
 		{
 			const auto tip_x = cx + std::cosf( dir_angle ) * detail::arrow_tip_r;
@@ -740,7 +734,6 @@ namespace features::esp::projectile {
 				const auto ix = std::floorf( screen.x - iw * 0.5f );
 				const auto iy = std::floorf( y - ih * 0.5f );
 
-				// All icons render as solid white, no border/outline.
 				constexpr auto white{ xdraw::color{ 255, 255, 255, 255 } };
 				draw_list.image( ix, iy, iw, ih, ico->texture.Get( ), white );
 
@@ -813,4 +806,4 @@ namespace features::esp::projectile {
 		}
 	}
 
-} // namespace features::esp::projectile
+}

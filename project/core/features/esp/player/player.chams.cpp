@@ -16,10 +16,6 @@ namespace features::esp::player {
 		const auto is_arms = owner_hash == "C_CS2HudModelArms"_hash;
 		const auto is_weapon = owner_hash == "C_CS2HudModelWeapon"_hash;
 
-		// The first-person weapon/arms meshes are submitted under intermediate scene
-		// nodes whose owner is neither C_CS2HudModelWeapon nor C_CS2HudModelArms.
-		// Walk the owner's scene-node chain upward; anything that descends from the
-		// local view pawn is part of the local first-person viewmodel subtree.
 		const auto is_local_viewmodel_mesh = [ & ]( std::uintptr_t owner ) -> bool
 			{
 				const auto local_pawn = systems::g_local.get( ).view_pawn( );
@@ -43,9 +39,6 @@ namespace features::esp::player {
 				return false;
 			};
 
-		// Maps a visible material to its depth-disabled (ignorez) twin so every primary
-		// layer can emit a through-wall pass. Materials without a dedicated twin reuse the
-		// flat through-wall material (always loaded) as the occluded fallback.
 		const auto ignorez_twin = [ ]( settings::esp::cham_ids id ) -> settings::esp::cham_ids
 			{
 			switch ( id )
@@ -67,7 +60,6 @@ namespace features::esp::player {
 
 		const auto apply_config = [ & ]( const settings::esp::chams_config& cfg, std::uintptr_t target_scene_obj )
 			{
-				// Occluded pass first (through walls), then the depth-tested visible passes.
 				if ( cfg.primary.enabled.value )
 				{
 					this->apply_layer( primitive_buffer, original_fn, a1, target_scene_obj, scene_view, cfg.primary.invisible_color, ignorez_twin( cfg.primary.material.value ) );
@@ -83,9 +75,6 @@ namespace features::esp::player {
 					this->apply_layer( primitive_buffer, original_fn, a1, target_scene_obj, scene_view, cfg.primary.color, cfg.primary.material );
 				}
 
-				// Draw the original primitives whenever there is no primary/secondary pass
-				// to replace them. This keeps an enabled-but-layerless config from hiding
-				// the model (e.g. a viewmodel weapon whose only layer got switched off).
 				if ( !cfg.primary.enabled.value && !cfg.secondary.enabled.value )
 				{
 					original_fn( a1, target_scene_obj, scene_view, primitive_buffer );
@@ -110,11 +99,6 @@ namespace features::esp::player {
 				return false;
 			}
 
-			// Intermediate viewmodel nodes do not have a stable class name.  Treat a
-			// mesh as a weapon only when its owner chain explicitly resolves to the
-			// local active weapon; everything else in the local viewmodel subtree is
-			// arms (hands/gloves).  The old "owned by local pawn" heuristic matched
-			// both meshes on some builds, so weapon chams bled onto the hands.
 			const auto weapon_services = memory::read<std::uintptr_t>( local.pawn + SCHEMA( "C_BasePlayerPawn", "m_pWeaponServices"_hash ) );
 			const auto active_handle = weapon_services
 				? memory::read<std::uint32_t>( weapon_services + SCHEMA( "CPlayer_WeaponServices", "m_hActiveWeapon"_hash ) )
@@ -186,10 +170,6 @@ namespace features::esp::player {
 		const auto is_local = owner_entity == local.view_pawn( );
 		const auto is_dead = health <= 0;
 
-		// Ghost scene objects (backtrack / onshot) are already rendered into the
-		// primitive buffer during the owning pawn's generate-primitives pass.
-		// The engine iterates over them separately and would re-enter the hook
-		// here, double-applying every chams config. Suppress the duplicate draw.
 		if ( is_player && ( this->m_backtrack.is_active( scene_object ) || this->m_onshot.is_active( scene_object ) ) )
 		{
 			return true;
@@ -304,9 +284,6 @@ namespace features::esp::player {
 		}
 
 		{
-			// No scene-object flag writes: the through-wall pass is produced entirely by the
-			// ignorez material twin, so mutating object flags here is unnecessary and, on
-			// some builds, breaks the occluded (ignorez) draw.
 		}
 
 		if ( is_local )
@@ -736,8 +713,6 @@ namespace features::esp::player {
 		const auto global_vars = memory::read<std::uintptr_t> (addresses::globals::global_vars);
 		const auto current_time = memory::read<float> (global_vars + 0x30);
 
-		// Creating mesh scene objects from CreateMove can race the scene graph and
-		// fault inside client.dll. Materialize queued shots at frame stage instead.
 		for (auto& [pawn, pending] : this->m_pending) {
 			auto& e = this->m_entries [pawn];
 			if (e.scene_object)
@@ -941,4 +916,4 @@ namespace features::esp::player {
 		}
 	}
 
-} // namespace features::esp::player
+}

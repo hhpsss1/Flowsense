@@ -15,7 +15,7 @@
 #include "dependencies/fonts.hpp"
 #include "dependencies/shaders.hpp"
 
-#include <core/resources/fonts/museo_sans.hpp>
+#include <core/resources/fonts/jetbrains_mono.hpp>
 
 namespace xdraw {
 
@@ -674,7 +674,7 @@ namespace xdraw {
 			return cp;
 		}
 
-	} // namespace detail
+	}
 
 	font::~font( )
 	{
@@ -2351,7 +2351,7 @@ namespace xdraw {
 			return false;
 		}
 
-		const auto primary = load_font( std::span<const std::byte>( reinterpret_cast< const std::byte* >( resources::fonts::museo_sans::regular ), sizeof( resources::fonts::museo_sans::regular ) ), 15.0f );
+		const auto primary = load_font( std::span<const std::byte>( reinterpret_cast< const std::byte* >( resources::fonts::jetbrains_mono::regular ), sizeof( resources::fonts::jetbrains_mono::regular ) ), 15.0f );
 		if ( !primary )
 		{
 			return false;
@@ -3373,95 +3373,4 @@ namespace xdraw {
 		return detail::g.device.Get( );
 	}
 
-
-} // namespace xdraw
-
-namespace hud {
-
-	void surface( xdraw::draw_list& dl, float x, float y, float w, float h, float alpha, bool border )
-	{
-		if ( w <= 0.0f || h <= 0.0f || alpha <= 0.0f )
-		{
-			return;
-		}
-
-		dl.rect_filled( x, y, w, h, tokens::col_dark.alpha( fade_alpha( alpha ) ) );
-
-		if ( border )
-		{
-			dl.rect( x, y, w, h, tokens::col_border.alpha( fade_alpha( alpha ) ), xdraw::corner_radius{ 0.0f }, 1.0f );
-		}
-	}
-
-	void caption( xdraw::draw_list& dl, float x, float y, float w, std::string_view text, float alpha )
-	{
-		if ( text.empty( ) || w <= 0.0f || alpha <= 0.0f )
-		{
-			return;
-		}
-
-		const auto u8 = fade_alpha( alpha );
-		const auto [ tw, th ] = xdraw::measure_text( text );
-		const auto text_x = x + tokens::pad + caption_gap;
-
-		if ( tw > w - tokens::pad * 2.0f - caption_pad * 2.0f )
-		{
-			// Too wide for the strip: keep the frame and drop the label rather
-			// than letting it bleed over the border.
-			return;
-		}
-
-		// Punch the caption out of the top border, then write it in the gap.
-		dl.rect_filled( text_x - caption_pad, y, tw + caption_pad * 2.0f, caption_h, tokens::col_dark.alpha( u8 ) );
-		dl.rect( text_x - caption_pad, y, tw + caption_pad * 2.0f, caption_h, tokens::col_border.alpha( u8 ), xdraw::corner_radius{ 0.0f }, 1.0f );
-		dl.text( std::floor( text_x ), std::floor( y + ( caption_h - th ) * 0.5f ), text, tokens::col_text_dim.alpha( u8 ) );
-	}
-
-	void accent_line( xdraw::draw_list& dl, float x, float y, float w, float thickness, float alpha )
-	{
-		if ( w <= 0.0f || alpha <= 0.0f )
-		{
-			return;
-		}
-
-		const auto u8 = fade_alpha( alpha );
-		const auto accent = tokens::col_accent.alpha( u8 );
-		const auto clear = xdraw::color{ tokens::col_accent.r, tokens::col_accent.g, tokens::col_accent.b, 0 };
-		const auto fade_w = w * tokens::accent_line_fade;
-		const auto solid_w = w - fade_w * 2.0f;
-
-		dl.rect_filled_gradient( x, y, fade_w, thickness, clear, accent, accent, clear );
-		dl.rect_filled( x + fade_w, y, solid_w, thickness, accent );
-		dl.rect_filled_gradient( x + fade_w + solid_w, y, fade_w, thickness, accent, clear, clear, accent );
-	}
-
-	void list_frame( xdraw::draw_list& dl, float x, float y, float w, float h, std::string_view title, float alpha )
-	{
-		surface( dl, x, y, w, h, alpha, true );
-
-		if ( !title.empty( ) )
-		{
-			caption( dl, x, y, w, title, alpha );
-		}
-
-		accent_line( dl, x, y + h - 1.0f, w, 1.0f, alpha );
-	}
-
-	void list_row( xdraw::draw_list& dl, float x, float y, float w, float h, float alpha, bool selected )
-	{
-		if ( w <= 0.0f || h <= 0.0f || alpha <= 0.0f )
-		{
-			return;
-		}
-
-		const auto u8 = fade_alpha( alpha );
-
-		if ( selected )
-		{
-			dl.rect_filled( x + 1.0f, y, w - 2.0f, h, tokens::col_accent.alpha( static_cast< std::uint8_t >( 26.0f * alpha ) ) );
-		}
-
-		dl.rect_filled( x + 1.0f, y + h - 1.0f, w - 2.0f, 1.0f, tokens::col_border_soft.alpha( u8 ) );
-	}
-
-} // namespace hud
+}

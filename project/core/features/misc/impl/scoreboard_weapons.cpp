@@ -412,7 +412,6 @@ namespace features::misc {
 			if (!type)
 				return std::nullopt;
 
-			// never list bombs / grenades on the scoreboard
 			if (*type == 7u || *type == 9u)
 				return std::nullopt;
 
@@ -437,9 +436,6 @@ namespace features::misc {
 						state.active_name = active->name;
 				}
 
-				// Enemy inventory handles are not reliably populated in m_hMyWeapons.
-				// Weapon entities and their networked owner handles are, so mirror the
-				// working scoreboard implementation and collect by owner instead.
 				for (const auto& item : items) {
 					if (!item.ptr)
 						continue;
@@ -460,7 +456,6 @@ namespace features::misc {
 				steamid, state.weapons.size());
 		}
 
-		// skip if nothing changed
 		const auto it = m_cache.find (steamid);
 		if (it != m_cache.end () && it->second == state)
 			return;
@@ -471,16 +466,14 @@ namespace features::misc {
 			return;
 		}
 
-		// sort: primaries → pistols → grenades/other  (mirrors JS-side sort)
 		auto sort_key = [] (int type) -> int {
-			if (type == 2 || type == 3 || type == 4 || type == 5 || type == 6) return 0; // primary
-			if (type == 1)                                                      return 1; // pistol
-			return 2;                                                                       // grenades / equipment
+			if (type == 2 || type == 3 || type == 4 || type == 5 || type == 6) return 0;
+			if (type == 1)                                                      return 1;
+			return 2;
 		};
 		std::stable_sort (state.weapons.begin (), state.weapons.end (),
 			[&] (const weapon_entry& a, const weapon_entry& b) { return sort_key (a.type) < sort_key (b.type); });
 
-		// build weapons JSON
 		std::string weapons_json = "[";
 		for (std::size_t i = 0; i < state.weapons.size (); ++i) {
 			weapons_json += std::format (R"({{path:"{}",type:{}}})",
@@ -523,4 +516,4 @@ namespace features::misc {
 		m_cache.clear ();
 	}
 
-} // namespace features::misc
+}

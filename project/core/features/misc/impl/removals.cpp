@@ -56,4 +56,4 @@ namespace features::misc {
 		memory::write<math::vector3>( view_setup + 0x4b8, systems::g_input.get_view_angles( ) );
 	}
 
-} // namespace features::misc
+}

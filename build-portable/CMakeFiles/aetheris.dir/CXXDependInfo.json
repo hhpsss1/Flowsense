@@ -1,0 +1,533 @@
+{
+	"bmi-installation" : null,
+	"compiler-frontend-variant" : "MSVC",
+	"compiler-id" : "Clang",
+	"compiler-simulate-id" : "MSVC",
+	"config" : "Release",
+	"cxx-modules" : {},
+	"database-info" : null,
+	"dir-cur-bld" : "C:/Users/laura/Music/aetheris.win/main project/build-portable",
+	"dir-cur-src" : "C:/Users/laura/Music/aetheris.win/main project",
+	"dir-top-bld" : "C:/Users/laura/Music/aetheris.win/main project/build-portable",
+	"dir-top-src" : "C:/Users/laura/Music/aetheris.win/main project",
+	"exports" : [],
+	"forward-modules-from-target-dirs" : [],
+	"include-dirs" : 
+	[
+		"C:\\Users\\laura\\Music\\aetheris.win\\main project\\project",
+		"C:\\Users\\laura\\Music\\aetheris.win\\main project\\project\\external\\phnt",
+		"C:\\Users\\laura\\Music\\aetheris.win\\main project\\project\\external\\lua",
+		"C:\\Users\\laura\\Music\\aetheris.win\\main project\\vcpkg_installed\\x64-windows-static\\include"
+	],
+	"language" : "CXX",
+	"linked-target-dirs" : [],
+	"module-dir" : "C:/Users/laura/Music/aetheris.win/main project/build-portable/CMakeFiles/aetheris.dir",
+	"sources" : 
+	{
+		"CMakeFiles/aetheris.dir/project/core/features/changer/impl/agents.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/changer/impl/agents.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/changer/impl/econ_item_system.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/changer/impl/econ_item_system.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/changer/impl/gloves.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/changer/impl/gloves.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/changer/impl/guns.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/changer/impl/guns.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/changer/impl/knives.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/changer/impl/knives.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/changer/impl/musickits.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/changer/impl/musickits.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/changer/impl/stickers.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/changer/impl/stickers.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/combat/impl/extrapolation.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/combat/impl/extrapolation.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/combat/impl/misc.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/combat/impl/misc.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/combat/impl/rage.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/combat/impl/rage.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/combat/impl/shared.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/combat/impl/shared.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/combat/impl/vac.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/combat/impl/vac.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/item/item.chams.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/item/item.chams.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/item/item.glow.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/item/item.glow.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/item/item.overlay.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/item/item.overlay.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/other/other.overlay.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/other/other.overlay.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/player/player.chams.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/player/player.chams.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/player/player.glow.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/player/player.glow.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/player/player.overlay.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/player/player.overlay.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/projectile/projectile.overlay.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/projectile/projectile.overlay.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/esp/projectile/projectile.tracers.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/esp/projectile/projectile.tracers.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/camera.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/camera.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/chat_logs.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/chat_logs.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/dlight.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/dlight.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/hud.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/hud.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/impacts.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/impacts.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/lua.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/lua.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/other.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/other.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/projectile.trajectory.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/projectile.trajectory.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/removals.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/removals.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/misc/impl/scoreboard_weapons.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/misc/impl/scoreboard_weapons.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/airstrafe.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/airstrafe.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/bunnyhop.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/bunnyhop.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/edgebug.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/edgebug.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/edgejump.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/edgejump.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/edgestop.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/edgestop.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/fastladder.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/fastladder.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/jumpbug.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/jumpbug.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/slowwalk.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/slowwalk.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/movement/impl/test_strafer.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/movement/impl/test_strafer.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/world/impl/scene.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/world/impl/scene.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/world/impl/smoke.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/world/impl/smoke.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/features/world/impl/weather.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/features/world/impl/weather.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/hooks/impl/cheat.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/hooks/impl/cheat.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/hooks/impl/skins.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/hooks/impl/skins.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/hooks/impl/utility.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/hooks/impl/utility.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/context.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/context.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/fonts.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/fonts.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/CModelChanger.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/CModelChanger.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.config.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.config.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.core.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.core.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.lua.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.lua.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.misc.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.misc.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.player.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.player.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.ragebot.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.ragebot.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.skins.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.skins.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/menu/menu.world.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/menu/menu.world.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/rendering/impl/widgets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/rendering/impl/widgets.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/bones.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/bones.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/bounds.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/bounds.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/entities.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/entities.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/events.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/events.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/frame_data.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/frame_data.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/hitboxes.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/hitboxes.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/icons.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/icons.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/input.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/input.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/local.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/local.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/materials.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/materials.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/model_preview.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/model_preview.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/prediction.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/prediction.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/schemas.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/schemas.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/tracing.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/tracing.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/core/systems/impl/view.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/core/systems/impl/view.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/entry.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/entry.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/external/stackwalker/stackwalker.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/external/stackwalker/stackwalker.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/external/xdraw/xdraw.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/external/xdraw/xdraw.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/external/xdraw/xui/xui.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/external/xdraw/xui/xui.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/pch/pch.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/pch/pch.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/protection/patterns.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/protection/patterns.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/addresses/impl/functions.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/addresses/impl/functions.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/addresses/impl/globals.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/addresses/impl/globals.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/addresses/impl/interfaces/engine_cvar.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/addresses/impl/interfaces/engine_cvar.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/addresses/impl/modules.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/addresses/impl/modules.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/hooking/impl/allocator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/hooking/impl/allocator.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/hooking/impl/jmp.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/hooking/impl/jmp.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/hooking/impl/manager.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/hooking/impl/manager.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/logging/impl/console.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/logging/impl/console.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/logging/impl/popup.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/logging/impl/popup.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/math/math.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/math/math.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/memory/memory.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/memory/memory.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/overrides.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/overrides.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/proto/proto.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/proto/proto.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/random/random.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/random/random.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/security/impl/integrity.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/security/impl/integrity.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/security/impl/prologues.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/security/impl/prologues.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/security/impl/regions.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/security/impl/regions.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/steam/impl/friends.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/steam/impl/friends.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/steam/impl/http.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/steam/impl/http.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/steam/impl/user.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/steam/impl/user.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/steam/impl/utils.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/steam/impl/utils.cpp"
+		},
+		"CMakeFiles/aetheris.dir/project/utilities/threadpool/threadpool.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/laura/Music/aetheris.win/main project/project/utilities/threadpool/threadpool.cpp"
+		}
+	}
+}

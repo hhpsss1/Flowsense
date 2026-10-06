@@ -5,7 +5,6 @@
 
 #include "../world.hpp"
 
-// was a deadend.
 
 namespace features::world {
 
@@ -45,4 +44,4 @@ namespace features::world {
 		this->m_token = 0;
 	}
 
-} // namespace features::world
+}

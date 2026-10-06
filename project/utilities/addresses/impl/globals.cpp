@@ -89,4 +89,24 @@ namespace addresses::globals {
 		return initialized;
 	}
 
-} // namespace addresses::globals
+	void execute_client_cmd( const char* cmd, int flags )
+	{
+		if ( !cmd || !*cmd )
+		{
+			return;
+		}
+
+		const auto engine = source2engine_to_client;
+		if ( !engine )
+		{
+			return;
+		}
+
+		const auto fn = PATTERN( patterns::engine_client_cmd );
+		if ( fn )
+		{
+			memory::call<void>( fn, engine, 0, cmd, flags );
+		}
+	}
+
+}

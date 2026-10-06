@@ -50,4 +50,4 @@ namespace addresses::modules {
 		return client && engine2 && server && scene_system && material_system2 && render_system_dx11 && panorama && schema_system && input_system && sound_system && tier0 && particles && resource_system && localize && mesh_system && file_system_stdio && vphysics2;
 	}
 
-} // namespace addresses::modules
+}

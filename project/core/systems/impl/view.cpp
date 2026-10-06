@@ -125,4 +125,31 @@ namespace systems {
 		return this->m_matrix;
 	}
 
-} // namespace systems
+	view::projection view::project_fast( const math::vector3& world_pos, const math::matrix4x4& m, int sw, int sh ) noexcept
+	{
+		projection r{};
+
+		const auto w = m[ 3 ][ 0 ] * world_pos.x + m[ 3 ][ 1 ] * world_pos.y + m[ 3 ][ 2 ] * world_pos.z + m[ 3 ][ 3 ];
+		if ( w < 0.001f )
+		{
+			return r;
+		}
+
+		const auto x = m[ 0 ][ 0 ] * world_pos.x + m[ 0 ][ 1 ] * world_pos.y + m[ 0 ][ 2 ] * world_pos.z + m[ 0 ][ 3 ];
+		const auto y = m[ 1 ][ 0 ] * world_pos.x + m[ 1 ][ 1 ] * world_pos.y + m[ 1 ][ 2 ] * world_pos.z + m[ 1 ][ 3 ];
+
+		const auto inv_w = 1.0f / w;
+		const auto fx = static_cast< float >( sw );
+		const auto fy = static_cast< float >( sh );
+
+		r.screen =
+		{
+			fx * 0.5f * ( 1.0f + x * inv_w ),
+			fy * 0.5f * ( 1.0f - y * inv_w )
+		};
+		r.w = w;
+		r.on_screen = w > 0.01f && r.screen.x >= 0.0f && r.screen.x < fx && r.screen.y >= 0.0f && r.screen.y < fy;
+		return r;
+	}
+
+}

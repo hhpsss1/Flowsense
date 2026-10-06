@@ -7,4 +7,4 @@
 
 namespace features::esp::projectile {
 
-} // namespace features::esp::projectile
+}

@@ -22040,4 +22040,4 @@ namespace resources::fonts::nunito {
 		0x0D, 0x10, 0x00, 0x00, 
 	};
 
-} // namespace resources::fonts::nunito
+}

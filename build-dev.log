@@ -1,0 +1,21 @@
+Build started 10/5/2026 6:10:29 PM.
+Logging verbosity is set to: Normal.
+     1>Project "C:\Users\laura\Music\aetheris.win\main project\aetheris.sln" on node 1 (default targets).
+     1>ValidateSolutionConfiguration:
+         Building solution configuration "Development|x64".
+     1>Project "C:\Users\laura\Music\aetheris.win\main project\aetheris.sln" (1) is building "C:\Users\laura\Music\aetheris.win\main project\aetheris.vcxproj" (2) on node 1 (default targets).
+     2>C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(463,5): error MSB8020: The build tools for ClangCL (Platform Toolset = 'ClangCL') cannot be found. To build using the ClangCL build tools, please install ClangCL build tools.  Alternatively, you may upgrade to the current Visual Studio tools by selecting the Project menu or right-click the solution, and then selecting "Retarget solution". [C:\Users\laura\Music\aetheris.win\main project\aetheris.vcxproj]
+     2>Done Building Project "C:\Users\laura\Music\aetheris.win\main project\aetheris.vcxproj" (default targets) -- FAILED.
+     1>Done Building Project "C:\Users\laura\Music\aetheris.win\main project\aetheris.sln" (default targets) -- FAILED.
+
+Build FAILED.
+
+       "C:\Users\laura\Music\aetheris.win\main project\aetheris.sln" (default target) (1) ->
+       "C:\Users\laura\Music\aetheris.win\main project\aetheris.vcxproj" (default target) (2) ->
+       (PrepareForBuild target) -> 
+         C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(463,5): error MSB8020: The build tools for ClangCL (Platform Toolset = 'ClangCL') cannot be found. To build using the ClangCL build tools, please install ClangCL build tools.  Alternatively, you may upgrade to the current Visual Studio tools by selecting the Project menu or right-click the solution, and then selecting "Retarget solution". [C:\Users\laura\Music\aetheris.win\main project\aetheris.vcxproj]
+
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.01

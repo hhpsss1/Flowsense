@@ -49,7 +49,7 @@ namespace {
 		return {};
 	}
 
-} // namespace
+}
 
 namespace hooks {
 
@@ -133,4 +133,4 @@ namespace hooks {
 		return m_log_internal.call<std::intptr_t>( a1, channel, severity, metadata, message, args );
 	}
 
-} // namespace hooks
+}

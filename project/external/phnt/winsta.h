@@ -7,37 +7,28 @@
 #ifndef _WINSTA_H
 #define _WINSTA_H
 
-//
-// Sessions
-//
 
-// Specifies the current server.
 #define WINSTATION_CURRENT_SERVER         ((HANDLE)NULL)
 #define WINSTATION_CURRENT_SERVER_HANDLE  ((HANDLE)NULL)
 #define WINSTATION_CURRENT_SERVER_NAME    (NULL)
 #define SERVERNAME_CURRENT ((PWSTR)NULL)
 
-// Specifies the current session (SessionId)
 #define WINSTATION_CURRENT_SESSION ((ULONG)-1)
 #define LOGONID_CURRENT (-1)
 
-// Specifies any-session (SessionId)
 #define WINSTATION_ANY_SESSION ((ULONG)-2)
 
-//
-// Access rights
-//
 
-#define WINSTATION_QUERY 0x00000001 // WinStationQueryInformation
-#define WINSTATION_SET 0x00000002 // WinStationSetInformation
-#define WINSTATION_RESET 0x00000004 // WinStationReset
-#define WINSTATION_VIRTUAL 0x00000008 //read/write direct data
-#define WINSTATION_SHADOW 0x00000010 // WinStationShadow
-#define WINSTATION_LOGON 0x00000020 // logon to WinStation
-#define WINSTATION_LOGOFF 0x00000040 // WinStationLogoff
-#define WINSTATION_MSG 0x00000080 // WinStationMsg
-#define WINSTATION_CONNECT 0x00000100 // WinStationConnect
-#define WINSTATION_DISCONNECT 0x00000200 // WinStationDisconnect
+#define WINSTATION_QUERY 0x00000001
+#define WINSTATION_SET 0x00000002
+#define WINSTATION_RESET 0x00000004
+#define WINSTATION_VIRTUAL 0x00000008
+#define WINSTATION_SHADOW 0x00000010
+#define WINSTATION_LOGON 0x00000020
+#define WINSTATION_LOGOFF 0x00000040
+#define WINSTATION_MSG 0x00000080
+#define WINSTATION_CONNECT 0x00000100
+#define WINSTATION_DISCONNECT 0x00000200
 #define WINSTATION_GUEST_ACCESS WINSTATION_LOGON
 
 #define WINSTATION_CURRENT_GUEST_ACCESS (WINSTATION_VIRTUAL | WINSTATION_LOGOFF)
@@ -98,7 +89,6 @@ typedef RTL_TIME_ZONE_INFORMATION TS_TIME_ZONE_INFORMATION, *PTS_TIME_ZONE_INFOR
 
 typedef WCHAR WINSTATIONNAME[WINSTATIONNAME_LENGTH + 1];
 
-// Variable length data descriptor (not needed)
 typedef struct _VARDATA_WIRE
 {
     USHORT Size;
@@ -139,49 +129,49 @@ typedef struct _SESSIONIDW
  */
 typedef enum _WINSTATIONINFOCLASS
 {
-    WinStationCreateData,                   // q: WINSTATIONCREATE
-    WinStationConfiguration,                // qs: WINSTACONFIGWIRE + USERCONFIG
-    WinStationPdParams,                     // qs: PDPARAMSWIRE + PDPARAMS
-    WinStationWd,                           // q: WDCONFIG
-    WinStationPd,                           // q: PDCONFIG2 + PDPARAMS
-    WinStationPrinter,                      // qs: Not supported.
-    WinStationClient,                       // q: VARDATA_WIRE + WINSTATIONCLIENT
-    WinStationModules,                      // q:
-    WinStationInformation,                  // q: WINSTATIONINFORMATION
-    WinStationTrace,                        // s: TS_TRACE
-    WinStationBeep,                         // s: BEEPINPUT // 10
-    WinStationEncryptionOff,                // s:
-    WinStationEncryptionPerm,               // s:
-    WinStationNtSecurity,                   // s: (open secure desktop ctrl+alt+del)
-    WinStationUserToken,                    // q: WINSTATIONUSERTOKEN
-    WinStationUnused1,                      // qs: Not supported.
-    WinStationVideoData,                    // q: WINSTATIONVIDEODATA
-    WinStationInitialProgram,               // s: (set current process as initial program)
-    WinStationCd,                           // q: CDCONFIG
-    WinStationSystemTrace,                  // s: TS_TRACE
-    WinStationVirtualData,                  // q: PVOID // 20
-    WinStationClientData,                   // s: VARDATA_WIRE + WINSTATIONCLIENTDATA
-    WinStationSecureDesktopEnter,           // qs:
-    WinStationSecureDesktopExit,            // qs:
-    WinStationLoadBalanceSessionTarget,     // q: ULONG
-    WinStationLoadIndicator,                // q: WINSTATIONLOADINDICATORDATA
-    WinStationShadowInfo,                   // qs: WINSTATIONSHADOW
-    WinStationDigProductId,                 // q: WINSTATIONPRODID
-    WinStationLockedState,                  // qs: BOOL
-    WinStationRemoteAddress,                // q: WINSTATIONREMOTEADDRESS
-    WinStationIdleTime,                     // q: ULONG // 30
-    WinStationLastReconnectType,            // q: ULONG
-    WinStationDisallowAutoReconnect,        // qs: BOOLEAN
-    WinStationMprNotifyInfo,                // q:
-    WinStationExecSrvSystemPipe,            // q: WCHAR[48]
-    WinStationSmartCardAutoLogon,           // q: BOOLEAN
-    WinStationIsAdminLoggedOn,              // q: BOOLEAN
-    WinStationReconnectedFromId,            // q: ULONG
-    WinStationEffectsPolicy,                // q: ULONG
-    WinStationType,                         // q: ULONG
-    WinStationInformationEx,                // q: VARDATA_WIRE + WINSTATIONINFORMATIONEX // 40
-    WinStationValidationInfo,               // q:
-    WinStationActivityId,                   // q: GUID
+    WinStationCreateData,
+    WinStationConfiguration,
+    WinStationPdParams,
+    WinStationWd,
+    WinStationPd,
+    WinStationPrinter,
+    WinStationClient,
+    WinStationModules,
+    WinStationInformation,
+    WinStationTrace,
+    WinStationBeep,
+    WinStationEncryptionOff,
+    WinStationEncryptionPerm,
+    WinStationNtSecurity,
+    WinStationUserToken,
+    WinStationUnused1,
+    WinStationVideoData,
+    WinStationInitialProgram,
+    WinStationCd,
+    WinStationSystemTrace,
+    WinStationVirtualData,
+    WinStationClientData,
+    WinStationSecureDesktopEnter,
+    WinStationSecureDesktopExit,
+    WinStationLoadBalanceSessionTarget,
+    WinStationLoadIndicator,
+    WinStationShadowInfo,
+    WinStationDigProductId,
+    WinStationLockedState,
+    WinStationRemoteAddress,
+    WinStationIdleTime,
+    WinStationLastReconnectType,
+    WinStationDisallowAutoReconnect,
+    WinStationMprNotifyInfo,
+    WinStationExecSrvSystemPipe,
+    WinStationSmartCardAutoLogon,
+    WinStationIsAdminLoggedOn,
+    WinStationReconnectedFromId,
+    WinStationEffectsPolicy,
+    WinStationType,
+    WinStationInformationEx,
+    WinStationValidationInfo,
+    WinStationActivityId,
     MaxWinStationInfoClass
 } WINSTATIONINFOCLASS;
 
@@ -196,10 +186,10 @@ typedef struct _WINSTATIONCREATE
 
 typedef struct _WINSTACONFIGWIRE
 {
-    WCHAR Comment[61]; // The WinStation descriptive comment.
-    CHAR OEMId[4]; // Value identifying the OEM implementer of the TermService Listener to which this session (WinStation) belongs. This can be any value defined by the implementer (OEM) of the listener.
-    VARDATA_WIRE UserConfig; // VARDATA_WIRE structure defining the size and offset of the variable-length user configuration data succeeding it.
-    VARDATA_WIRE NewFields; // VARDATA_WIRE structure defining the size and offset of the variable-length new data succeeding it. This field is not used and is a placeholder for any new data, if and when added.
+    WCHAR Comment[61];
+    CHAR OEMId[4];
+    VARDATA_WIRE UserConfig;
+    VARDATA_WIRE NewFields;
 } WINSTACONFIGWIRE, *PWINSTACONFIGWIRE;
 
 typedef enum _CALLBACKCLASS
@@ -214,11 +204,11 @@ typedef enum _CALLBACKCLASS
  */
 typedef enum _SHADOWCLASS
 {
-    Shadow_Disable, // Shadowing is disabled.
-    Shadow_EnableInputNotify, // Permission is asked first from the session being shadowed. The shadower is also permitted keyboard and mouse input.
-    Shadow_EnableInputNoNotify, // Permission is not asked first from the session being shadowed. The shadower is also permitted keyboard and mouse input.
-    Shadow_EnableNoInputNotify, // Permission is asked first from the session being shadowed. The shadower is not permitted keyboard and mouse input and MUST observe the shadowed session.
-    Shadow_EnableNoInputNoNotify // Permission is not asked first from the session being shadowed. The shadower is not permitted keyboard and mouse input and MUST observe the shadowed session.
+    Shadow_Disable,
+    Shadow_EnableInputNotify,
+    Shadow_EnableInputNoNotify,
+    Shadow_EnableNoInputNotify,
+    Shadow_EnableNoInputNoNotify
 } SHADOWCLASS;
 
 /**
@@ -407,13 +397,13 @@ typedef struct _OEMTDCONFIG
  */
 typedef struct _PDPARAMS
 {
-    SDCLASS SdClass; // Stack driver class. Indicates which one of the union's structures is valid.
+    SDCLASS SdClass;
     union
     {
-        NETWORKCONFIG Network; // Configuration of network drivers. Used if SdClass is SdNetwork.
-        ASYNCCONFIG Async; // Configuration of async (modem) driver. Used if SdClass is SdAsync.
-        NASICONFIG Nasi; // Reserved.
-        OEMTDCONFIG OemTd; // Configuration of OEM transport driver. Used if SdClass is SdOemTransport.
+        NETWORKCONFIG Network;
+        ASYNCCONFIG Async;
+        NASICONFIG Nasi;
+        OEMTDCONFIG OemTd;
     };
 } PDPARAMS, *PPDPARAMS;
 
@@ -424,13 +414,13 @@ typedef struct _PDPARAMS
  */
 typedef struct _WDCONFIG
 {
-    WDNAME WdName; // The descriptive name of the WinStation driver.
-    DLLNAME WdDLL; // The driver's image name.
-    DLLNAME WsxDLL; // Used by the Terminal Services service to communicate with the WinStation driver.
-    ULONG WdFlag; // Driver flags.
-    ULONG WdInputBufferLength; // Length, in bytes, of the input buffer used by the driver. Defaults to 2048.
-    DLLNAME CfgDLL; // Configuration DLL used by Terminal Services administrative tools for configuring the driver.
-    WDPREFIX WdPrefix; // Used as the prefix of the WinStation name generated for the connected sessions with this WinStation driver.
+    WDNAME WdName;
+    DLLNAME WdDLL;
+    DLLNAME WsxDLL;
+    ULONG WdFlag;
+    ULONG WdInputBufferLength;
+    DLLNAME CfgDLL;
+    WDPREFIX WdPrefix;
 } WDCONFIG, *PWDCONFIG;
 
 /**
@@ -562,13 +552,13 @@ typedef struct _TSHARE_CACHE
  */
 typedef struct CACHE_STATISTICS
 {
-    USHORT ProtocolType;                        // Protocol type.
-    USHORT Length;                              // Length of data in the protocol-specific area. Can be up to 20 * sizeof(ULONG) in size.
+    USHORT ProtocolType;
+    USHORT Length;
     union
     {
-        RESERVED_CACHE ReservedCacheStats;      // Not used.
-        TSHARE_CACHE TShareCacheStats;          // Protocol cache statistics.
-        ULONG Reserved[20];                     // Reserved for future use.
+        RESERVED_CACHE ReservedCacheStats;
+        TSHARE_CACHE TShareCacheStats;
+        ULONG Reserved[20];
     } Specific;
 } CACHE_STATISTICS, *PCACHE_STATISTICS;
 
@@ -579,11 +569,11 @@ typedef struct CACHE_STATISTICS
  */
 typedef struct _PROTOCOLSTATUS
 {
-    PROTOCOLCOUNTERS Output;    // A PROTOCOLCOUNTERS structure containing the output protocol counters.
-    PROTOCOLCOUNTERS Input;     // A PROTOCOLCOUNTERS structure containing the input protocol counters.
-    CACHE_STATISTICS Cache;     // A CACHE_STATISTICS structure containing statistics for the cache.
-    ULONG AsyncSignal;          // Indicator of async signal, such as MS_CTS_ON, for async protocols.
-    ULONG AsyncSignalMask;      // Mask of async signal events, such as EV_CTS, for async protocols.
+    PROTOCOLCOUNTERS Output;
+    PROTOCOLCOUNTERS Input;
+    CACHE_STATISTICS Cache;
+    ULONG AsyncSignal;
+    ULONG AsyncSignalMask;
 } PROTOCOLSTATUS, *PPROTOCOLSTATUS;
 
 /**
@@ -593,17 +583,17 @@ typedef struct _PROTOCOLSTATUS
  */
 typedef struct _WINSTATIONINFORMATION
 {
-    WINSTATIONSTATECLASS ConnectState;      // The current connect state of the session.
-    WINSTATIONNAME WinStationName;          // The name of the session.
-    ULONG LogonId;                          // The session identifier of the session.
-    LARGE_INTEGER ConnectTime;              // The time of the most recent connection to the session.
-    LARGE_INTEGER DisconnectTime;           // The time of the most recent disconnection from the session.
-    LARGE_INTEGER LastInputTime;            // The time the session last received input.
-    LARGE_INTEGER LogonTime;                // The time of the logon to the session.
-    PROTOCOLSTATUS Status;                  // The status of the protocol.
-    WCHAR Domain[DOMAIN_LENGTH + 1];        // The user's domain name.
-    WCHAR UserName[USERNAME_LENGTH + 1];    // The user's user name.
-    LARGE_INTEGER CurrentTime;              // The current time in the session.
+    WINSTATIONSTATECLASS ConnectState;
+    WINSTATIONNAME WinStationName;
+    ULONG LogonId;
+    LARGE_INTEGER ConnectTime;
+    LARGE_INTEGER DisconnectTime;
+    LARGE_INTEGER LastInputTime;
+    LARGE_INTEGER LogonTime;
+    PROTOCOLSTATUS Status;
+    WCHAR Domain[DOMAIN_LENGTH + 1];
+    WCHAR UserName[USERNAME_LENGTH + 1];
+    LARGE_INTEGER CurrentTime;
 } WINSTATIONINFORMATION, *PWINSTATIONINFORMATION;
 
 /**
@@ -613,12 +603,12 @@ typedef struct _WINSTATIONINFORMATION
  */
 typedef struct _TS_TRACE
 {
-    WCHAR TraceFile[256];   // Specifies the file name, if any, to which to write debug information.
-    BOOLEAN Debugger;       // Specifies whether debugger is attached.
-    BOOLEAN Timestamp;      // Specifies whether to append time stamp to the traces logged.
-    ULONG TraceClass;       // Classes of tracing to log. They enable tracing for the various terminal server binaries/functionalities.
-    ULONG TraceEnable;      // Type of tracing calls log.
-    WCHAR TraceOption[64];  // Trace option string. This can be an empty string meaning collect trace for all files and lines in those files.
+    WCHAR TraceFile[256];
+    BOOLEAN Debugger;
+    BOOLEAN Timestamp;
+    ULONG TraceClass;
+    ULONG TraceEnable;
+    WCHAR TraceOption[64];
 } TS_TRACE, *PTS_TRACE;
 
 /**
@@ -643,9 +633,9 @@ typedef struct _BEEPINPUT
  */
 typedef struct _WINSTATIONUSERTOKEN
 {
-    HANDLE ProcessId;   // Specifies the Process ID.
-    HANDLE ThreadId;    // Specifies the calling thread.
-    HANDLE UserToken;   // Returns the user token that is currently logged on to the session.
+    HANDLE ProcessId;
+    HANDLE ThreadId;
+    HANDLE UserToken;
 } WINSTATIONUSERTOKEN, *PWINSTATIONUSERTOKEN;
 
 /**
@@ -655,15 +645,15 @@ typedef struct _WINSTATIONUSERTOKEN
  */
 typedef struct _WINSTATIONVIDEODATA
 {
-    USHORT HResolution; // Specifies the horizontal resolution, in pixels.
-    USHORT VResolution; // Specifies the vertical resolution, in pixels.
-    USHORT ColorDepth;  // Specifies the color depth.
+    USHORT HResolution;
+    USHORT VResolution;
+    USHORT ColorDepth;
 } WINSTATIONVIDEODATA, *PWINSTATIONVIDEODATA;
 
 typedef enum _CDCLASS
 {
-    CdNone, // No connection driver.
-    CdModem, // Connection driver is a modem.
+    CdNone,
+    CdModem,
     CdClass_Maximum,
 } CDCLASS;
 
@@ -674,31 +664,29 @@ typedef enum _CDCLASS
  */
 typedef struct _CDCONFIG
 {
-    CDCLASS CdClass; // Connection driver type.
-    CDNAME CdName; // Connection driver descriptive name.
-    DLLNAME CdDLL; // Connection driver image name.
-    ULONG CdFlag; // Connection driver flags. Connection driver specific.
+    CDCLASS CdClass;
+    CDNAME CdName;
+    DLLNAME CdDLL;
+    ULONG CdFlag;
 } CDCONFIG, *PCDCONFIG;
 
-// The name has the following form:
-// name syntax : xxxyyyy<null>
 typedef CHAR CLIENTDATANAME[CLIENTDATANAME_LENGTH + 1];
 typedef CHAR* PCLIENTDATANAME;
 
 typedef struct _WINSTATIONCLIENTDATA
 {
-    CLIENTDATANAME DataName; // Identifies the type of data sent in this WINSTATIONCLIENTDATA structure.
-    BOOLEAN fUnicodeData; // TRUE indicates data is in Unicode format; FALSE otherwise.
+    CLIENTDATANAME DataName;
+    BOOLEAN fUnicodeData;
 } WINSTATIONCLIENTDATA, *PWINSTATIONCLIENTDATA;
 
 typedef enum _LOADFACTORTYPE
 {
-    ErrorConstraint, // An error occurred while obtaining constraint data.
-    PagedPoolConstraint, // The amount of paged pool is the constraint.
-    NonPagedPoolConstraint, // The amount of non-paged pool is the constraint.
-    AvailablePagesConstraint, // The amount of available pages is the constraint.
-    SystemPtesConstraint, // The number of system page table entries (PTEs) is the constraint.
-    CPUConstraint // CPU usage is the constraint.
+    ErrorConstraint,
+    PagedPoolConstraint,
+    NonPagedPoolConstraint,
+    AvailablePagesConstraint,
+    SystemPtesConstraint,
+    CPUConstraint
 } LOADFACTORTYPE;
 
 /**
@@ -708,14 +696,14 @@ typedef enum _LOADFACTORTYPE
  */
 typedef struct _WINSTATIONLOADINDICATORDATA
 {
-    ULONG RemainingSessionCapacity;     // The estimated number of additional sessions that can be supported given the CPU constraint.
-    LOADFACTORTYPE LoadFactor;          // Indicates the most constrained current resource.
-    ULONG TotalSessions;                // The total number of sessions.
-    ULONG DisconnectedSessions;         // The number of disconnected sessions.
-    LARGE_INTEGER IdleCPU;              // This is always set to 0.
-    LARGE_INTEGER TotalCPU;             // This is always set to 0.
-    ULONG RawSessionCapacity;           // The raw number of sessions capacity.
-    ULONG reserved[9];                  // Reserved.
+    ULONG RemainingSessionCapacity;
+    LOADFACTORTYPE LoadFactor;
+    ULONG TotalSessions;
+    ULONG DisconnectedSessions;
+    LARGE_INTEGER IdleCPU;
+    LARGE_INTEGER TotalCPU;
+    ULONG RawSessionCapacity;
+    ULONG reserved[9];
 } WINSTATIONLOADINDICATORDATA, *PWINSTATIONLOADINDICATORDATA;
 
 /**
@@ -725,25 +713,23 @@ typedef struct _WINSTATIONLOADINDICATORDATA
  */
 typedef enum _SHADOWSTATECLASS
 {
-    State_NoShadow, // No shadow operations are currently being performed on this session.
-    State_Shadowing, // The session is shadowing a different session. The current session is referred to as a shadow client.
-    State_Shadowed // The session is being shadowed by a different session. The current session is referred to as a shadow target.
+    State_NoShadow,
+    State_Shadowing,
+    State_Shadowed
 } SHADOWSTATECLASS;
 
 #define PROTOCOL_CONSOLE 0
 #define PROTOCOL_OTHERS 1
 #define PROTOCOL_RDP 2
 
-// Retrieves the current shadow state of a session.
 typedef struct _WINSTATIONSHADOW
 {
-    SHADOWSTATECLASS ShadowState; // Specifies the current state of shadowing.
-    SHADOWCLASS ShadowClass; // Specifies the type of shadowing.
-    ULONG SessionId; // Specifies the session ID of the session.
-    ULONG ProtocolType; // Specifies the type of protocol on the session. Can be one of PROTOCOL_* values.
+    SHADOWSTATECLASS ShadowState;
+    SHADOWCLASS ShadowClass;
+    ULONG SessionId;
+    ULONG ProtocolType;
 } WINSTATIONSHADOW, *PWINSTATIONSHADOW;
 
-// Retrieves the client product ID and current product ID of the session.
 typedef struct _WINSTATIONPRODID
 {
     WCHAR DigProductId[CLIENT_PRODUCT_ID_LENGTH];
@@ -754,7 +740,6 @@ typedef struct _WINSTATIONPRODID
     ULONG OuterMostSessionId;
 } WINSTATIONPRODID, *PWINSTATIONPRODID;
 
-// Retrieves the remote IP address of the terminal server client in the session.
 typedef struct _WINSTATIONREMOTEADDRESS
 {
     USHORT sin_family;
@@ -776,11 +761,7 @@ typedef struct _WINSTATIONREMOTEADDRESS
     };
 } WINSTATIONREMOTEADDRESS, *PWINSTATIONREMOTEADDRESS;
 
-//
-// WinStationInformationEx
-//
 
-// private
 typedef struct _WINSTATIONINFORMATIONEX_LEVEL1
 {
     ULONG SessionId;
@@ -797,7 +778,6 @@ typedef struct _WINSTATIONINFORMATIONEX_LEVEL1
     PROTOCOLSTATUS ProtocolStatus;
 } WINSTATIONINFORMATIONEX_LEVEL1, *PWINSTATIONINFORMATIONEX_LEVEL1;
 
-// private
 typedef struct _WINSTATIONINFORMATIONEX_LEVEL2
 {
     ULONG SessionId;
@@ -816,14 +796,12 @@ typedef struct _WINSTATIONINFORMATIONEX_LEVEL2
     WCHAR DomainName[256];
 } WINSTATIONINFORMATIONEX_LEVEL2, *PWINSTATIONINFORMATIONEX_LEVEL2;
 
-// private
 typedef union _WINSTATIONINFORMATIONEX_LEVEL
 {
     WINSTATIONINFORMATIONEX_LEVEL1 WinStationInfoExLevel1;
     WINSTATIONINFORMATIONEX_LEVEL2 WinStationInfoExLevel2;
 } WINSTATIONINFORMATIONEX_LEVEL, *PWINSTATIONINFORMATIONEX_LEVEL;
 
-// private
 typedef struct _WINSTATIONINFORMATIONEX
 {
     ULONG Level;
@@ -895,13 +873,11 @@ typedef struct _TS_COUNTER
     LARGE_INTEGER StartTime;
 } TS_COUNTER, *PTS_COUNTER;
 
-// Flags for WinStationShutdownSystem
 #define WSD_LOGOFF 0x1
 #define WSD_SHUTDOWN 0x2
 #define WSD_REBOOT 0x4
 #define WSD_POWEROFF 0x8
 
-// Flags for WinStationWaitSystemEvent
 #define WEVENT_NONE 0x0
 #define WEVENT_CREATE 0x1
 #define WEVENT_DELETE 0x2
@@ -915,13 +891,10 @@ typedef struct _TS_COUNTER
 #define WEVENT_ALL 0x7fffffff
 #define WEVENT_FLUSH 0x80000000
 
-// Hotkey modifiers for WinStationShadow
 #define KBDSHIFT 0x1
 #define KBDCTRL 0x2
 #define KBDALT 0x4
 
-// begin_rev
-// Flags for WinStationRegisterConsoleNotification
 /**
  * WNOTIFY_THIS_SESSION
  *
@@ -935,13 +908,8 @@ typedef struct _TS_COUNTER
  * Specifies that all session notifications are to be received.
  */
 #define WNOTIFY_ALL_SESSIONS 0x1
-// end_rev
 
-// In the functions below, memory returned can be freed using LocalFree. NULL can be specified for
-// server handles to indicate the local server. -1 can be specified for session IDs to indicate the
-// current session ID.
 
-// rev
 /**
  * The WinStationFreeMemory routine frees memory allocated by a Remote Desktop Services function.
  *
@@ -955,7 +923,6 @@ WinStationFreeMemory(
     _In_ PVOID Buffer
     );
 
-// rev
 /**
  * The WinStationOpenServerW routine opens a handle to the specified Remote Desktop Session Host (RD Session Host) server.
  *
@@ -970,7 +937,6 @@ WinStationOpenServerW(
     _In_opt_ PCWSTR ServerName
     );
 
-// rev
 /**
  * The WinStationOpenServerExW routine opens a handle to the specified Remote Desktop Session Host (RD Session Host) server
  * or Remote Desktop Virtualization Host (RD Virtualization Host) server.
@@ -986,7 +952,6 @@ WinStationOpenServerExW(
     _In_opt_ PCWSTR ServerName
     );
 
-// rev
 /**
  * The WinStationCloseServer routine closes an open handle to a Remote Desktop Session Host (RD Session Host) server.
  *
@@ -1001,7 +966,6 @@ WinStationCloseServer(
     _In_ HANDLE ServerHandle
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1009,17 +973,15 @@ WinStationServerPing(
     _In_opt_ HANDLE ServerHandle
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
 WinStationGetTermSrvCountersValue(
     _In_opt_ HANDLE ServerHandle,
     _In_ ULONG Count,
-    _Inout_ PTS_COUNTER Counters // set counter IDs before calling
+    _Inout_ PTS_COUNTER Counters
     );
 
-// rev
 /**
  * The WinStationShutdownSystem routine shuts down (and optionally restarts) the specified Remote Desktop Session Host (RD Session Host) server.
  *
@@ -1034,20 +996,18 @@ BOOLEAN
 NTAPI
 WinStationShutdownSystem(
     _In_opt_ HANDLE ServerHandle,
-    _In_ ULONG ShutdownFlags // WSD_*
+    _In_ ULONG ShutdownFlags
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
 WinStationWaitSystemEvent(
     _In_opt_ HANDLE ServerHandle,
-    _In_ ULONG EventMask, // WEVENT_*
+    _In_ ULONG EventMask,
     _Out_ PULONG EventFlags
     );
 
-// rev
 /**
  * The WinStationRegisterConsoleNotification routine shuts down (and optionally restarts) the specified Remote Desktop Session Host (RD Session Host) server.
  *
@@ -1067,7 +1027,6 @@ WinStationRegisterConsoleNotification(
     _In_ ULONG Flags
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1076,7 +1035,6 @@ WinStationUnRegisterConsoleNotification(
     _In_ HWND WindowHandle
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1113,7 +1071,6 @@ WinStationQueryInformationW(
     _Out_ PULONG ReturnLength
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1125,7 +1082,6 @@ WinStationSetInformationW(
     _In_ ULONG WinStationInformationLength
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1144,7 +1100,6 @@ WinStationNameFromLogonIdW(
     _Out_writes_(WINSTATIONNAME_LENGTH + 1) PWSTR WinStationName
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1154,7 +1109,6 @@ LogonIdFromWinStationNameW(
     _Out_ PULONG SessionId
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1191,7 +1145,6 @@ WinStationDisconnect(
     _In_ BOOLEAN bWait
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1201,7 +1154,6 @@ WinStationReset(
     _In_ BOOLEAN bWait
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1210,22 +1162,19 @@ WinStationShadow(
     _In_ PCWSTR TargetServerName,
     _In_ ULONG TargetSessionId,
     _In_ UCHAR HotKeyVk,
-    _In_ USHORT HotkeyModifiers // KBD*
+    _In_ USHORT HotkeyModifiers
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
 WinStationShadowStop(
     _In_opt_ HANDLE ServerHandle,
     _In_ ULONG SessionId,
-    _In_ BOOLEAN bWait // ignored
+    _In_ BOOLEAN bWait
     );
 
-// Processes
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1236,7 +1185,6 @@ WinStationEnumerateProcesses(
 
 #define WINSTATION_PROCESS_LEVEL 0
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1247,7 +1195,6 @@ WinStationGetAllProcesses(
     _Out_ PTS_ALL_PROCESSES_INFO *Processes
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1257,7 +1204,6 @@ WinStationFreeGAPMemory(
     _In_ ULONG NumberOfProcesses
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1278,11 +1224,7 @@ WinStationGetProcessSid(
     _Inout_ PULONG dwSidSize
     );
 
-//
-// Services isolation
-//
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1290,7 +1232,6 @@ WinStationSwitchToServicesSession(
     VOID
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1298,7 +1239,6 @@ WinStationRevertFromServicesSession(
     VOID
     );
 
-// Misc.
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1306,7 +1246,6 @@ _WinStationWaitForConnect(
     VOID
     );
 
-// rev
 NTSYSAPI
 HANDLE
 NTAPI
@@ -1316,7 +1255,6 @@ WinStationVirtualOpen(
     _In_ PCSTR Name
     );
 
-// rev
 NTSYSAPI
 HANDLE
 NTAPI
@@ -1327,7 +1265,6 @@ WinStationVirtualOpenEx(
     _In_ ULONG Flags
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1344,7 +1281,6 @@ typedef struct _TS_PROPERTY_INFORMATION
     PVOID Buffer;
 } TS_PROPERTY_INFORMATION, *PTS_PROPERTY_INFORMATION;
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1354,7 +1290,6 @@ WinStationGetConnectionProperty(
     _Out_ PTS_PROPERTY_INFORMATION PropertyBuffer
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1362,7 +1297,6 @@ WinStationFreePropertyValue(
     _In_ PVOID PropertyBuffer
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1372,7 +1306,6 @@ WinStationIsSessionRemoteable(
     _Out_ PBOOLEAN IsRemote
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1381,7 +1314,6 @@ WinStationSetAutologonPassword(
     _In_ PCSTR Password
     );
 
-// private
 typedef struct _EXECENVDATAEX_LEVEL1
 {
     LONG ExecEnvId;
@@ -1398,7 +1330,6 @@ typedef union _EXECENVDATAEX_PAYLOAD
 {
     UCHAR Data[1];
     EXECENVDATAEX_LEVEL1 Level1;
-    // define level 2/3/4 here
 } EXECENVDATAEX_PAYLOAD;
 
 typedef struct _EXECENVDATAEX
@@ -1407,27 +1338,17 @@ typedef struct _EXECENVDATAEX
     EXECENVDATAEX_PAYLOAD Payload;
 } EXECENVDATAEX, *PEXECENVDATAEX;
 
-// typedef struct _EXECENVDATAEX
-// {
-//     ULONG Level;
-//     union
-//     {
-//         EXECENVDATAEX_LEVEL1 ExecEnvEnum_Level1;
-//     };
-// } EXECENVDATAEX, *PEXECENVDATAEX;
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
 WinStationGetAllSessionsEx(
     _In_opt_ HANDLE ServerHandle,
-    _In_ ULONG Level, // Must be 1
+    _In_ ULONG Level,
     _Out_ PEXECENVDATAEX *SessionData,
     _Out_ PULONG Count
     );
 
-// rev
 NTSYSAPI
 VOID 
 WINAPI 
@@ -1447,7 +1368,6 @@ typedef enum _SessionType
     SESSIONTYPE_MEDIACENTEREXT
 } SESSIONTYPE;
 
-// rev
 typedef struct _TS_USER_SESSION
 {
     ULONG Version;
@@ -1457,18 +1377,16 @@ typedef struct _TS_USER_SESSION
     ULONG field5;
 } TS_USER_SESSION, *PTS_USER_SESSION;
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
 WinStationGetAllUserSessions(
     _In_opt_ HANDLE ServerHandle,
     _In_ PSID Sid,
-    _Out_ PVOID* Processes, // LocalFree
+    _Out_ PVOID* Processes,
     _Out_ PULONG NumberOfProcesses
     );
 
-// rev
 typedef struct _TS_SESSION_VIRTUAL_ADDRESS
 {
   USHORT AddressFamily;
@@ -1477,7 +1395,6 @@ typedef struct _TS_SESSION_VIRTUAL_ADDRESS
 } TS_SESSION_VIRTUAL_ADDRESS, *PTS_SESSION_VIRTUAL_ADDRESS;
 typedef USHORT ADDRESS_FAMILY;
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1488,18 +1405,16 @@ WinStationQuerySessionVirtualIP(
     _Out_ TS_SESSION_VIRTUAL_ADDRESS* SessionVirtualIP
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
 WinStationGetDeviceId(
     _In_opt_ HANDLE ServerHandle,
     _In_ ULONG SessionId,
-    _Out_ PCHAR* Buffer, // CHAR DeviceId[MAX_PATH + 1];
+    _Out_ PCHAR* Buffer,
     _In_ SIZE_T BufferLength
     );
 
-// rev
 NTSYSAPI
 BOOLEAN
 NTAPI
@@ -1508,7 +1423,6 @@ WinStationGetLoggedOnCount(
     _Out_ PULONG LoggedOnDeviceCount
     );
 
-// rev
 /**
  * The WinStationSetRenderHint routine is used by an application that is displaying content that 
  * can be optimized for displaying in a remote session to identify the region of a window that is the actual content.
@@ -1535,7 +1449,6 @@ WinStationSetRenderHint(
     _In_ PBYTE HintData
     );
 
-// rev
 /**
  * The WinStationActiveSessionExists routine returns active sessions on the system without enumerating through the list of sessions.
  * It also does not obtain any extra information from Local Session Manager.

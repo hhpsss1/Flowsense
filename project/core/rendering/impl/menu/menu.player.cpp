@@ -8,8 +8,6 @@ namespace rendering {
 
 	namespace detail {
 
-		// Cham material combo with "Flat 2" hidden. The visible list maps back
-		// onto settings::esp::cham_ids so the stored enum values stay aligned.
 		inline static bool cham_material_combo( std::string_view label, settings::esp::cham_ids& value )
 		{
 			static constexpr const char* names[ ]{
@@ -41,10 +39,6 @@ namespace rendering {
 			return false;
 		}
 
-		// One row per chams config: an enable checkbox plus a "⋯" menu on the right.
-		// The menu exposes every layer (primary/secondary/overlay) with a per-layer
-		// enable checkbox, material combo and colour picker. Labels carry the config
-		// suffix so each row gets its own xui widget state.
 		inline static void draw_chams_config( const char* label, const char* id_suffix, settings::esp::chams_config& cfg )
 		{
 			xui::checkbox( label, cfg.enabled );
@@ -74,7 +68,7 @@ namespace rendering {
 			}
 		}
 
-	} // namespace detail
+	}
 
 	void menu::draw_player( float group_w ) const
 	{
@@ -94,7 +88,7 @@ namespace rendering {
 		{
 			auto& ov = p.m_overlay[ subtab ];
 
-			if ( xui::begin_child( "player esp", col_w ) )
+			if ( xui::begin_child( "Esp##player_esp", col_w ) )
 			{
 				xui::checkbox( "Esp overlay", ov.enabled );
 
@@ -212,7 +206,7 @@ namespace rendering {
 
 				xui::end_child ();
 
-				if (xui::begin_child ("##player_glow", col_w)) {
+				if (xui::begin_child ("Glow##player_glow", col_w)) {
 					xui::checkbox ("Glow", glow.enabled);
 					if (xui::begin_popup ("##glow_popup", 220.0f)) {
 						xui::color_picker ("Color##glow", glow.color);
@@ -233,7 +227,7 @@ namespace rendering {
 		}
 		else
 		{
-			if ( xui::begin_child( "chams & glow", col_w ) )
+			if ( xui::begin_child( "Local##local_chams_glow", col_w ) )
 			{
 				detail::draw_chams_config( "Chams", "local_main", p.m_chams.local );
 
@@ -268,7 +262,7 @@ namespace rendering {
 			auto& chams = ( subtab == 0 ) ? p.m_chams.enemy : p.m_chams.team;
 			auto& chams_ragdoll = ( subtab == 0 ) ? p.m_chams.enemy_ragdoll : p.m_chams.team_ragdoll;
 
-			if ( xui::begin_child( "player chams", col_w ) )
+			if ( xui::begin_child( "Chams##player_chams", col_w ) )
 			{
 				detail::draw_chams_config( "Chams", "main", chams );
 
@@ -280,19 +274,15 @@ namespace rendering {
 				{
 					xui::layout::separator( );
 
-					// detail::draw_chams_config( "Backtrack chams", "bt", p.m_chams.backtrack );
-					// detail::draw_chams_config( "Onshot", "os", p.m_chams.onshot );
 				}
 
 				xui::end_child( );
 			}
 
-			// Right column - reserved (model preview temporarily disabled)
-			// systems::g_model_preview.draw_esp_preview( this->m_body_x + ( col_w + tokens::gap ) * 2.0f, this->m_body_y + this->m_scroll, col_w, this->m_body_h, subtab );
 		}
 		else
 		{
-			if ( xui::begin_child( "viewmodel", col_w ) )
+			if ( xui::begin_child( "Viewmodel##viewmodel", col_w ) )
 			{
 				detail::draw_chams_config( "Weapon chams", "vm_weapon", esp.m_viewmodel.weapon );
 
@@ -305,4 +295,4 @@ namespace rendering {
 		}
 	}
 
-} // namespace rendering
+}

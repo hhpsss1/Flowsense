@@ -7,9 +7,6 @@
 #ifndef _NTREGAPI_H
 #define _NTREGAPI_H
 
-//
-// Registry
-//
 
 #define REG_MAX_KEY_VALUE_NAME_LENGTH 32767
 #define REG_MAX_KEY_NAME_LENGTH 512
@@ -20,16 +17,16 @@
  */
 typedef enum _KEY_INFORMATION_CLASS
 {
-    KeyBasicInformation, // KEY_BASIC_INFORMATION
-    KeyNodeInformation, // KEY_NODE_INFORMATION
-    KeyFullInformation, // KEY_FULL_INFORMATION
-    KeyNameInformation, // KEY_NAME_INFORMATION
-    KeyCachedInformation, // KEY_CACHED_INFORMATION
-    KeyFlagsInformation, // KEY_FLAGS_INFORMATION
-    KeyVirtualizationInformation, // KEY_VIRTUALIZATION_INFORMATION
-    KeyHandleTagsInformation, // KEY_HANDLE_TAGS_INFORMATION
-    KeyTrustInformation, // KEY_TRUST_INFORMATION
-    KeyLayerInformation, // KEY_LAYER_INFORMATION
+    KeyBasicInformation,
+    KeyNodeInformation,
+    KeyFullInformation,
+    KeyNameInformation,
+    KeyCachedInformation,
+    KeyFlagsInformation,
+    KeyVirtualizationInformation,
+    KeyHandleTagsInformation,
+    KeyTrustInformation,
+    KeyLayerInformation,
     MaxKeyInfoClass
 } KEY_INFORMATION_CLASS;
 
@@ -39,10 +36,10 @@ typedef enum _KEY_INFORMATION_CLASS
  */
 typedef struct _KEY_BASIC_INFORMATION
 {
-    LARGE_INTEGER LastWriteTime;                    // Number of 100-nanosecond intervals since this key or any of its values changed.
-    ULONG TitleIndex;                               // Reserved // A legacy field originally intended for use with localization such as an index of a resource table.
-    ULONG NameLength;                               // The size, in bytes, of the key name string in the Name array.
-    _Field_size_bytes_(NameLength) WCHAR Name[1];   // The name of the registry key. This string is not null-terminated.
+    LARGE_INTEGER LastWriteTime;
+    ULONG TitleIndex;
+    ULONG NameLength;
+    _Field_size_bytes_(NameLength) WCHAR Name[1];
 } KEY_BASIC_INFORMATION, *PKEY_BASIC_INFORMATION;
 
 /**
@@ -51,14 +48,12 @@ typedef struct _KEY_BASIC_INFORMATION
  */
 typedef struct _KEY_NODE_INFORMATION
 {
-    LARGE_INTEGER LastWriteTime;                    // Number of 100-nanosecond intervals since this key or any of its values changed.
-    ULONG TitleIndex;                               // Reserved // A legacy field originally intended for use with localization such as an index of a resource table.
-    ULONG ClassOffset;                              // The byte offset from the start of this structure to the class name string. This string is not null-terminated.
-    ULONG ClassLength;                              // The size, in bytes, in the class name string.
-    ULONG NameLength;                               // The size, in bytes, of the key name string contained in the Name array.
-    _Field_size_bytes_(NameLength) WCHAR Name[1];   // The name of the registry key. This string is not null-terminated.
-    // ...
-    // WCHAR Class[1];
+    LARGE_INTEGER LastWriteTime;
+    ULONG TitleIndex;
+    ULONG ClassOffset;
+    ULONG ClassLength;
+    ULONG NameLength;
+    _Field_size_bytes_(NameLength) WCHAR Name[1];
 } KEY_NODE_INFORMATION, *PKEY_NODE_INFORMATION;
 
 /**
@@ -86,8 +81,8 @@ typedef struct _KEY_FULL_INFORMATION
  */
 typedef struct _KEY_NAME_INFORMATION
 {
-    ULONG NameLength;                               // The size, in bytes, of the key name string in the Name array.
-    _Field_size_bytes_(NameLength) WCHAR Name[1];   // The name of the registry key. This string is not null-terminated.
+    ULONG NameLength;
+    _Field_size_bytes_(NameLength) WCHAR Name[1];
 } KEY_NAME_INFORMATION, *PKEY_NAME_INFORMATION;
 
 /**
@@ -107,11 +102,7 @@ typedef struct _KEY_CACHED_INFORMATION
     _Field_size_bytes_(NameLength) WCHAR Name[1];
 } KEY_CACHED_INFORMATION, *PKEY_CACHED_INFORMATION;
 
-//
-// REG_FLAG_*
-//
 
-// rev
 /**
  * \def REG_FLAG_VOLATILE
  * \brief The registry key is volatile.
@@ -120,7 +111,6 @@ typedef struct _KEY_CACHED_INFORMATION
  * Volatile keys exist only in memory and are lost when the system shuts down.
  */
 #define REG_FLAG_VOLATILE 0x0001
-// rev
 /**
  * \def REG_FLAG_LINK
  * \brief The registry key is a symbolic link.
@@ -130,13 +120,8 @@ typedef struct _KEY_CACHED_INFORMATION
  */
 #define REG_FLAG_LINK 0x0002
 
-//
-// REG_KEY_*
-//
 
-// rev
 #define REG_KEY_RESERVED_FLAG 0x0001
-// msdn
 /**
  * \def REG_KEY_DONT_VIRTUALIZE
  * \brief The REG_KEY_DONT_VIRTUALIZE flag disables write registry virtualization.
@@ -166,15 +151,14 @@ typedef struct _KEY_CACHED_INFORMATION
  */
 #define REG_KEY_RECURSE_FLAG 0x0008
 
-// private
 /**
  * The KEY_FLAGS_INFORMATION structure contains various flags about a registry key or subkey.
  */
 typedef struct _KEY_FLAGS_INFORMATION
 {
     ULONG Wow64Flags;
-    ULONG KeyFlags; // REG_FLAG_*
-    ULONG ControlFlags; // REG_KEY_*
+    ULONG KeyFlags;
+    ULONG ControlFlags;
 } KEY_FLAGS_INFORMATION, *PKEY_FLAGS_INFORMATION;
 
 /**
@@ -198,7 +182,6 @@ typedef struct _KEY_VIRTUALIZATION_INFORMATION
     ULONG Reserved : 27;
 } KEY_VIRTUALIZATION_INFORMATION, *PKEY_VIRTUALIZATION_INFORMATION;
 
-// private
 /**
  * The KEY_TRUST_INFORMATION structure contains information about the trust status of a key.
  *
@@ -213,7 +196,6 @@ typedef struct _KEY_TRUST_INFORMATION
     ULONG Reserved : 31;
 } KEY_TRUST_INFORMATION, *PKEY_TRUST_INFORMATION;
 
-// private
 /**
  * The KEY_LAYER_INFORMATION structure contains information about a key layer.
  *
@@ -247,13 +229,13 @@ typedef struct _KEY_LAYER_INFORMATION
  */
 typedef enum _KEY_SET_INFORMATION_CLASS
 {
-    KeyWriteTimeInformation, // KEY_WRITE_TIME_INFORMATION
-    KeyWow64FlagsInformation, // KEY_WOW64_FLAGS_INFORMATION
-    KeyControlFlagsInformation, // KEY_CONTROL_FLAGS_INFORMATION
-    KeySetVirtualizationInformation, // KEY_SET_VIRTUALIZATION_INFORMATION
+    KeyWriteTimeInformation,
+    KeyWow64FlagsInformation,
+    KeyControlFlagsInformation,
+    KeySetVirtualizationInformation,
     KeySetDebugInformation,
-    KeySetHandleTagsInformation, // KEY_HANDLE_TAGS_INFORMATION
-    KeySetLayerInformation, // KEY_SET_LAYER_INFORMATION
+    KeySetHandleTagsInformation,
+    KeySetLayerInformation,
     MaxKeySetInfoClass
 } KEY_SET_INFORMATION_CLASS;
 
@@ -263,7 +245,7 @@ typedef enum _KEY_SET_INFORMATION_CLASS
  */
 typedef struct _KEY_WRITE_TIME_INFORMATION
 {
-    LARGE_INTEGER LastWriteTime; // Number of 100-nanosecond intervals since this key or any of its values changed.
+    LARGE_INTEGER LastWriteTime;
 } KEY_WRITE_TIME_INFORMATION, *PKEY_WRITE_TIME_INFORMATION;
 
 /**
@@ -333,7 +315,7 @@ typedef struct _KEY_SET_VIRTUALIZATION_INFORMATION
 {
     ULONG VirtualTarget : 1;
     ULONG VirtualStore : 1;
-    ULONG VirtualSource : 1; // true if key has been virtualized at least once
+    ULONG VirtualSource : 1;
     ULONG Reserved : 29;
 } KEY_SET_VIRTUALIZATION_INFORMATION, *PKEY_SET_VIRTUALIZATION_INFORMATION;
 
@@ -343,12 +325,12 @@ typedef struct _KEY_SET_VIRTUALIZATION_INFORMATION
  */
 typedef enum _KEY_VALUE_INFORMATION_CLASS
 {
-    KeyValueBasicInformation, // KEY_VALUE_BASIC_INFORMATION
-    KeyValueFullInformation, // KEY_VALUE_FULL_INFORMATION
-    KeyValuePartialInformation, // KEY_VALUE_PARTIAL_INFORMATION
-    KeyValueFullInformationAlign64, // KEY_VALUE_FULL_INFORMATION_ALIGN64
-    KeyValuePartialInformationAlign64,  // KEY_VALUE_PARTIAL_INFORMATION_ALIGN64
-    KeyValueLayerInformation, // KEY_VALUE_LAYER_INFORMATION
+    KeyValueBasicInformation,
+    KeyValueFullInformation,
+    KeyValuePartialInformation,
+    KeyValueFullInformationAlign64,
+    KeyValuePartialInformationAlign64,
+    KeyValueLayerInformation,
     MaxKeyValueInfoClass
 } KEY_VALUE_INFORMATION_CLASS;
 
@@ -376,8 +358,6 @@ typedef struct _KEY_VALUE_FULL_INFORMATION
     ULONG DataLength;
     ULONG NameLength;
     _Field_size_bytes_(NameLength) WCHAR Name[1];
-    // ...
-    // UCHAR Data[1];
 } KEY_VALUE_FULL_INFORMATION, *PKEY_VALUE_FULL_INFORMATION;
 
 /**
@@ -391,8 +371,6 @@ typedef DECLSPEC_ALIGN(8) struct _KEY_VALUE_FULL_INFORMATION_ALIGN64
     ULONG DataLength;
     ULONG NameLength;
     _Field_size_bytes_(NameLength) WCHAR Name[1];
-    // ...
-    // UCHAR Data[1];
 } KEY_VALUE_FULL_INFORMATION_ALIGN64, *PKEY_VALUE_FULL_INFORMATION_ALIGN64;
 
 /**
@@ -417,7 +395,6 @@ typedef DECLSPEC_ALIGN(8) struct _KEY_VALUE_PARTIAL_INFORMATION_ALIGN64
     _Field_size_bytes_(DataLength) UCHAR Data[1];
 } KEY_VALUE_PARTIAL_INFORMATION_ALIGN64, *PKEY_VALUE_PARTIAL_INFORMATION_ALIGN64;
 
-// private
 /**
  * The KEY_VALUE_LAYER_INFORMATION structure defines the flags for a value entry of a registry key.
  */
@@ -427,7 +404,6 @@ typedef struct _KEY_VALUE_LAYER_INFORMATION
     ULONG Reserved : 31;
 } KEY_VALUE_LAYER_INFORMATION, *PKEY_VALUE_LAYER_INFORMATION;
 
-// private
 typedef enum _CM_EXTENDED_PARAMETER_TYPE
 {
   CmExtendedParameterInvalidType,
@@ -439,7 +415,6 @@ typedef enum _CM_EXTENDED_PARAMETER_TYPE
 
 #define CM_EXTENDED_PARAMETER_TYPE_BITS 8
 
-// private
 typedef struct DECLSPEC_ALIGN(8) _CM_EXTENDED_PARAMETER
 {
     struct
@@ -483,68 +458,51 @@ typedef struct _REG_NOTIFY_INFORMATION
     _Field_size_bytes_(KeyLength) WCHAR Key[1];
 } REG_NOTIFY_INFORMATION, *PREG_NOTIFY_INFORMATION;
 
-//
-// Virtualization // since REDSTONE
-//
 
-// rev
 #define VR_DEVICE_NAME L"\\Device\\VRegDriver"
 
-// rev
-#define IOCTL_VR_INITIALIZE_JOB_FOR_VREG            CTL_CODE(FILE_DEVICE_UNKNOWN, 1, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_INITIALIZE_JOB_FOR_VREG
-#define IOCTL_VR_LOAD_DIFFERENCING_HIVE             CTL_CODE(FILE_DEVICE_UNKNOWN, 2, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_LOAD_DIFFERENCING_HIVE
-#define IOCTL_VR_CREATE_NAMESPACE_NODE              CTL_CODE(FILE_DEVICE_UNKNOWN, 3, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_CREATE_NAMESPACE_NODE
-#define IOCTL_VR_MODIFY_FLAGS                       CTL_CODE(FILE_DEVICE_UNKNOWN, 4, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_MODIFY_FLAGS
-#define IOCTL_VR_CREATE_MULTIPLE_NAMESPACE_NODES    CTL_CODE(FILE_DEVICE_UNKNOWN, 5, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_CREATE_MULTIPLE_NAMESPACE_NODES
-#define IOCTL_VR_UNLOAD_DYNAMICALLY_LOADED_HIVES    CTL_CODE(FILE_DEVICE_UNKNOWN, 6, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_UNLOAD_DYNAMICALLY_LOADED_HIVES
-#define IOCTL_VR_GET_VIRTUAL_ROOT_KEY               CTL_CODE(FILE_DEVICE_UNKNOWN, 7, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_GET_VIRTUAL_ROOT; out: VR_GET_VIRTUAL_ROOT_RESULT
-#define IOCTL_VR_LOAD_DIFFERENCING_HIVE_FOR_HOST    CTL_CODE(FILE_DEVICE_UNKNOWN, 8, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_LOAD_DIFFERENCING_HIVE_FOR_HOST
-#define IOCTL_VR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST  CTL_CODE(FILE_DEVICE_UNKNOWN, 9, METHOD_BUFFERED, FILE_ANY_ACCESS) // in: VR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST
+#define IOCTL_VR_INITIALIZE_JOB_FOR_VREG            CTL_CODE(FILE_DEVICE_UNKNOWN, 1, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_LOAD_DIFFERENCING_HIVE             CTL_CODE(FILE_DEVICE_UNKNOWN, 2, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_CREATE_NAMESPACE_NODE              CTL_CODE(FILE_DEVICE_UNKNOWN, 3, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_MODIFY_FLAGS                       CTL_CODE(FILE_DEVICE_UNKNOWN, 4, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_CREATE_MULTIPLE_NAMESPACE_NODES    CTL_CODE(FILE_DEVICE_UNKNOWN, 5, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_UNLOAD_DYNAMICALLY_LOADED_HIVES    CTL_CODE(FILE_DEVICE_UNKNOWN, 6, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_GET_VIRTUAL_ROOT_KEY               CTL_CODE(FILE_DEVICE_UNKNOWN, 7, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_LOAD_DIFFERENCING_HIVE_FOR_HOST    CTL_CODE(FILE_DEVICE_UNKNOWN, 8, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_VR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST  CTL_CODE(FILE_DEVICE_UNKNOWN, 9, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
-// private
 typedef struct _VR_INITIALIZE_JOB_FOR_VREG
 {
     HANDLE Job;
 } VR_INITIALIZE_JOB_FOR_VREG, *PVR_INITIALIZE_JOB_FOR_VREG;
 
-// rev
 #define VR_FLAG_INHERIT_TRUST_CLASS 0x00000001
-#define VR_FLAG_WRITE_THROUGH_HIVE 0x00000002 // since REDSTONE2
-#define VR_FLAG_LOCAL_MACHINE_TRUST_CLASS 0x00000004 // since 21H1
+#define VR_FLAG_WRITE_THROUGH_HIVE 0x00000002
+#define VR_FLAG_LOCAL_MACHINE_TRUST_CLASS 0x00000004
 
-// rev + private
 typedef struct _VR_LOAD_DIFFERENCING_HIVE
 {
     HANDLE Job;
     ULONG NextLayerIsHost;
-    ULONG Flags; // VR_FLAG_*
-    ULONG LoadFlags; // NtLoadKeyEx flags
+    ULONG Flags;
+    ULONG LoadFlags;
     USHORT KeyPathLength;
     USHORT HivePathLength;
     USHORT NextLayerKeyPathLength;
-    HANDLE FileAccessToken; // since 20H1
+    HANDLE FileAccessToken;
     WCHAR Strings[ANYSIZE_ARRAY];
-    // ...
-    // WCHAR KeyPath[1];
-    // WCHAR HivePath[1];
-    // WCHAR NextLayerKeyPath[1];
 } VR_LOAD_DIFFERENCING_HIVE, *PVR_LOAD_DIFFERENCING_HIVE;
 
-// rev + private
 typedef struct _VR_CREATE_NAMESPACE_NODE
 {
     HANDLE Job;
     USHORT ContainerPathLength;
     USHORT HostPathLength;
     ULONG Flags;
-    ACCESS_MASK AccessMask; // since 20H1
+    ACCESS_MASK AccessMask;
     WCHAR Strings[ANYSIZE_ARRAY];
-    // ...
-    // WCHAR ContainerPath[1];
-    // WCHAR HostPath[1];
 } VR_CREATE_NAMESPACE_NODE, *PVR_CREATE_NAMESPACE_NODE;
 
-// private
 typedef struct _VR_MODIFY_FLAGS
 {
     HANDLE Job;
@@ -552,7 +510,6 @@ typedef struct _VR_MODIFY_FLAGS
     ULONG RemoveFlags;
 } VR_MODIFY_FLAGS, *PVR_MODIFY_FLAGS;
 
-// private
 typedef struct _NAMESPACE_NODE_DATA
 {
     ACCESS_MASK AccessMask;
@@ -560,12 +517,8 @@ typedef struct _NAMESPACE_NODE_DATA
     USHORT HostPathLength;
     ULONG Flags;
     WCHAR Strings[ANYSIZE_ARRAY];
-    // ...
-    // WCHAR ContainerPath[1];
-    // WCHAR HostPath[1];
 } NAMESPACE_NODE_DATA, *PNAMESPACE_NODE_DATA;
 
-// private
 typedef struct _VR_CREATE_MULTIPLE_NAMESPACE_NODES
 {
     HANDLE Job;
@@ -573,47 +526,37 @@ typedef struct _VR_CREATE_MULTIPLE_NAMESPACE_NODES
     NAMESPACE_NODE_DATA Keys[1];
 } VR_CREATE_MULTIPLE_NAMESPACE_NODES, *PVR_CREATE_MULTIPLE_NAMESPACE_NODES;
 
-// private
 typedef struct _VR_UNLOAD_DYNAMICALLY_LOADED_HIVES
 {
     HANDLE Job;
 } VR_UNLOAD_DYNAMICALLY_LOADED_HIVES, *PVR_UNLOAD_DYNAMICALLY_LOADED_HIVES;
 
-// rev
-#define VR_KEY_COMROOT 0          // \Registry\ComRoot\Classes
-#define VR_KEY_MACHINE_SOFTWARE 1 // \Registry\Machine\Software // since REDSTONE2
-#define VR_KEY_CONTROL_SET 2      // \Registry\Machine\System\ControlSet001 // since REDSTONE2
+#define VR_KEY_COMROOT 0
+#define VR_KEY_MACHINE_SOFTWARE 1
+#define VR_KEY_CONTROL_SET 2
 
-// rev
 typedef struct _VR_GET_VIRTUAL_ROOT
 {
     HANDLE Job;
-    ULONG Index; // VR_KEY_* // since REDSTONE2
+    ULONG Index;
 } VR_GET_VIRTUAL_ROOT, *PVR_GET_VIRTUAL_ROOT;
 
-// rev
 typedef struct _VR_GET_VIRTUAL_ROOT_RESULT
 {
     HANDLE Key;
 } VR_GET_VIRTUAL_ROOT_RESULT, *PVR_GET_VIRTUAL_ROOT_RESULT;
 
-// rev
 typedef struct _VR_LOAD_DIFFERENCING_HIVE_FOR_HOST
 {
-    ULONG LoadFlags; // NtLoadKeyEx flags
-    ULONG Flags; // VR_FLAG_* // since REDSTONE2
+    ULONG LoadFlags;
+    ULONG Flags;
     USHORT KeyPathLength;
     USHORT HivePathLength;
     USHORT NextLayerKeyPathLength;
-    HANDLE FileAccessToken; // since 20H1
+    HANDLE FileAccessToken;
     WCHAR Strings[ANYSIZE_ARRAY];
-    // ...
-    // WCHAR KeyPath[1];
-    // WCHAR HivePath[1];
-    // WCHAR NextLayerKeyPath[1];
 } VR_LOAD_DIFFERENCING_HIVE_FOR_HOST, *PVR_LOAD_DIFFERENCING_HIVE_FOR_HOST;
 
-// rev
 typedef struct _VR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST
 {
     ULONG Reserved;
@@ -621,16 +564,13 @@ typedef struct _VR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST
     WCHAR TargetKeyPath[ANYSIZE_ARRAY];
 } VR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST, *PVR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST;
 
-//
-// Key Open/Create Options
-//
-#define REG_OPTION_RESERVED             (0x00000000L)   // Parameter is reserved.
-#define REG_OPTION_NON_VOLATILE         (0x00000000L)   // Key is preserved when system is rebooted.
-#define REG_OPTION_VOLATILE             (0x00000001L)   // Key is not preserved when system is rebooted
-#define REG_OPTION_CREATE_LINK          (0x00000002L)   // Created key is a symbolic link
-#define REG_OPTION_BACKUP_RESTORE       (0x00000004L)   // open for backup or restore special access rules privilege required
-#define REG_OPTION_OPEN_LINK            (0x00000008L)   // Open symbolic link
-#define REG_OPTION_DONT_VIRTUALIZE      (0x00000010L)   // Disable Open/Read/Write virtualization for this open and the resulting handle.
+#define REG_OPTION_RESERVED             (0x00000000L)
+#define REG_OPTION_NON_VOLATILE         (0x00000000L)
+#define REG_OPTION_VOLATILE             (0x00000001L)
+#define REG_OPTION_CREATE_LINK          (0x00000002L)
+#define REG_OPTION_BACKUP_RESTORE       (0x00000004L)
+#define REG_OPTION_OPEN_LINK            (0x00000008L)
+#define REG_OPTION_DONT_VIRTUALIZE      (0x00000010L)
 
 #ifndef REG_LEGAL_OPTION
 #define REG_LEGAL_OPTION \
@@ -646,43 +586,31 @@ typedef struct _VR_UNLOAD_DIFFERENCING_HIVE_FOR_HOST
      REG_OPTION_OPEN_LINK | REG_OPTION_DONT_VIRTUALIZE)
 #endif
 
-//
-// Key creation/open disposition
-//
-#define REG_CREATED_NEW_KEY         (0x00000001L)   // New Registry Key created
-#define REG_OPENED_EXISTING_KEY     (0x00000002L)   // Existing Key opened
+#define REG_CREATED_NEW_KEY         (0x00000001L)
+#define REG_OPENED_EXISTING_KEY     (0x00000002L)
 
-//
-// hive format to be used by Reg(Nt)SaveKeyEx
-//
 #define REG_STANDARD_FORMAT     1
 #define REG_LATEST_FORMAT       2
 #define REG_NO_COMPRESSION      4
 
-//
-// Key restore & hive load flags
-//
-#define REG_WHOLE_HIVE_VOLATILE         (0x00000001L)   // Restore whole hive volatile
-#define REG_REFRESH_HIVE                (0x00000002L)   // Unwind changes to last flush
-#define REG_NO_LAZY_FLUSH               (0x00000004L)   // Never lazy flush this hive
-#define REG_FORCE_RESTORE               (0x00000008L)   // Force the restore process even when we have open handles on subkeys
-#define REG_APP_HIVE                    (0x00000010L)   // Loads the hive visible to the calling process
-#define REG_PROCESS_PRIVATE             (0x00000020L)   // Hive cannot be mounted by any other process while in use
-#define REG_START_JOURNAL               (0x00000040L)   // Starts Hive Journal
-#define REG_HIVE_EXACT_FILE_GROWTH      (0x00000080L)   // Grow hive file in exact 4k increments
-#define REG_HIVE_NO_RM                  (0x00000100L)   // No RM is started for this hive (no transactions)
-#define REG_HIVE_SINGLE_LOG             (0x00000200L)   // Legacy single logging is used for this hive
-#define REG_BOOT_HIVE                   (0x00000400L)   // This hive might be used by the OS loader
-#define REG_LOAD_HIVE_OPEN_HANDLE       (0x00000800L)   // Load the hive and return a handle to its root kcb
-#define REG_FLUSH_HIVE_FILE_GROWTH      (0x00001000L)   // Flush changes to primary hive file size as part of all flushes
-#define REG_OPEN_READ_ONLY              (0x00002000L)   // Open a hive's files in read-only mode
-#define REG_IMMUTABLE                   (0x00004000L)   // Load the hive, but don't allow any modification of it
-#define REG_NO_IMPERSONATION_FALLBACK   (0x00008000L)   // Do not fall back to impersonating the caller if hive file access fails
-#define REG_APP_HIVE_OPEN_READ_ONLY     (REG_OPEN_READ_ONLY)   // Open an app hive's files in read-only mode (if the hive was not previously loaded)
+#define REG_WHOLE_HIVE_VOLATILE         (0x00000001L)
+#define REG_REFRESH_HIVE                (0x00000002L)
+#define REG_NO_LAZY_FLUSH               (0x00000004L)
+#define REG_FORCE_RESTORE               (0x00000008L)
+#define REG_APP_HIVE                    (0x00000010L)
+#define REG_PROCESS_PRIVATE             (0x00000020L)
+#define REG_START_JOURNAL               (0x00000040L)
+#define REG_HIVE_EXACT_FILE_GROWTH      (0x00000080L)
+#define REG_HIVE_NO_RM                  (0x00000100L)
+#define REG_HIVE_SINGLE_LOG             (0x00000200L)
+#define REG_BOOT_HIVE                   (0x00000400L)
+#define REG_LOAD_HIVE_OPEN_HANDLE       (0x00000800L)
+#define REG_FLUSH_HIVE_FILE_GROWTH      (0x00001000L)
+#define REG_OPEN_READ_ONLY              (0x00002000L)
+#define REG_IMMUTABLE                   (0x00004000L)
+#define REG_NO_IMPERSONATION_FALLBACK   (0x00008000L)
+#define REG_APP_HIVE_OPEN_READ_ONLY     (REG_OPEN_READ_ONLY)
 
-//
-// Unload Flags
-//
 #define REG_FORCE_UNLOAD            1
 #define REG_UNLOAD_LEGAL_FLAGS      (REG_FORCE_UNLOAD)
 
@@ -1110,11 +1038,10 @@ NtLoadKeyEx(
     _In_opt_ HANDLE Event,
     _In_opt_ ACCESS_MASK DesiredAccess,
     _Out_opt_ PHANDLE RootHandle,
-    _Reserved_ PVOID Reserved // previously PIO_STATUS_BLOCK
+    _Reserved_ PVOID Reserved
     );
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_20H1)
-// rev by tyranid
 /**
  * Loads a registry key from a file with extended parameters.
  *
@@ -1383,9 +1310,6 @@ NtQueryOpenSubKeysEx(
     _Out_ PULONG RequiredSize
     );
 
-//
-// Boot condition flags (NtInitializeRegistry)
-//
 
 #define REG_INIT_BOOT_SM 0x0000
 #define REG_INIT_BOOT_SETUP 0x0001
@@ -1532,4 +1456,4 @@ NtRollbackRegistryTransaction(
     );
 #endif
 
-#endif // _NTREGAPI_H
+#endif

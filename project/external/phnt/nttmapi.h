@@ -394,4 +394,4 @@ NtThawTransactions(
     VOID
     );
 
-#endif // _NTTMAPI_H
+#endif

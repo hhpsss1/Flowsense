@@ -144,7 +144,7 @@ namespace poly2d {
 			std::int32_t count( ) const { return static_cast< std::int32_t >( entries.size( ) ); }
 		};
 
-	} // namespace detail
+	}
 
 	inline std::vector<point> make_pill( const point& a, const point& b, float radius, int cap_segments = 6 )
 	{
@@ -740,4 +740,4 @@ namespace poly2d {
 		return tris;
 	}
 
-} // namespace poly2d
+}

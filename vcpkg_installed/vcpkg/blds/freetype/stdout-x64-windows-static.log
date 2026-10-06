@@ -1,0 +1,20 @@
+Downloading https://gitlab.freedesktop.org//freetype/freetype/-/archive/VER-2-14-3/freetype-VER-2-14-3.tar.gz -> freetype-freetype-VER-2-14-3.tar.gz
+Successfully downloaded freetype-freetype-VER-2-14-3.tar.gz
+-- Extracting source C:/Users/laura/AppData/Local/vcpkg/downloads/freetype-freetype-VER-2-14-3.tar.gz
+-- Applying patch 0003-Fix-UWP.patch
+-- Applying patch brotli-static.patch
+-- Applying patch bzip2.patch
+-- Applying patch fix-exports.patch
+-- Using source at C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/src/VER-2-14-3-46d5ca34ec.clean
+-- Configuring x64-windows-static
+-- Building x64-windows-static-dbg
+-- Building x64-windows-static-rel
+-- Fixing pkgconfig file: C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/pkgs/freetype_x64-windows-static/lib/pkgconfig/freetype2.pc
+Downloading msys2-mingw-w64-x86_64-pkgconf-1~2.4.3-1-any.pkg.tar.zst, trying https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-pkgconf-1~2.4.3-1-any.pkg.tar.zst
+Successfully downloaded msys2-mingw-w64-x86_64-pkgconf-1~2.4.3-1-any.pkg.tar.zst
+Downloading msys2-msys2-runtime-3.6.2-2-x86_64.pkg.tar.zst, trying https://mirror.msys2.org/msys/x86_64/msys2-runtime-3.6.2-2-x86_64.pkg.tar.zst
+Successfully downloaded msys2-msys2-runtime-3.6.2-2-x86_64.pkg.tar.zst
+-- Using msys root at C:/Users/laura/AppData/Local/vcpkg/downloads/tools/msys2/9272adbcaf19caef
+-- Fixing pkgconfig file: C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/pkgs/freetype_x64-windows-static/debug/lib/pkgconfig/freetype2.pc
+-- Installing: C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/pkgs/freetype_x64-windows-static/share/freetype/usage
+-- Performing post-build validation

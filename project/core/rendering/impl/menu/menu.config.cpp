@@ -40,14 +40,12 @@ namespace rendering {
 			return narrow;
 		}
 
-	} // namespace detail
+	}
 
 	void menu::draw_config( float group_w )
 	{
 		( void )group_w;
 
-		// Re-scan C:\nexoria periodically while the tab is open so configs
-		// dropped in externally show up without needing a create/save/delete.
 		static float scan_timer{ 0.0f };
 		scan_timer += xdraw::delta_time( );
 		if ( scan_timer >= 1.0f )
@@ -89,18 +87,10 @@ namespace rendering {
 
 			xui::layout::set_cursor( this->m_body_x - this->m_x, this->m_body_y - this->m_y );
 
-			if ( xui::begin_child( "config settings", this->m_body_w, this->m_body_h, false ) )
+			if ( xui::begin_child( "Settings##cfg_settings", this->m_body_w, this->m_body_h, false ) )
 			{
-				xui::checkbox( "Safe mode", m.safe_mode );
-				if ( xui::begin_popup( "##safemode_popup", 220.0f ) )
-				{
-					xui::text( "Disables ragebot, anti-aim, and other risky features.", xdraw::color{ 180, 180, 180, 255 } );
-					xui::end_popup( );
-				}
-
-				xui::layout::separator( );
-
 				xui::keybind( "Menu key", m.menu_key );
+				xui::keybind( "Unload key", m.unload_key );
 				xui::slider_float( "Menu dpi scale", m.menu_dpi_scale, 0.5f, 2.0f, "%.2fx" );
 
 				xui::end_child( );
@@ -111,7 +101,7 @@ namespace rendering {
 
 		xui::layout::set_cursor( this->m_body_x - this->m_x, this->m_body_y - this->m_y );
 
-		if ( !xui::begin_child( "cloud sync", this->m_body_w, this->m_body_h, false ) )
+		if ( !xui::begin_child( "Configs##cfg_panel", this->m_body_w, this->m_body_h, false ) )
 		{
 			return;
 		}
@@ -154,19 +144,11 @@ namespace rendering {
 
 				if ( sel_anim > 0.01f )
 				{
-					dl.rect_filled( row.x, row.y, row.w, row.h, tokens::col_accent.alpha( static_cast< std::uint8_t >( 70.0f * sel_anim ) ) );
+					dl.rect_filled( row.x, row.y, row.w, row.h, tokens::col_accent.alpha( static_cast< std::uint8_t >( 70.0f * sel_anim ) ), xdraw::corner_radius{ 6.0f } );
 				}
 				else if ( hover_anim > 0.01f )
 				{
-					dl.rect_filled( row.x, row.y, row.w, row.h, tokens::col_elevated.alpha( static_cast< std::uint8_t >( 255.0f * hover_anim * 0.5f ) ) );
-				}
-
-				if ( sel_anim > 0.01f )
-				{
-					// Accent bar in the leading gutter marks the active config.
-					const auto bar_a = static_cast< std::uint8_t >( 255.0f * sel_anim );
-					const auto bar_h = std::max( 0.0f, row.h - 8.0f );
-					dl.rect_filled( row.x + 2.0f, row.y + 4.0f, 2.0f, bar_h, tokens::col_accent.alpha( bar_a ) );
+					dl.rect_filled( row.x, row.y, row.w, row.h, tokens::col_elevated.alpha( static_cast< std::uint8_t >( 255.0f * hover_anim * 0.5f ) ), xdraw::corner_radius{ 6.0f } );
 				}
 
 				const auto [ tw, th ] = xdraw::measure_text( narrow );
@@ -174,7 +156,7 @@ namespace rendering {
 					? xui::lerp( tokens::col_text, tokens::col_accent, sel_anim )
 					: xui::lerp( tokens::col_text_dim, tokens::col_text, hover_anim );
 
-				dl.text( std::floor( row.x + 10.0f ), std::floor( row.y + ( row.h - th ) * 0.5f ), narrow, text_col );
+				dl.text( row.x + 10.0f, row.y + ( row.h - th ) * 0.5f, narrow, text_col );
 
 				visible_rows++;
 			}
@@ -234,9 +216,6 @@ namespace rendering {
 
 		if ( detail::confirm_delete )
 		{
-			xui::push_style_color( xui::style_col::button_border, tokens::col_accent );
-			xui::push_style_color( xui::style_col::text, tokens::col_accent );
-
 			if ( xui::button( "Confirm", btn_w, btn_h ) && has_selection )
 			{
 				config::registry::remove( detail::config_list[ detail::selected ] );
@@ -244,8 +223,6 @@ namespace rendering {
 				detail::needs_refresh = true;
 				detail::confirm_delete = false;
 			}
-
-			xui::pop_style_color( 2 );
 		}
 		else if ( xui::button( "Delete", btn_w, btn_h ) && has_selection )
 		{
@@ -256,4 +233,4 @@ namespace rendering {
 		xui::end_child( );
 	}
 
-} // namespace rendering
+}

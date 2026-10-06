@@ -49,16 +49,13 @@ namespace hooking {
 		bool m_enabled{};
 	};
 
-	// Inline (mid-function) hook support was intentionally not added: pastehook
-	// style paint colors work with plain entry-point detours (build context +
-	// AddToTail trigger), no register capture required.
 
 	namespace allocator {
 
 		void* allocate( std::size_t size, void* near_ );
 		void free( void* address );
 
-	} // namespace allocator
+	}
 
 	namespace manager {
 
@@ -72,6 +69,6 @@ namespace hooking {
 
 		bool create( const std::initializer_list<entry>& entries );
 
-	} // namespace manager
+	}
 
-} // namespace hooking
+}

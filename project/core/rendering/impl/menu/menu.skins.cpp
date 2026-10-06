@@ -11,10 +11,6 @@ namespace rendering {
 
 	namespace detail {
 
-		// RAII guard – hold as a named local, never as a temporary.
-		// Two separate skin_map() temporaries were the crash: each locks the
-		// mutex for one call and drops it, leaving the iterator from the first
-		// dangling by the time .end() is called on the second.
 		struct skin_map_guard
 		{
 			std::lock_guard<std::recursive_mutex> lock;
@@ -28,7 +24,6 @@ namespace rendering {
 			void erase( std::int16_t key )                               { m.erase( key ); }
 		};
 
-		// Helper wrappers for call sites that only need read-copy or simple write.
 		[[nodiscard]] inline static std::optional<settings::changer::applied_skin> get_applied_skin( std::int16_t def_index )
 		{
 			skin_map_guard g;
@@ -64,16 +59,6 @@ namespace rendering {
 			g.erase( def_index );
 		}
 
-		// Stable storage for the paint color pickers. xui's color_picker keeps
-		// a raw pointer to the bound color for as long as its popup is open, so
-		// handing it a live skins.data node means writing into freed heap once
-		// the map is rehashed (e.g. by an "apply" that erases entries). The
-		// pickers bind to this buffer instead and the overlay syncs it to the
-		// map under the map mutex every frame.
-		//
-		// The buffer is pre-reserved so inserting a kit never rehashes it: an
-		// open popup's m_col points into a node, and nodes must stay put for the
-		// popup's whole lifetime or the next drag writes into freed heap.
 		inline std::unordered_map<std::int16_t, std::array<xdraw::color, 4>> g_paint_color_buf{ [] {
 			std::unordered_map<std::int16_t, std::array<xdraw::color, 4>> m;
 			m.reserve( 512 );
@@ -183,8 +168,6 @@ namespace rendering {
 			}
 		}
 
-		// Runtime item-def entries that take up a slot but can't be skinned -
-		// the schema's placeholder agents.
 		static inline bool is_hidden_def( const features::changer::econ_item_system::item_def* def )
 		{
 			if ( !def )
@@ -250,7 +233,11 @@ namespace rendering {
 				auto border = xui::lighten( style.popup_border, 1.1f );
 				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
 
-				
+				if ( !this->m_closing )
+				{
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr } );
+				}
+
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( popup.x, popup.y, popup.w, animated_h, border, xdraw::corner_radius{ pr } );
 
@@ -361,7 +348,11 @@ namespace rendering {
 				auto border = xui::lighten( style.popup_border, 1.1f );
 				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
 
-				
+				if ( !this->m_closing )
+				{
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr } );
+				}
+
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( popup.x, popup.y, popup.w, animated_h, border, xdraw::corner_radius{ pr } );
 
@@ -487,7 +478,11 @@ namespace rendering {
 				auto border = xui::lighten( style.popup_border, 1.1f );
 				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
 
-				
+				if ( !this->m_closing )
+				{
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr } );
+				}
+
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( popup.x, popup.y, popup.w, animated_h, border, xdraw::corner_radius{ pr } );
 
@@ -602,7 +597,11 @@ namespace rendering {
 				auto border = xui::lighten( style.popup_border, 1.1f );
 				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
 
-				
+				if ( !this->m_closing )
+				{
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr } );
+				}
+
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( popup.x, popup.y, popup.w, animated_h, border, xdraw::corner_radius{ pr } );
 
@@ -725,7 +724,11 @@ namespace rendering {
 				auto border = xui::lighten( style.popup_border, 1.1f );
 				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
 
-				
+				if ( !this->m_closing )
+				{
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr } );
+				}
+
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( popup.x, popup.y, popup.w, animated_h, border, xdraw::corner_radius{ pr } );
 
@@ -761,10 +764,7 @@ namespace rendering {
 					if ( it != settings::g_changer.skins.data.end( ) )
 					{
 						entry_exists = true;
-						// Always read the toggle flag (plain bool, not a drag value)
 						this->m_enable.value = it->second.paint_color;
-						// Sync color_buf from the map only once on first open.
-						// If we reset it every frame we clobber an in-progress drag.
 						if ( !this->m_initialized )
 						{
 							this->m_initialized = true;
@@ -787,7 +787,6 @@ namespace rendering {
 						xui::color_picker( label, color_buf[ i ], 0.0f, false );
 					}
 
-					// Always flush picker state back so every drag frame persists
 					{
 						std::lock_guard<std::recursive_mutex> lock{ settings::g_changer.skins.mx };
 
@@ -884,7 +883,11 @@ namespace rendering {
 				auto border = xui::lighten( style.popup_border, 1.1f );
 				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
 
-				
+				if ( !this->m_closing )
+				{
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr } );
+				}
+
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( popup.x, popup.y, popup.w, animated_h, border, xdraw::corner_radius{ pr } );
 
@@ -1322,16 +1325,16 @@ namespace rendering {
 				auto border = xui::lighten( style.popup_border, 1.1f );
 				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
 
-				
+				if ( !this->m_closing )
+				{
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr } );
+				}
+
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( popup.x, popup.y, popup.w, animated_h, border, xdraw::corner_radius{ pr } );
 
 				dl.push_clip( popup.x, popup.y, popup.w, animated_h );
 
-				// Snapshot under the map mutex so this render never walks a live
-				// node whose strings could be mid-write (or replaced by a rehash)
-				// on the game thread. Reading a copy also keeps the value strings
-				// owned by this overlay for the whole frame.
 				settings::changer::applied_skin entry{};
 				bool entry_found = false;
 				{
@@ -1487,9 +1490,6 @@ namespace rendering {
 			static constexpr auto k_pad{ 4.0f };
 			static constexpr auto k_popup_w{ 200.0f };
 
-			// Popup rows by item id (slot 0 is the header row). Gloves only
-			// support the paint colour override - everything else is
-			// weapon-specific.
 			static constexpr int k_normal_items[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 			static constexpr int k_glove_items[]{ 0, 6 };
 
@@ -1733,8 +1733,6 @@ namespace rendering {
 				dl.text( std::floor( card.x + ( card.w - nw2 ) * 0.5f ), std::floor( name_y ), ntrunc, ncol );
 			}
 
-			// "Modify" button under the text for skinned items (replaces right-click context menu).
-			// Gloves get a reduced overlay (wear/seed/paint colour only).
 			if ( is_skinned )
 			{
 				constexpr auto modify_h{ 16.0f };
@@ -1751,11 +1749,11 @@ namespace rendering {
 
 				auto btn_bg = xui::lerp( tokens::col_card, xui::lighten( tokens::col_card, 1.5f ), modify_anim );
 				btn_bg.a = static_cast< std::uint8_t >( btn_bg.a * fade_alpha );
-				dl.rect_filled( modify_rect.x, modify_rect.y, modify_rect.w, modify_rect.h, btn_bg );
+				dl.rect_filled( modify_rect.x, modify_rect.y, modify_rect.w, modify_rect.h, btn_bg, xdraw::corner_radius{ 8.0f } );
 
 				auto btn_border = pk ? rarity_col : tokens::col_accent;
 				btn_border.a = static_cast< std::uint8_t >( ( 60.0f + 120.0f * modify_anim ) * fade_alpha );
-				dl.rect( modify_rect.x, modify_rect.y, modify_rect.w, modify_rect.h, btn_border, xdraw::corner_radius{ 0.0f }, 1.0f );
+				dl.rect( modify_rect.x, modify_rect.y, modify_rect.w, modify_rect.h, btn_border, xdraw::corner_radius{ 8.0f }, 1.0f );
 
 				const auto [mw, mh] = xdraw::measure_text( "Modify" );
 				auto btn_text = xui::lerp( tokens::col_text_dim, tokens::col_text, modify_anim );
@@ -1985,7 +1983,7 @@ namespace rendering {
 			{
 				auto ph_col = xui::darken( tokens::col_card, 0.7f );
 				ph_col.a = static_cast< std::uint8_t >( 100.0f * fade_alpha );
-				dl.rect_filled( card.x + 6.0f, card.y + 6.0f, card.w - 12.0f, image_h - 12.0f, ph_col );
+				dl.rect_filled( card.x + 6.0f, card.y + 6.0f, card.w - 12.0f, image_h - 12.0f, ph_col, xdraw::corner_radius{ 4.0f } );
 			}
 
 			auto bar = rarity_col;
@@ -2072,8 +2070,6 @@ namespace rendering {
 			}
 		}
 
-		// Kit tile for music kits: icon, optional rarity bar, selection
-		// border + check badge. Returns true when clicked.
 		static inline bool draw_kit_tile( const xui::rect& card, const features::changer::econ_item_system::kit_entry& kit, bool selected, float fade_alpha, std::string_view anim_seed )
 		{
 			auto& econ = features::changer::g_econ_item_system;
@@ -2122,7 +2118,7 @@ namespace rendering {
 			{
 				auto ph_col = xui::darken( tokens::col_card, 0.7f );
 				ph_col.a = static_cast< std::uint8_t >( 100.0f * fade_alpha );
-				dl.rect_filled( card.x + 6.0f, card.y + 6.0f, card.w - 12.0f, image_h - 12.0f, ph_col );
+				dl.rect_filled( card.x + 6.0f, card.y + 6.0f, card.w - 12.0f, image_h - 12.0f, ph_col, xdraw::corner_radius{ 4.0f } );
 			}
 
 			if ( kit.rarity > 0 )
@@ -2167,7 +2163,7 @@ namespace rendering {
 			return hovered && input.mouse_clicked;
 		}
 
-	} // namespace detail
+	}
 
 	void menu::draw_skins( float group_w ) const
 	{
@@ -2182,7 +2178,6 @@ namespace rendering {
 			detail::skins_ui.search_buf.clear( );
 		}
 
-		// Custom model selector
 		static int custom_model_idx{ 0 };
 		static bool custom_model_init{ false };
 
@@ -2227,8 +2222,6 @@ namespace rendering {
 		const auto content_w = this->m_content_w;
 		const auto body_h = this->m_body_h;
 
-		// Page transitions are instant to avoid visual jitter while scrolling.
-		// Both pages are independent children, so cross-fading is unnecessary.
 		detail::skins_ui.current = detail::skins_ui.target;
 		detail::skins_ui.fade = 1.0f;
 		const auto fade_alpha = 1.0f;
@@ -2243,8 +2236,6 @@ namespace rendering {
 			}
 
 			const auto win = xui::layout::current_window( );
-			// Always reserve scrollbar space so the grid width is stable while scrolling
-			// (prevents card reflow / horizontal jitter when the scrollbar appears or disappears).
 			constexpr auto k_sb_w{ 6.0f };
 			constexpr auto k_sb_pad{ 4.0f };
 			const auto scrollbar_w = ( k_sb_w + k_sb_pad );
@@ -2337,8 +2328,6 @@ namespace rendering {
 			}
 
 			const auto win = xui::layout::current_window( );
-			// Always reserve scrollbar space so the grid width is stable while scrolling
-			// (prevents card reflow / horizontal jitter when the scrollbar appears or disappears).
 			constexpr auto k_sb_w{ 6.0f };
 			constexpr auto k_sb_pad{ 4.0f };
 			const auto scrollbar_w = ( k_sb_w + k_sb_pad );
@@ -2549,4 +2538,4 @@ namespace rendering {
 		}
 	}
 
-} // namespace rendering
+}

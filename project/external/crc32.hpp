@@ -5,8 +5,6 @@
 
 namespace util {
 
-	// CRC-32 (Ethernet, ZIP, etc.) - ISO 3309
-	// Polynomial: 0xEDB88320 (reversed representation)
 	inline constexpr std::uint32_t crc32_update( std::uint32_t crc, const std::uint8_t* data, std::size_t len ) noexcept
 	{
 		static constexpr std::uint32_t k_table[ 256 ] = {
@@ -62,4 +60,4 @@ namespace util {
 		return crc32( static_cast< const std::uint8_t* >( data ), len );
 	}
 
-} // namespace util
+}

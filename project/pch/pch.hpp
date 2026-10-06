@@ -1,13 +1,11 @@
 #pragma once
 
-// macros
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 
-// windows
 #ifndef PHNT_VERSION
 #define PHNT_VERSION PHNT_THRESHOLD
-#endif // !PHNT_VERSION
+#endif
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -23,7 +21,6 @@
 
 #include <external/inline-syscall/inline_syscall.hpp>
 
-// types
 #include <cstdint>
 #include <string>
 #include <cmath>
@@ -36,7 +33,6 @@
 #include <optional>
 #include <random>
 
-// containers
 #include <array>
 #include <span>
 #include <vector>
@@ -44,20 +40,16 @@
 #include <unordered_set>
 #include <unordered_map>
 
-// memory
 #include <memory>
 
-// algorithms
 #include <numeric>
 #include <ranges>
 #include <algorithm>
 
-// concurrency
 #include <atomic>
 #include <mutex>
 #include <shared_mutex>
 
-// dependencies
 #include <external/xdraw/xui/xui.hpp>
 #include <external/zydis/zydis.h>
 #include <external/lz4/lz4.h>
@@ -68,11 +60,9 @@
 #include <external/poly2d.hpp>
 #include <external/bc7.hpp>
 
-// project utilities
 #include <utilities/animation.hpp>
 #include <utilities/cstypes.hpp>
 #include <utilities/fnv1a.hpp>
 #include <utilities/addresses/addresses.hpp>
 
-// declarations
 extern "C" int __stdcall _CRT_INIT( HMODULE, DWORD, LPVOID );

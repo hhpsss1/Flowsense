@@ -148,8 +148,6 @@ namespace {
 		case xui::style_var::swatch_w: return &s.swatch_w;
 		case xui::style_var::swatch_h: return &s.swatch_h;
 		case xui::style_var::text_input_h: return &s.text_input_h;
-	case xui::style_var::group_title_h: return &s.group_title_h;
-	case xui::style_var::group_title_pad: return &s.group_title_pad;
 		default: return nullptr;
 		}
 	}
@@ -162,15 +160,12 @@ namespace {
 		case xui::style_col::window_border: return &s.window_border;
 		case xui::style_col::child_bg: return &s.child_bg;
 		case xui::style_col::child_border: return &s.child_border;
-	case xui::style_col::child_title_text: return &s.child_title_text;
 		case xui::style_col::checkbox_bg: return &s.checkbox_bg;
 		case xui::style_col::checkbox_border: return &s.checkbox_border;
 		case xui::style_col::checkbox_mark: return &s.checkbox_mark;
 		case xui::style_col::checkbox_mark_icon: return &s.checkbox_mark_icon;
 		case xui::style_col::slider_track: return &s.slider_track;
 		case xui::style_col::slider_fill: return &s.slider_fill;
-	case xui::style_col::slider_border: return &s.slider_border;
-	case xui::style_col::slider_grab: return &s.slider_grab;
 		case xui::style_col::button_bg: return &s.button_bg;
 		case xui::style_col::button_border: return &s.button_border;
 		case xui::style_col::button_hovered: return &s.button_hovered;
@@ -202,7 +197,7 @@ namespace {
 		}
 	}
 
-} // namespace
+}
 
 namespace xui {
 
@@ -473,7 +468,7 @@ namespace xui {
 		float in_out_cubic( float t ) noexcept { return t < 0.5f ? 4.0f * t * t * t : 1.0f - std::pow( -2.0f * t + 2.0f, 3.0f ) / 2.0f; }
 		float smoothstep( float t ) noexcept { return t * t * ( 3.0f - 2.0f * t ); }
 
-	} // namespace ease
+	}
 
 	std::span<const wchar_t> input_state::chars( ) const noexcept
 	{
@@ -547,6 +542,151 @@ namespace xui {
 		this->char_count = 0;
 		this->key_press_count = 0;
 		this->key_release_count = 0;
+	}
+
+
+
+
+
+
+
+	namespace fn_keys {
+
+		inline bool async_down( int vk ) noexcept
+		{
+			return ( ::GetAsyncKeyState( vk ) & 0x8000 ) != 0;
+		}
+
+		inline bool held( const input_state& in, int vk ) noexcept
+		{
+			const auto it = in.keys.find( vk );
+			const auto wnd_down = ( it != in.keys.end( ) ) && it->second;
+			if ( wnd_down )
+			{
+				return true;
+			}
+
+
+
+			return async_down( vk );
+		}
+
+
+		inline bool is_mouse_vk( int vk ) noexcept
+		{
+			return vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON ||
+				vk == VK_XBUTTON1 || vk == VK_XBUTTON2;
+		}
+
+
+
+		inline void sync_stale( input_state& in ) noexcept
+		{
+			for ( auto& [vk, down] : in.keys )
+			{
+				if ( !down || is_mouse_vk( vk ) )
+				{
+					continue;
+				}
+
+				if ( !async_down( vk ) )
+				{
+					down = false;
+				}
+			}
+		}
+
+		[[nodiscard]] inline int appcommand_to_vk( int cmd ) noexcept
+		{
+			switch ( cmd )
+			{
+			case APPCOMMAND_VOLUME_MUTE: return VK_VOLUME_MUTE;
+			case APPCOMMAND_VOLUME_DOWN: return VK_VOLUME_DOWN;
+			case APPCOMMAND_VOLUME_UP: return VK_VOLUME_UP;
+			case APPCOMMAND_MEDIA_NEXTTRACK: return VK_MEDIA_NEXT_TRACK;
+			case APPCOMMAND_MEDIA_PREVIOUSTRACK: return VK_MEDIA_PREV_TRACK;
+			case APPCOMMAND_MEDIA_STOP: return VK_MEDIA_STOP;
+			case APPCOMMAND_MEDIA_PLAY_PAUSE: return VK_MEDIA_PLAY_PAUSE;
+			case APPCOMMAND_LAUNCH_MAIL: return VK_LAUNCH_MAIL;
+			case APPCOMMAND_LAUNCH_MEDIA_SELECT: return VK_LAUNCH_MEDIA_SELECT;
+			case APPCOMMAND_LAUNCH_APP1: return VK_LAUNCH_APP1;
+			case APPCOMMAND_LAUNCH_APP2: return VK_LAUNCH_APP2;
+			case APPCOMMAND_BROWSER_BACKWARD: return VK_BROWSER_BACK;
+			case APPCOMMAND_BROWSER_FORWARD: return VK_BROWSER_FORWARD;
+			case APPCOMMAND_BROWSER_REFRESH: return VK_BROWSER_REFRESH;
+			case APPCOMMAND_BROWSER_STOP: return VK_BROWSER_STOP;
+			case APPCOMMAND_BROWSER_SEARCH: return VK_BROWSER_SEARCH;
+			case APPCOMMAND_BROWSER_FAVORITES: return VK_BROWSER_FAVORITES;
+			case APPCOMMAND_BROWSER_HOME: return VK_BROWSER_HOME;
+			default: return 0;
+			}
+		}
+
+
+
+
+
+		[[nodiscard]] inline int poll_new_key( const input_state& in ) noexcept
+		{
+			static constexpr int k_candidates[ ]{
+				VK_ESCAPE,
+				VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, VK_F11, VK_F12,
+				VK_F13, VK_F14, VK_F15, VK_F16, VK_F17, VK_F18, VK_F19, VK_F20, VK_F21, VK_F22, VK_F23, VK_F24,
+				VK_VOLUME_MUTE, VK_VOLUME_DOWN, VK_VOLUME_UP,
+				VK_MEDIA_NEXT_TRACK, VK_MEDIA_PREV_TRACK, VK_MEDIA_STOP, VK_MEDIA_PLAY_PAUSE,
+				VK_LAUNCH_MAIL, VK_LAUNCH_MEDIA_SELECT, VK_LAUNCH_APP1, VK_LAUNCH_APP2,
+				VK_BROWSER_BACK, VK_BROWSER_FORWARD, VK_BROWSER_REFRESH, VK_BROWSER_STOP,
+				VK_BROWSER_SEARCH, VK_BROWSER_FAVORITES, VK_BROWSER_HOME,
+				VK_INSERT, VK_DELETE, VK_HOME, VK_END, VK_PRIOR, VK_NEXT,
+				VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN,
+				VK_SNAPSHOT, VK_PAUSE, VK_NUMLOCK, VK_SCROLL,
+				VK_LWIN, VK_RWIN, VK_APPS,
+				VK_TAB, VK_CAPITAL, VK_SPACE, VK_RETURN, VK_BACK,
+				VK_LSHIFT, VK_RSHIFT, VK_LCONTROL, VK_RCONTROL, VK_LMENU, VK_RMENU,
+				VK_NUMPAD0, VK_NUMPAD1, VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD4,
+				VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD7, VK_NUMPAD8, VK_NUMPAD9,
+				VK_MULTIPLY, VK_ADD, VK_SUBTRACT, VK_DECIMAL, VK_DIVIDE,
+				0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+				0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D,
+				0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A,
+				VK_OEM_1, VK_OEM_PLUS, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD,
+				VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6, VK_OEM_7,
+				VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2,
+			};
+
+			for ( const auto vk : k_candidates )
+			{
+				if ( vk == 0 || is_mouse_vk( vk ) )
+				{
+
+
+					if ( is_mouse_vk( vk ) )
+					{
+						continue;
+					}
+
+					if ( vk == 0 )
+					{
+						continue;
+					}
+				}
+
+				const auto it = in.keys.find( vk );
+				const auto wnd_down = ( it != in.keys.end( ) ) && it->second;
+				if ( wnd_down )
+				{
+					continue;
+				}
+
+				if ( async_down( vk ) )
+				{
+					return vk;
+				}
+			}
+
+			return 0;
+		}
+
 	}
 
 	bool feed_wndproc( input_state& s, UINT msg, WPARAM wp, LPARAM lp )
@@ -678,6 +818,26 @@ namespace xui {
 			return true;
 		}
 
+		case WM_APPCOMMAND:
+		{
+
+
+
+
+			const auto vk = fn_keys::appcommand_to_vk( GET_APPCOMMAND_LPARAM( lp ) );
+			if ( vk != 0 )
+			{
+				if ( !s.key_down( vk ) )
+				{
+					s.push_key_press( vk );
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+
 		default:
 			return false;
 		}
@@ -792,7 +952,7 @@ namespace xui {
 			get_anim_states( ).clear( );
 		}
 
-	} // namespace anim
+	}
 
 	namespace binds {
 
@@ -812,7 +972,7 @@ namespace xui {
 				return r;
 			}
 
-		} // the bind_registry namespace
+		}
 
 		void register_setting( setting* s )
 		{
@@ -858,7 +1018,9 @@ namespace xui {
 				}
 
 				const auto vk = s->bind.key;
-				const auto held = input.key_down( vk );
+
+
+				const auto held = fn_keys::held( input, vk );
 				const auto was_held = reg.prev_key_state[ vk ];
 				const auto just_pressed = held && !was_held;
 
@@ -927,7 +1089,7 @@ namespace xui {
 			{
 				if ( s && s->bind.key != 0 )
 				{
-					reg.prev_key_state[ s->bind.key ] = input.key_down( s->bind.key );
+					reg.prev_key_state[ s->bind.key ] = fn_keys::held( input, s->bind.key );
 				}
 			}
 		}
@@ -967,7 +1129,7 @@ namespace xui {
 			}
 		}
 
-	} // namespace binds
+	}
 
 	popup_overlay::popup_overlay( std::uintptr_t id, const rect& anchor, float width ) : overlay{ id, anchor }, m_width{ width } { }
 
@@ -1106,10 +1268,6 @@ namespace xui {
 		{
 			auto& store = get_overlays( );
 
-			// Overlays are z-ordered by insertion: only overlays added after
-			// (i.e. rendered on top of) the excluded one block interaction.
-			// This lets nested sub-popups (e.g. a skin context menu opening a
-			// wear/seed/nametag/paint-color editor) remain interactable.
 			auto past_exclude = false;
 			for ( const auto& o : store.list )
 			{
@@ -1137,11 +1295,6 @@ namespace xui {
 		{
 			auto& store = get_overlays( );
 
-			// Index-based, newest-first iteration: an overlay's process_input may
-			// add a sub-overlay (e.g. skin wear/seed/nametag/paint editors), and a
-			// push_back that reallocates the vector would invalidate a reverse or
-			// range iterator. Snapping the count and indexing keeps the loop over
-			// the same overlays safe whether or not the vector grows mid-iteration.
 			for ( std::size_t i = store.list.size( ); i-- > 0; )
 			{
 				if ( store.list[ i ] && store.list[ i ]->process_input( input ) )
@@ -1155,11 +1308,6 @@ namespace xui {
 		{
 			auto& store = get_overlays( );
 
-			// Index-based with a captured count: color_picker() (called from an
-			// overlay's render) push_backs its popup while we are iterating here.
-			// A vector realloc would leave the range-for iterators dangling, so
-			// only overlays present when the frame began are rendered; popups
-			// opened mid-frame render from the next frame.
 			const auto count = store.list.size( );
 			for ( std::size_t i = 0; i < count && i < store.list.size( ); ++i )
 			{
@@ -1199,7 +1347,7 @@ namespace xui {
 			get_overlays( ).list.push_back( std::move( ov ) );
 		}
 
-	} // namespace overlays
+	}
 
 	void push_id( std::uintptr_t id )
 	{
@@ -1265,7 +1413,7 @@ namespace xui {
 			}
 		}
 
-	} // namespace draw
+	}
 
 	namespace layout {
 
@@ -1482,7 +1630,7 @@ namespace xui {
 			return { win->cursor_x, win->cursor_y };
 		}
 
-	} // namespace layout
+	}
 
 	bool context::overlay_blocking( ) const
 	{
@@ -1550,20 +1698,26 @@ namespace xui {
 			return "none";
 		}
 
+
+
+
+		static constexpr const char* k_alpha[ 26 ]{
+			"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+			"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+		};
+
+		static constexpr const char* k_digit[ 10 ]{
+			"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+		};
+
 		if ( key >= 0x41 && key <= 0x5A )
 		{
-			static char buf[ 2 ]{};
-			buf[ 0 ] = static_cast< char >( key );
-			buf[ 1 ] = '\0';
-			return buf;
+			return k_alpha[ key - 0x41 ];
 		}
 
 		if ( key >= 0x30 && key <= 0x39 )
 		{
-			static char buf[ 2 ]{};
-			buf[ 0 ] = static_cast< char >( key );
-			buf[ 1 ] = '\0';
-			return buf;
+			return k_digit[ key - 0x30 ];
 		}
 
 		switch ( key )
@@ -1576,11 +1730,20 @@ namespace xui {
 		case VK_SHIFT: case VK_LSHIFT: case VK_RSHIFT: return "shift";
 		case VK_CONTROL: case VK_LCONTROL: case VK_RCONTROL: return "ctrl";
 		case VK_MENU: case VK_LMENU: case VK_RMENU: return "alt";
+		case VK_LWIN: return "lwin";
+		case VK_RWIN: return "rwin";
+		case VK_APPS: return "menu";
 		case VK_SPACE: return "space";
 		case VK_RETURN: return "enter";
 		case VK_ESCAPE: return "esc";
 		case VK_TAB: return "tab";
+		case VK_BACK: return "back";
 		case VK_CAPITAL: return "caps";
+		case VK_NUMLOCK: return "num";
+		case VK_SCROLL: return "scroll";
+		case VK_PAUSE: return "pause";
+		case VK_SNAPSHOT: return "prtsc";
+		case VK_CLEAR: return "clear";
 		case VK_INSERT: return "insert";
 		case VK_DELETE: return "delete";
 		case VK_HOME: return "home";
@@ -1591,6 +1754,22 @@ namespace xui {
 		case VK_RIGHT: return "right";
 		case VK_UP: return "up";
 		case VK_DOWN: return "down";
+		case VK_NUMPAD0: return "num0";
+		case VK_NUMPAD1: return "num1";
+		case VK_NUMPAD2: return "num2";
+		case VK_NUMPAD3: return "num3";
+		case VK_NUMPAD4: return "num4";
+		case VK_NUMPAD5: return "num5";
+		case VK_NUMPAD6: return "num6";
+		case VK_NUMPAD7: return "num7";
+		case VK_NUMPAD8: return "num8";
+		case VK_NUMPAD9: return "num9";
+		case VK_MULTIPLY: return "num*";
+		case VK_ADD: return "num+";
+		case VK_SEPARATOR: return "numsep";
+		case VK_SUBTRACT: return "num-";
+		case VK_DECIMAL: return "num.";
+		case VK_DIVIDE: return "num/";
 		case VK_F1: return "f1";
 		case VK_F2: return "f2";
 		case VK_F3: return "f3";
@@ -1603,6 +1782,47 @@ namespace xui {
 		case VK_F10: return "f10";
 		case VK_F11: return "f11";
 		case VK_F12: return "f12";
+		case VK_F13: return "f13";
+		case VK_F14: return "f14";
+		case VK_F15: return "f15";
+		case VK_F16: return "f16";
+		case VK_F17: return "f17";
+		case VK_F18: return "f18";
+		case VK_F19: return "f19";
+		case VK_F20: return "f20";
+		case VK_F21: return "f21";
+		case VK_F22: return "f22";
+		case VK_F23: return "f23";
+		case VK_F24: return "f24";
+		case VK_VOLUME_MUTE: return "mute";
+		case VK_VOLUME_DOWN: return "voldn";
+		case VK_VOLUME_UP: return "volup";
+		case VK_MEDIA_NEXT_TRACK: return "medianext";
+		case VK_MEDIA_PREV_TRACK: return "mediaprev";
+		case VK_MEDIA_STOP: return "mediastop";
+		case VK_MEDIA_PLAY_PAUSE: return "mediaplay";
+		case VK_LAUNCH_MAIL: return "mail";
+		case VK_LAUNCH_MEDIA_SELECT: return "media";
+		case VK_LAUNCH_APP1: return "app1";
+		case VK_LAUNCH_APP2: return "app2";
+		case VK_BROWSER_BACK: return "brback";
+		case VK_BROWSER_FORWARD: return "brfwd";
+		case VK_BROWSER_REFRESH: return "brrefr";
+		case VK_BROWSER_STOP: return "brstop";
+		case VK_BROWSER_SEARCH: return "brsrch";
+		case VK_BROWSER_FAVORITES: return "brfav";
+		case VK_BROWSER_HOME: return "brhome";
+		case VK_OEM_1: return ";";
+		case VK_OEM_PLUS: return "=";
+		case VK_OEM_COMMA: return ",";
+		case VK_OEM_MINUS: return "-";
+		case VK_OEM_PERIOD: return ".";
+		case VK_OEM_2: return "/";
+		case VK_OEM_3: return "`";
+		case VK_OEM_4: return "[";
+		case VK_OEM_5: return "\\";
+		case VK_OEM_6: return "]";
+		case VK_OEM_7: return "'";
 		default: return "unknown";
 		}
 	}
@@ -1616,6 +1836,8 @@ namespace xui {
 	void begin( )
 	{
 		auto& c = get_ctx( );
+
+		fn_keys::sync_stale( c.input );
 
 		{
 			auto& dc = get_double_click( );
@@ -1740,6 +1962,7 @@ namespace xui {
 		auto window_border = s.window_border;
 		window_border.a = static_cast< std::uint8_t >( window_border.a * reveal_clamped );
 
+
 		dl.rect_filled( draw_x, draw_y, draw_w, draw_h, window_bg, xdraw::corner_radius{ r } );
 
 		if ( s.border_thickness > 0.0f )
@@ -1773,11 +1996,8 @@ namespace xui {
 		const auto id = make_id( title );
 		const auto& s = c.style;
 		const auto r = s.rounding;
-
-		// A caption on the top border turns the child into a Catalyst style group box.
-		// Labels that start with "##" keep the old untitled card look.
-		const auto [caption, id_label] = parse_label( title );
-		const auto title_h = caption.empty( ) ? 0.0f : s.group_title_h;
+		const auto [display, full] = parse_label( title );
+		const auto has_title = !display.empty( );
 
 		if ( w <= 0.0f )
 		{
@@ -1799,11 +2019,6 @@ namespace xui {
 		}
 		else
 		{
-			// Only explicitly sized children are clamped to the remaining
-			// space. Auto-sized children must keep their natural content
-			// height so the owning tab can measure overflow and drive its
-			// own scrollbar (clamping here would silently compress groups
-			// and defeat tab-level scrolling).
 			const auto consumed_y = parent->cursor_y + ( parent->line_h > 0.0f ? parent->line_h + s.item_spacing_y : 0.0f );
 			const auto max_h = parent->bounds.h - consumed_y - s.window_pad_y;
 
@@ -1822,9 +2037,6 @@ namespace xui {
 			auto& cs = c.child_scroll_cache[ id ];
 			scroll_y = cs.scroll;
 
-			// Reserve the scrollbar lane permanently. If the lane animated with the hover
-			// scrollbar, every child's content would re-layout whenever the cursor enters
-			// it (cards reflow, text re-wraps) and the whole panel would visibly jitter.
 			constexpr auto k_scrollbar_w{ 6.0f };
 			constexpr auto k_scrollbar_pad{ 8.0f };
 			constexpr auto k_scrollbar_content_gap{ 0.0f };
@@ -1832,10 +2044,10 @@ namespace xui {
 		}
 
 		window_state state{};
-		state.title = std::string( id_label );
+		state.title = std::string( title );
 		state.bounds = rect{ abs.x, abs.y, abs.w - sb_inset, abs.h };
 		state.cursor_x = s.window_pad_x;
-		state.cursor_y = title_h + s.window_pad_y - scroll_y;
+		state.cursor_y = s.window_pad_y + ( has_title ? 3.0f : 0.0f ) - scroll_y;
 		state.is_child = true;
 		state.group_id = id;
 		state.scrollable = scrollable;
@@ -1848,46 +2060,31 @@ namespace xui {
 
 		if ( s.border_thickness > 0.0f )
 		{
-			// The border box starts halfway down the caption strip so the top edge
-			// runs straight through the caption, and the gap keeps the text readable.
-			const auto border_y = abs.y + title_h * 0.5f;
-			const auto box_h = abs.h - title_h * 0.5f;
-
-			dl.rect( abs.x, border_y, abs.w, box_h, s.child_border, xdraw::corner_radius{ r }, s.border_thickness );
-
-			if ( title_h > 0.0f )
-			{
-				const auto pad = s.group_title_pad;
-				const auto text_x = abs.x + s.window_pad_x;
-				const auto avail = abs.w - s.window_pad_x * 2.0f - pad * 2.0f;
-				const auto [full_w, full_h] = xdraw::measure_text( caption );
-
-				if ( full_w > avail && avail > 0.0f )
-				{
-					const auto cut = truncate( caption, avail );
-					const auto [cut_w, cut_h] = xdraw::measure_text( cut );
-
-					dl.rect_filled( text_x - pad, abs.y, cut_w + pad * 2.0f, title_h, s.child_bg );
-					dl.text( std::floorf( text_x ), std::floorf( abs.y + ( title_h - cut_h ) * 0.5f ), cut, s.child_title_text );
-				}
-				else
-				{
-					dl.rect_filled( text_x - pad, abs.y, full_w + pad * 2.0f, title_h, s.child_bg );
-					dl.text( std::floorf( text_x ), std::floorf( abs.y + ( title_h - full_h ) * 0.5f ), caption, s.child_title_text );
-				}
-			}
+			dl.rect( abs.x, abs.y, abs.w, abs.h, s.child_border, xdraw::corner_radius{ r }, s.border_thickness );
 		}
 
-		dl.push_clip( abs.x, abs.y + title_h, abs.w, abs.h - title_h );
+
+
+		if ( has_title )
+		{
+			const auto [tw, th] = xdraw::measure_text( display );
+			const auto tx = std::floorf( abs.x + ( abs.w - tw ) * 0.5f );
+			const auto ty = std::floorf( abs.y - th * 0.5f );
+			dl.rect_filled( tx - 7.0f, ty - 1.0f, tw + 14.0f, th + 2.0f, s.child_bg );
+			dl.text( tx, ty, display, lighten( s.text, 1.3f ) );
+		}
+
+		dl.push_clip( abs.x, abs.y, abs.w, abs.h );
 		push_id( id );
 
 		return true;
 	}
 
-	void end_child( )
-	{
-		auto& c = get_ctx( );
-		auto win = layout::current_window( );
+ 	void end_child( )
+ 	{
+ 		auto& c = get_ctx( );
+ 		auto win = layout::current_window( );
+		const auto is_group = win && win->group_id != null_id;
 
 		if ( win && win->group_id != null_id )
 		{
@@ -1905,8 +2102,6 @@ namespace xui {
 				constexpr auto k_scrollbar_pad{ 8.0f };
 				constexpr auto k_scrollbar_content_gap{ 0.0f };
 
-				// Constant inset (see begin_child): the hover fade only affects the bar's
-				// alpha, never the content width, so hovering cannot shift child content.
 				const auto inset = k_scrollbar_w + k_scrollbar_pad + k_scrollbar_content_gap;
 				const auto full_w = win->bounds.w + inset;
 				const auto full_right = win->bounds.right( ) + inset;
@@ -2025,8 +2220,9 @@ namespace xui {
 					auto thumb_col = thumb_active ? xdraw::color{ 255, 255, 255, 150 } : xdraw::color{ 255, 255, 255, 100 };
 					thumb_col.a = static_cast< std::uint8_t >( thumb_col.a * sb_alpha );
 
-					dl.rect_filled( track.x, track.y, track.w, track.h, track_col );
-					dl.rect_filled( thumb.x, thumb.y, thumb.w, thumb.h, thumb_col );
+					const auto track_r = k_scrollbar_w * 0.5f;
+					dl.rect_filled( track.x, track.y, track.w, track.h, track_col, xdraw::corner_radius{ track_r } );
+					dl.rect_filled( thumb.x, thumb.y, thumb.w, thumb.h, thumb_col, xdraw::corner_radius{ track_r } );
 				}
 			}
 			else
@@ -2042,6 +2238,13 @@ namespace xui {
 
 		c.windows.pop_back( );
 		pop_id( );
+
+
+
+		if ( is_group )
+		{
+			layout::spacing( 4.0f );
+		}
 	}
 
 	bool begin_popup( std::string_view label, float width )
@@ -2071,8 +2274,8 @@ namespace xui {
 		const auto open_anim = anim::lerp( id + 2, is_open ? 1.0f : 0.0f, 10.0f );
 		auto dot_col = lerp( s.text_dim, s.accent, std::max( hover_anim, open_anim ) );
 
-		constexpr auto dot_r{ 1.5f };
-		constexpr auto dot_spacing{ 4.0f };
+		constexpr auto dot_r{ 1.3f };
+		constexpr auto dot_spacing{ 3.5f };
 		const auto total_dots_w = dot_r * 2.0f * 3.0f + dot_spacing * 2.0f;
 		const auto start_x = dot_abs.x + ( dot_area_w - total_dots_w ) * 0.5f;
 		const auto cy = dot_abs.y + dot_area_h * 0.5f;
@@ -2118,7 +2321,7 @@ namespace xui {
 
 			if ( animated_h > 1.0f )
 			{
-				
+				top_dl.rect_filled_blurred( popup_rect.x, popup_rect.y, popup_rect.w, animated_h, xdraw::corner_radius{ s.popup_rounding }, xdraw::color{ 255, 255, 255, static_cast< std::uint8_t >( 210.0f * alpha_mult ) } );
 			}
 			top_dl.rect_filled( popup_rect.x, popup_rect.y, popup_rect.w, animated_h, bg, xdraw::corner_radius{ s.popup_rounding } );
 			top_dl.rect( popup_rect.x, popup_rect.y, popup_rect.w, animated_h, border, xdraw::corner_radius{ s.popup_rounding } );
@@ -2244,42 +2447,30 @@ namespace xui {
 			float size,
 			float t,
 			const style& st,
-			float alpha_mult = 1.0f,
-			float hover = 0.0f )
+			float alpha_mult = 1.0f )
 		{
+
 			auto bg = st.checkbox_bg;
 			bg.a = static_cast< std::uint8_t >( bg.a * alpha_mult );
-			dl.rect_filled( x, y, size, size, bg, xdraw::corner_radius{ st.checkbox_rounding } );
-
 			auto border = st.checkbox_border;
 			border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
-			if ( hover > 0.01f )
-			{
-				border = lerp( border, st.checkbox_mark, hover * 0.3f );
-				border.a = static_cast< std::uint8_t >( border.a * alpha_mult );
-			}
-
-			dl.rect( x, y, size, size, border, xdraw::corner_radius{ st.checkbox_rounding }, st.border_thickness );
+			dl.rect_filled( x, y, size, size, bg, xdraw::corner_radius{ st.checkbox_rounding } );
+			dl.rect( x, y, size, size, border, xdraw::corner_radius{ st.checkbox_rounding }, 1.0f );
 
 			if ( t > 0.01f )
 			{
-				// Inset accent block that scales up as the box gets checked.
-				constexpr auto pad{ 2.0f };
-				const auto inner_w = size - pad * 2.0f;
-				const auto inner_h = size - pad * 2.0f;
-				const auto scale = 0.6f + t * 0.4f;
-				const auto sw = inner_w * scale;
-				const auto sh = inner_h * scale;
+				auto fill = st.checkbox_mark;
+				fill.a = static_cast< std::uint8_t >( fill.a * t * alpha_mult );
+				dl.rect_filled( x, y, size, size, fill, xdraw::corner_radius{ st.checkbox_rounding } );
 
-				auto mark = st.checkbox_mark;
-				mark.a = static_cast< std::uint8_t >( mark.a * t * alpha_mult );
-
-				dl.rect_filled_gradient(
-					x + pad + ( inner_w - sw ) * 0.5f,
-					y + pad + ( inner_h - sh ) * 0.5f,
-					sw, sh,
-					lighten( mark, 1.1f ), lighten( mark, 1.1f ),
-					darken( mark, 0.75f ), darken( mark, 0.75f ) );
+				auto check = xdraw::color{ 16, 16, 16, 255 };
+				check.a = static_cast< std::uint8_t >( check.a * t * alpha_mult );
+				const float pts[ ]{
+					x + size * 0.28f, y + size * 0.55f,
+					x + size * 0.45f, y + size * 0.72f,
+					x + size * 0.74f, y + size * 0.30f
+				};
+				dl.polyline( pts, check, false, 2.0f );
 			}
 		}
 
@@ -2290,45 +2481,24 @@ namespace xui {
 			float track_w,
 			float track_h,
 			float norm_pos,
-			const style& st,
-			float hover = 0.0f )
+			const style& st )
 		{
-			const auto norm = std::clamp( norm_pos, 0.0f, 1.0f );
-			const auto cr = xdraw::corner_radius{ st.slider_rounding };
 
-			// Recessed track: darker than the surface with a hairline frame.
-			dl.rect_filled( track_x, track_y, track_w, track_h, darken( st.slider_track, 0.7f ), cr );
+			const auto track_r = track_h * 0.5f;
+			const auto thumb_cx = track_x + std::clamp( norm_pos, 0.0f, 1.0f ) * track_w;
+			const auto fill_w = std::max( track_h, thumb_cx - track_x );
 
-			auto track_border = st.slider_border;
-			track_border.a = static_cast< std::uint8_t >( track_border.a * ( 0.75f + 0.25f * hover ) );
-			dl.rect( track_x, track_y, track_w, track_h, track_border, cr, st.border_thickness );
-
-			constexpr auto fill_pad{ 2.0f };
-			const auto fill_h = std::max( 1.0f, track_h - fill_pad * 2.0f );
-			const auto fill_y = track_y + ( track_h - fill_h ) * 0.5f;
-
-			// Square knob riding the track, taller than the groove like the reference.
-			const auto knob_w = std::max( 6.0f, track_h * 0.75f );
-			const auto knob_h = track_h + 6.0f;
-			const auto knob_x = track_x + norm * std::max( 0.0f, track_w - knob_w );
-			const auto knob_y = track_y + ( track_h - knob_h ) * 0.5f;
-
-			const auto fill_w = ( knob_x + knob_w * 0.5f ) - track_x - fill_pad;
+			dl.rect_filled( track_x, track_y, track_w, track_h, st.slider_track, xdraw::corner_radius{ track_r } );
 
 			if ( fill_w > 0.5f )
 			{
-				const auto fill_x = track_x + fill_pad;
-				const auto fill_l = lighten( st.slider_fill, 1.1f + hover * 0.1f );
-				const auto fill_r = darken( st.slider_fill, 0.85f );
-				dl.rect_filled_gradient( fill_x, fill_y, fill_w, fill_h, fill_l, fill_r, fill_r, fill_l );
+				dl.rect_filled( track_x, track_y, fill_w, track_h, st.slider_fill, xdraw::corner_radius{ track_r } );
 			}
 
-			dl.rect_filled( knob_x, knob_y + 1.0f, knob_w, knob_h, xdraw::color{ 0, 0, 0, 90 } );
-			dl.rect_filled( knob_x, knob_y, knob_w, knob_h, lighten( st.slider_track, 1.2f ), cr );
-
-			auto knob_border = st.slider_border;
-			knob_border.a = static_cast< std::uint8_t >( knob_border.a * ( 0.75f + 0.25f * hover ) );
-			dl.rect( knob_x, knob_y, knob_w, knob_h, knob_border, cr, st.border_thickness );
+			constexpr auto knob_r{ 4.5f };
+			const auto knob_cx = std::clamp( thumb_cx, track_x + knob_r - 1.0f, track_x + track_w - knob_r + 1.0f );
+			const auto knob_cy = track_y + track_h * 0.5f;
+			dl.circle_filled( knob_cx, knob_cy, knob_r, xdraw::color{ 232, 232, 232, 255 }, 20 );
 		}
 
 		class checkbox_bind_overlay : public overlay
@@ -2391,6 +2561,28 @@ namespace xui {
 						if ( this->m_setting )
 						{
 							this->m_setting->bind.key = VK_RBUTTON;
+						}
+
+						this->m_listening = false;
+						binds::get_bind_registry( ).listening_setting = 0;
+						return true;
+					}
+
+
+
+					if ( const auto polled = fn_keys::poll_new_key( input ) )
+					{
+						if ( polled == VK_ESCAPE )
+						{
+							if ( this->m_setting )
+							{
+								this->m_setting->bind.key = 0;
+								this->m_setting->bind.active = false;
+							}
+						}
+						else if ( this->m_setting )
+						{
+							this->m_setting->bind.key = polled;
 						}
 
 						this->m_listening = false;
@@ -2477,7 +2669,7 @@ namespace xui {
 
 				if ( animated_h > 1.0f )
 				{
-					
+					dl.rect_filled_blurred( popup.x, popup.y, popup.w, animated_h, xdraw::corner_radius{ pr }, xdraw::color{ 255, 255, 255, static_cast< std::uint8_t >( 210.0f * alpha_mult ) } );
 				}
 				dl.rect_filled( popup.x, popup.y, popup.w, animated_h, bg, xdraw::corner_radius{ pr } );
 
@@ -2587,7 +2779,7 @@ namespace xui {
 			std::array<float, k_item_count> m_item_anims{};
 		};
 
-	} // the checkbox_bind namespace
+	}
 
 	bool checkbox( std::string_view label, setting& s )
 	{
@@ -2611,12 +2803,20 @@ namespace xui {
 		const auto& st = c.style;
 		const auto& input = c.input;
 
-		const auto check_size = st.checkbox_size;
-		const auto abs = layout::item( check_size, check_size );
-
+		const auto box_size = st.checkbox_size;
 		const auto [lw, lh] = xdraw::measure_text( display );
-		const auto full_w = !display.empty( ) ? ( abs.w + st.item_spacing_x + lw ) : abs.w;
-		const auto extended = rect{ abs.x, abs.y, full_w, abs.h };
+		const auto row_h = std::max( box_size, lh );
+		const auto [avail_w, avail_h] = layout::avail( );
+		const auto abs = layout::item( avail_w, row_h );
+
+
+
+
+		constexpr auto dots_lane{ 22.0f };
+		const auto extended = rect{ abs.x, abs.y, abs.w - dots_lane, row_h };
+
+		const auto box_x = extended.right( ) - box_size;
+		const auto box_y = std::floorf( abs.y + ( row_h - box_size ) * 0.5f );
 
 		const auto can_interact = !c.overlay_blocking( );
 		auto changed{ false };
@@ -2643,10 +2843,27 @@ namespace xui {
 				break;
 			}
 
-			if ( badge_listening && input.rmb_clicked )
+			if ( reg.listening_setting != 0 )
 			{
-				s.bind.key = VK_RBUTTON;
-				reg.listening_setting = 0;
+				if ( input.rmb_clicked )
+				{
+					s.bind.key = VK_RBUTTON;
+					reg.listening_setting = 0;
+				}
+				else if ( const auto polled = fn_keys::poll_new_key( input ) )
+				{
+					if ( polled == VK_ESCAPE )
+					{
+						s.bind.key = 0;
+						s.bind.active = false;
+					}
+					else
+					{
+						s.bind.key = polled;
+					}
+
+					reg.listening_setting = 0;
+				}
 			}
 		}
 
@@ -2697,22 +2914,23 @@ namespace xui {
 		const auto is_highlighted = !hl.label.empty( ) && now < hl.expires_at && display == hl.label;
 		const auto highlight_anim = anim::lerp( id + 97, is_highlighted ? 1.0f : 0.0f, 18.0f );
 
-		draw_minimal_checkbox( dl, abs.x, abs.y, abs.w, ease_t, st, 1.0f, hover_anim );
+		draw_minimal_checkbox( dl, box_x, box_y, box_size, ease_t, st );
 
 		if ( highlight_anim > 0.01f )
 		{
 			auto pulse = st.accent;
 			pulse.a = static_cast< std::uint8_t >( std::min( 255.0f, pulse.a * ( 0.2f + highlight_anim * 0.55f ) ) );
-			dl.rect_filled( extended.x - 4.0f, extended.y - 2.0f, extended.w + 8.0f, extended.h + 4.0f, pulse, xdraw::corner_radius{ st.checkbox_rounding } );
+			dl.rect_filled( extended.x - 4.0f, extended.y - 2.0f, extended.w + 8.0f, extended.h + 4.0f, pulse, xdraw::corner_radius{ 8.0f } );
 		}
 
 		if ( !display.empty( ) )
 		{
-			const auto tx = abs.x + abs.w + st.item_spacing_x;
-			const auto ty = abs.y + ( check_size - lh ) * 0.5f;
-			const auto available_w = win->bounds.right( ) - tx - st.window_pad_x;
+			const auto tx = abs.x;
+			const auto ty = abs.y + ( row_h - lh ) * 0.5f;
+			const auto available_w = box_x - tx - st.item_spacing_x;
 			const auto label_text = truncate( display, available_w );
-			auto label_col = lerp( st.text_dim, st.text, std::max( check_anim, hover_anim ) );
+
+			auto label_col = lerp( st.text, lighten( st.text, 1.2f ), hover_anim );
 			if ( highlight_anim > 0.01f )
 			{
 				const auto glow_col = lerp( st.accent, st.text, 0.35f );
@@ -2739,7 +2957,7 @@ namespace xui {
 				const auto badge_y = ty + ( lh - badge_h ) * 0.5f;
 				const auto badge_rect = rect{ badge_x, badge_y, badge_w, badge_h };
 
-				if ( badge_x + badge_w < win->bounds.right( ) - st.window_pad_x )
+				if ( badge_x + badge_w <= box_x - 2.0f )
 				{
 					const auto badge_hovered = can_interact && input.in_rect( badge_rect );
 					if ( badge_hovered && input.mouse_clicked && !badge_listening && !c.overlay_blocking( ) )
@@ -2820,24 +3038,27 @@ namespace xui {
 			const auto [label_w, label_h] = xdraw::measure_text( display );
 			const auto [value_w, value_h] = xdraw::measure_text( value_buf );
 
-			const auto text_height = std::max( label_h, value_h );
-			const auto track_height = s.slider_h;
-			// Matches the knob overhang drawn by draw_minimal_slider (track + 3px each side).
-			const auto thumb_d = track_height + 6.0f;
-			const auto slider_area_h = std::max( track_height, thumb_d );
-			const auto spacing = s.item_spacing_y * 0.25f;
-			const auto total_height = text_height + spacing + slider_area_h;
 
-			const auto abs = layout::item( slider_width, total_height, text_height );
-			const auto track_y = abs.y + text_height + spacing + ( slider_area_h - track_height ) * 0.5f;
-			const auto track_rect = rect{ abs.x, track_y, slider_width, track_height };
-			const auto slider_hit_rect = rect{ abs.x, abs.y + text_height + spacing, slider_width, slider_area_h };
+			const auto track_height = s.slider_h;
+			constexpr auto thumb_r{ 6.0f };
+			const auto row_h = std::max( { label_h, value_h, thumb_r * 2.0f } );
+			const auto gap = s.item_spacing_x;
+
+			const auto abs = layout::item( slider_width, row_h );
+			const auto ctrl_w = slider_width - 22.0f;
+			const auto value_box_w = std::max( value_w, 30.0f );
+			const auto label_box_w = std::floorf( ( ctrl_w - value_box_w - gap * 2.0f ) * 0.42f );
+			const auto track_w = std::max( 40.0f, ctrl_w - label_box_w - value_box_w - gap * 2.0f );
+			const auto track_x = abs.x + label_box_w + gap;
+			const auto track_y = abs.y + ( row_h - track_height ) * 0.5f;
+			const auto track_rect = rect{ track_x, track_y, track_w, track_height };
+			const auto slider_hit_rect = rect{ track_x - 4.0f, abs.y, track_w + 8.0f, row_h };
 
 			const auto can_interact = !c.overlay_blocking( );
 
 			const auto is_editing = c.active_slider_edit == id;
-			const auto value_text_x = abs.x + slider_width - value_w;
-			const auto value_text_rect = rect{ value_text_x, abs.y, value_w, text_height };
+			const auto value_text_x = abs.x + ctrl_w - value_w;
+			const auto value_text_rect = rect{ value_text_x, abs.y, value_w, row_h };
 
 			if ( is_editing )
 			{
@@ -2846,8 +3067,8 @@ namespace xui {
 
 				const auto [edit_w, edit_h] = xdraw::measure_text( buf.empty( ) ? "0" : buf );
 				const auto edit_box_w = std::max( value_w + 16.0f, edit_w + 12.0f );
-				const auto edit_box_x = std::floorf( abs.x + slider_width - edit_box_w );
-				const auto edit_box_rect = rect{ edit_box_x, abs.y, edit_box_w, text_height };
+				const auto edit_box_x = std::floorf( abs.x + ctrl_w - edit_box_w );
+				const auto edit_box_rect = rect{ edit_box_x, abs.y, edit_box_w, row_h };
 
 				if ( input.mouse_clicked && !input.in_rect( edit_box_rect ) )
 				{
@@ -2954,7 +3175,7 @@ namespace xui {
 					const auto cursor_text = buf.substr( 0, cursor );
 					const auto [cw, ch] = xdraw::measure_text( cursor_text.empty( ) ? "" : cursor_text );
 					const auto cursor_x = std::floorf( edit_box_rect.x + text_pad + cw );
-					const auto cursor_h = std::floorf( ( buf_h > 0.0f ? buf_h : text_height ) * 0.7f );
+					const auto cursor_h = std::floorf( ( buf_h > 0.0f ? buf_h : row_h ) * 0.7f );
 					const auto cursor_y = std::floorf( edit_box_rect.y + ( edit_box_rect.h - cursor_h ) * 0.5f );
 
 					c.slider_edit_blink += dt;
@@ -3037,7 +3258,8 @@ namespace xui {
 				}
 
 				const auto value_col = lerp( s.text_dim, s.accent, std::max( anim::get( id + 1000000 ) * 0.65f, c.active_slider == id ? 0.85f : 0.0f ) );
-				draw::current( ).text( abs.x + slider_width - value_w, abs.y, value_buf, value_col );
+				const auto [final_vw, final_vh] = xdraw::measure_text( value_buf );
+				draw::current( ).text( abs.x + ctrl_w - final_vw, abs.y + ( row_h - final_vh ) * 0.5f, value_buf, value_col );
 			}
 
 			auto& value_anim = get_anim_states( )[ id ];
@@ -3054,18 +3276,18 @@ namespace xui {
 
 			if ( !display.empty( ) && !is_editing )
 			{
-				const auto available_label_w = slider_width - value_w - s.item_spacing_x;
-				const auto label_text = truncate( display, available_label_w );
+				const auto label_text = truncate( display, label_box_w );
 				const auto label_col = lerp( s.text_dim, s.text, hover_anim_val );
-				dl.text( abs.x, abs.y, label_text, label_col );
+				const auto [dtw, dth] = xdraw::measure_text( label_text );
+				dl.text( abs.x, abs.y + ( row_h - dth ) * 0.5f, label_text, label_col );
 			}
 
-			draw_minimal_slider( dl, track_rect.x, track_rect.y, track_rect.w, track_rect.h, norm_pos, s, hover_anim_val );
+			draw_minimal_slider( dl, track_rect.x, track_rect.y, track_rect.w, track_rect.h, norm_pos, s );
 
 			return changed;
 		}
 
-	} // the slider namespace
+	}
 
 	bool slider_float( std::string_view label, float& v, float v_min, float v_max, std::string_view fmt )
 	{
@@ -3100,11 +3322,12 @@ namespace xui {
 
 		const auto button_width = s.keybind_w;
 		const auto button_height = s.keybind_h;
-		const auto total_w = !display.empty( ) ? ( button_width + s.item_spacing_x + lw ) : button_width;
+		const auto [kb_avail_w, kb_avail_h] = layout::avail( );
+		const auto total_w = kb_avail_w;
 		const auto total_h = std::max( button_height, lh );
 
 		const auto abs = layout::item( total_w, total_h );
-		const auto button_rect = rect{ abs.x, abs.y, button_width, button_height };
+		const auto button_rect = rect{ abs.right( ) - button_width - 22.0f, abs.y + ( total_h - button_height ) * 0.5f, button_width, button_height };
 
 		const auto can_interact = !c.overlay_blocking( );
 		const auto hovered = can_interact && input.in_rect( button_rect );
@@ -3175,9 +3398,9 @@ namespace xui {
 
 		if ( !display.empty( ) )
 		{
-			const auto lx = button_rect.x + button_width + s.item_spacing_x;
+			const auto lx = abs.x;
 			const auto ly = abs.y + ( total_h - lh ) * 0.5f;
-			const auto available_w = win->bounds.right( ) - lx - s.window_pad_x;
+			const auto available_w = button_rect.x - lx - s.item_spacing_x;
 			const auto label_text = truncate( display, available_w );
 			dl.text( lx, ly, label_text, kb_text_col );
 		}
@@ -3209,6 +3432,14 @@ namespace xui {
 					key = vk;
 				}
 
+				c.active_keybind = null_id;
+				return true;
+			}
+
+
+			if ( const auto polled = fn_keys::poll_new_key( input ) )
+			{
+				key = ( polled == VK_ESCAPE ) ? 0 : polled;
 				c.active_keybind = null_id;
 				return true;
 			}
@@ -3358,7 +3589,7 @@ namespace xui {
 
 				if ( animated_h > 1.0f )
 				{
-					
+					dl.rect_filled_blurred( dd.x, dd.y, dd.w, animated_h, xdraw::corner_radius{ pr }, xdraw::color{ 255, 255, 255, static_cast< std::uint8_t >( 210.0f * alpha_mult ) } );
 				}
 				dl.rect_filled( dd.x, dd.y, dd.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( dd.x, dd.y, dd.w, animated_h, border, xdraw::corner_radius{ pr } );
@@ -3494,8 +3725,9 @@ namespace xui {
 					auto thumb_col = thumb_active ? xdraw::color{ 255, 255, 255, 150 } : xdraw::color{ 255, 255, 255, 100 };
 					thumb_col.a = static_cast< std::uint8_t >( thumb_col.a * sb_alpha * alpha_mult );
 
-					dl.rect_filled( track.x, track.y, track.w, track.h, track_col );
-					dl.rect_filled( thumb.x, thumb.y, thumb.w, thumb.h, thumb_col );
+					const auto track_r = k_scrollbar_w * 0.5f;
+					dl.rect_filled( track.x, track.y, track.w, track.h, track_col, xdraw::corner_radius{ track_r } );
+					dl.rect_filled( thumb.x, thumb.y, thumb.w, thumb.h, thumb_col, xdraw::corner_radius{ track_r } );
 				}
 
 				dl.pop_clip( );
@@ -3559,7 +3791,7 @@ namespace xui {
 			float m_scrollbar_drag_offset{};
 		};
 
-	} // the combo namespace
+	}
 
 	bool combo( std::string_view label, int& current, const char* const items[ ], int count, float width )
 	{
@@ -3591,14 +3823,17 @@ namespace xui {
 			width = layout::item_width( );
 		}
 
+		const auto total_w = width;
 		const auto [lw, lh] = xdraw::measure_text( display );
 		const auto combo_h_val = s.combo_h;
-		const auto sp = s.item_spacing_y * 0.25f;
-		const auto total_h = lh + sp + combo_h_val;
+		const auto row_h = std::max( lh, combo_h_val );
+		const auto gap = s.item_spacing_x;
 
-		const auto abs = layout::item( width, total_h, lh );
-		const auto button_y = abs.y + lh + sp;
-		const auto button_rect = rect{ abs.x, button_y, width, combo_h_val };
+		const auto abs = layout::item( total_w, row_h );
+		const auto box_w = display.empty( ) ? total_w : std::clamp( total_w * 0.38f, 80.0f, 110.0f );
+		constexpr auto dots_lane{ 22.0f };
+		const auto button_rect = rect{ abs.right( ) - dots_lane - box_w, abs.y + ( row_h - combo_h_val ) * 0.5f, box_w, combo_h_val };
+		const auto label_max_w = std::max( 20.0f, button_rect.x - abs.x - gap );
 
 		if ( is_open )
 		{
@@ -3628,7 +3863,7 @@ namespace xui {
 					items_vec.emplace_back( items[ i ] );
 				}
 
-				overlays::add( std::make_unique<combo_overlay>( id, button_rect, width, items_vec, &current, s.combo_item_h, s.window_pad_y * 0.5f ) );
+				overlays::add( std::make_unique<combo_overlay>( id, button_rect, box_w, items_vec, &current, s.combo_item_h, s.window_pad_y * 0.5f ) );
 			}
 		}
 
@@ -3641,18 +3876,21 @@ namespace xui {
 
 		if ( !display.empty( ) )
 		{
-			const auto label_text = truncate( display, width );
+			const auto label_text = truncate( display, label_max_w );
 			const auto label_col = lerp( s.text_dim, s.text, hover_anim );
-			dl.text( abs.x, abs.y, label_text, label_col );
+			const auto [llw, llh] = xdraw::measure_text( label_text );
+			dl.text( abs.x, abs.y + ( row_h - llh ) * 0.5f, label_text, label_col );
 		}
 
 		dl.rect_filled( button_rect.x, button_rect.y, button_rect.w, button_rect.h, bg, xdraw::corner_radius{ r } );
 		dl.rect( button_rect.x, button_rect.y, button_rect.w, button_rect.h, border, xdraw::corner_radius{ r } );
 
 		const auto current_text = ( current >= 0 && current < count ) ? items[ current ] : "";
-		const auto [tw, th] = xdraw::measure_text( current_text );
+		const auto max_text_w = button_rect.w - s.frame_pad_x * 2.0f - 14.0f;
+		const auto current_trunc = truncate( current_text, max_text_w );
+		const auto [tw, th] = xdraw::measure_text( current_trunc );
 		const auto combo_text_col = lerp( s.text_dim, s.text, hover_anim );
-		dl.text( button_rect.x + s.frame_pad_x, button_rect.y + ( combo_h_val - th ) * 0.5f, current_text, combo_text_col );
+		dl.text( button_rect.x + ( button_rect.w - tw ) * 0.5f, button_rect.y + ( combo_h_val - th ) * 0.5f, current_trunc, combo_text_col );
 
 		constexpr auto arrow_size{ 6.0f };
 		constexpr auto arrow_h_val{ 3.5f };
@@ -3775,7 +4013,7 @@ namespace xui {
 
 				if ( animated_h > 1.0f )
 				{
-					
+					dl.rect_filled_blurred( dd.x, dd.y, dd.w, animated_h, xdraw::corner_radius{ pr }, xdraw::color{ 255, 255, 255, static_cast< std::uint8_t >( 210.0f * alpha_mult ) } );
 				}
 				dl.rect_filled( dd.x, dd.y, dd.w, animated_h, bg, xdraw::corner_radius{ pr } );
 				dl.rect( dd.x, dd.y, dd.w, animated_h, border, xdraw::corner_radius{ pr } );
@@ -3834,7 +4072,7 @@ namespace xui {
 					const auto cx = ir.x + 4.0f;
 					const auto cy = ir.y + ( this->m_item_h - check_size ) * 0.5f + slide;
 
-					draw_minimal_checkbox( dl, cx, cy, check_size, ce, style, item_alpha, he );
+					draw_minimal_checkbox( dl, cx, cy, check_size, ce, style, item_alpha );
 
 					auto text_col = style.text;
 					if ( ce > 0.5f )
@@ -3944,7 +4182,7 @@ namespace xui {
 			mutable bool m_display_dirty{ true };
 		};
 
-	} // the multicombo namespace
+	}
 
 	bool multicombo( std::string_view label, bool* selected, const char* const items[ ], int count, float width )
 	{
@@ -3976,14 +4214,17 @@ namespace xui {
 			width = layout::item_width( );
 		}
 
+		const auto total_w = width;
 		const auto [lw, lh] = xdraw::measure_text( display );
 		const auto combo_h_val = s.combo_h;
-		const auto sp = s.item_spacing_y * 0.25f;
-		const auto total_h = lh + sp + combo_h_val;
+		const auto row_h = std::max( lh, combo_h_val );
+		const auto gap = s.item_spacing_x;
 
-		const auto abs = layout::item( width, total_h, lh );
-		const auto button_y = abs.y + lh + sp;
-		const auto button_rect = rect{ abs.x, button_y, width, combo_h_val };
+		const auto abs = layout::item( total_w, row_h );
+		const auto box_w = display.empty( ) ? total_w : std::clamp( total_w * 0.32f, 70.0f, 95.0f );
+		constexpr auto dots_lane{ 22.0f };
+		const auto button_rect = rect{ abs.right( ) - dots_lane - box_w, abs.y + ( row_h - combo_h_val ) * 0.5f, box_w, combo_h_val };
+		const auto label_max_w = std::max( 20.0f, button_rect.x - abs.x - gap );
 
 		if ( is_open )
 		{
@@ -4005,7 +4246,7 @@ namespace xui {
 			}
 			else
 			{
-				overlays::add( std::make_unique<multicombo_overlay>( id, button_rect, width, items, count, selected, s.combo_item_h, s.window_pad_y * 0.5f ) );
+				overlays::add( std::make_unique<multicombo_overlay>( id, button_rect, box_w, items, count, selected, s.combo_item_h, s.window_pad_y * 0.5f ) );
 			}
 		}
 
@@ -4019,7 +4260,8 @@ namespace xui {
 
 		if ( !display.empty( ) )
 		{
-			dl.text( abs.x, abs.y, truncate( display, width ), mc_text_col );
+			const auto [mllw, mllh] = xdraw::measure_text( truncate( display, label_max_w ) );
+			dl.text( abs.x, abs.y + ( row_h - mllh ) * 0.5f, truncate( display, label_max_w ), mc_text_col );
 		}
 
 		dl.rect_filled( button_rect.x, button_rect.y, button_rect.w, button_rect.h, bg, xdraw::corner_radius{ r } );
@@ -4052,11 +4294,23 @@ namespace xui {
 
 		constexpr auto arrow_size{ 6.0f };
 		const auto arrow_pad = s.frame_pad_x + 4.0f + arrow_size + 8.0f;
-		const auto max_text_w = width - s.frame_pad_x - arrow_pad;
+		const auto max_text_w = box_w - s.frame_pad_x - arrow_pad;
 		const auto text_trunc = truncate( display_text, max_text_w );
 		const auto [dtw, dth] = xdraw::measure_text( text_trunc );
 
-		dl.text( button_rect.x + s.frame_pad_x, button_rect.y + ( combo_h_val - dth ) * 0.5f, text_trunc, mc_text_col );
+
+		auto selected_count{ 0 };
+		for ( auto i = 0; i < count; ++i )
+		{
+			if ( selected[ i ] )
+			{
+				++selected_count;
+			}
+		}
+		const auto text_x = ( selected_count >= 2 )
+			? ( button_rect.x + s.frame_pad_x )
+			: ( button_rect.x + ( button_rect.w - dtw ) * 0.5f );
+		dl.text( text_x, button_rect.y + ( combo_h_val - dth ) * 0.5f, text_trunc, mc_text_col );
 
 		constexpr auto arrow_h_val{ 3.5f };
 		const auto ax = button_rect.right( ) - arrow_size - s.frame_pad_x - 4.0f;
@@ -4532,8 +4786,7 @@ namespace xui {
 
 						auto swatch_col = this->m_paste_color;
 						swatch_col.a = static_cast< std::uint8_t >( std::min( 255.0f, swatch_col.a * item_alpha ) );
-						dl.rect_filled( sx, sy, swatch_size, swatch_size, swatch_col, xdraw::corner_radius{ style.color_swatch_rounding } );
-					dl.rect( sx, sy, swatch_size, swatch_size, style.picker_border, xdraw::corner_radius{ style.color_swatch_rounding }, style.border_thickness );
+						dl.rect_filled( sx, sy, swatch_size, swatch_size, swatch_col, xdraw::corner_radius{ 3.0f } );
 
 						const auto [hw, hh] = xdraw::measure_text( this->m_paste_hex );
 						auto hex_col = style.text_dim;
@@ -4575,7 +4828,7 @@ namespace xui {
 			std::array<float, k_item_count> m_item_anims{};
 		};
 
-	} // the color_picker namespace
+	}
 
 	bool color_picker( std::string_view label, xdraw::color& col, float width, bool show_alpha )
 	{
@@ -4618,29 +4871,21 @@ namespace xui {
 		const auto sh = s.swatch_h;
 		const auto has_label = !display.empty( );
 
-		auto label_w{ 0.0f };
 		auto label_h{ 0.0f };
 
 		if ( has_label )
 		{
 			auto [w, h] = xdraw::measure_text( display );
-			label_w = w;
 			label_h = h;
 		}
 
-		const auto total_w = has_label ? ( sw + s.item_spacing_x + label_w ) : sw;
-		const auto total_h = has_label ? std::max( sh, label_h ) : sh;
 
-		const auto abs = layout::item( total_w, total_h );
-		auto x_offset{ 0.0f };
+		const auto [cp_avail_w, cp_avail_h] = layout::avail( );
+		const auto total_w = ( width > 0.0f ) ? std::min( width, cp_avail_w ) : cp_avail_w;
+		const auto row_h = std::max( sh, label_h );
 
-		if ( width > 0.0f )
-		{
-			x_offset = width - total_w;
-		}
-
-		const auto swatch_y = has_label ? ( abs.y + ( total_h - sh ) * 0.5f ) : abs.y;
-		const auto swatch_rect = rect{ abs.x + x_offset, swatch_y, sw, sh };
+		const auto abs = layout::item( total_w, row_h );
+		const auto swatch_rect = rect{ abs.right( ) - sw - 22.0f, abs.y + ( row_h - sh ) * 0.5f, sw, sh };
 
 		const auto can_interact = !c.overlay_blocking( ) || is_open;
 		const auto hovered = can_interact && input.in_rect( swatch_rect );
@@ -4730,9 +4975,9 @@ namespace xui {
 
 		if ( has_label )
 		{
-			const auto lx = swatch_rect.right( ) + s.item_spacing_x;
-			const auto ly = abs.y + ( total_h - label_h ) * 0.5f;
-			const auto available_w = win->bounds.right( ) - lx - s.window_pad_x;
+			const auto lx = abs.x;
+			const auto ly = abs.y + ( row_h - label_h ) * 0.5f;
+			const auto available_w = swatch_rect.x - lx - s.item_spacing_x;
 			const auto label_text = truncate( display, available_w );
 			const auto label_col = lerp( s.text_dim, s.text, std::max( hover_anim, open_anim ) );
 			dl.text( lx, ly, label_text, label_col );
@@ -4760,7 +5005,7 @@ namespace xui {
 			return s;
 		}
 
-	} // the text_input namespace
+	}
 
 	bool text_input( std::string_view label, std::string& buf, std::size_t max_len, std::string_view hint )
 	{
@@ -5176,4 +5421,4 @@ namespace xui {
 		return changed;
 	}
 
-} // namespace xui
+}

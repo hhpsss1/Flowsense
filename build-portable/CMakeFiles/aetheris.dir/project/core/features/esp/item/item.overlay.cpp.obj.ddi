@@ -1,0 +1,9 @@
+{
+  "revision": 0,
+  "rules": [
+    {
+      "primary-output": "CMakeFiles\\aetheris.dir\\project\\core\\features\\esp\\item\\item.overlay.cpp.obj"
+    }
+  ],
+  "version": 1
+}

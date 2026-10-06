@@ -30,11 +30,11 @@ namespace {
 
 		struct CompositeMaterialInputLooseVariable_t
 		{
-			char* m_strName; // CUtlString
+			char* m_strName;
 			std::uint8_t pad_008[ 0x38 ];
 			std::int32_t m_nVariableType;
 			std::uint8_t pad_044[ 0x48 ];
-			std::uint32_t m_cValueColor4; // rgba
+			std::uint32_t m_cValueColor4;
 			std::uint8_t pad_090[ 0x288 - 0x90 ];
 		};
 
@@ -44,7 +44,6 @@ namespace {
 
 		using append_fn = void( __fastcall* )( void*, const CompositeMaterialInputLooseVariable_t* );
 
-		// E8 ? ? ? ? 0F 28 B4 24 ? ? ? ? 4C 39 A5 @ client.dll (call target)
 		append_fn g_append{};
 
 		char* tier0_dup( const char* s )
@@ -102,9 +101,6 @@ namespace {
 			std::uint16_t weapon_def_index = 0;
 		};
 
-		// Per-thread: material building can run on multiple threads (e.g. inventory
-// preview) while gameplay builds on the main thread. A shared map mutated
-// concurrently is a data race (node-walk AV); TLS keeps it lock-free and safe.
 thread_local std::unordered_map< void*, vector_state_t > g_vector_states;
 
 		std::uint16_t push_weapon_context( void* weapon )
@@ -200,7 +196,7 @@ thread_local std::unordered_map< void*, vector_state_t > g_vector_states;
 			}
 
 			CompositeMaterialInputLooseVariable_t var{};
-			var.m_strName = tier0_dup( name ); // game moves ptr
+			var.m_strName = tier0_dup( name );
 			if ( !var.m_strName )
 			{
 				return;
@@ -220,9 +216,6 @@ thread_local std::unordered_map< void*, vector_state_t > g_vector_states;
 				return nullptr;
 			}
 
-			// Snapshot under the same mutex the menu uses for its writes; the
-			// caller keeps using these colors after we unlock, so a map entry
-			// being erased mid-edit must not leave a dangling paint_colors view.
 			static thread_local xdraw::color stash[ 4 ];
 
 			{
@@ -252,10 +245,6 @@ thread_local std::unordered_map< void*, vector_state_t > g_vector_states;
 			}
 		}
 
-		// Pastehook-parity: append the config color set only ONCE per material
-		// vector; without this guard every g_nRandomSeed trigger (multiple per
-		// material rebuild, one material per weapon) would keep appending and
-		// the loose-variable vector would grow unboundedly until crash.
 		std::uint16_t active_weapon_paint_def_index( )
 		{
 			int count = 0;
@@ -344,10 +333,6 @@ thread_local std::unordered_map< void*, vector_state_t > g_vector_states;
 
 				const auto color_index = color_trigger_index( name );
 
-				// Glove materials tint through a single g_vColorTint loose
-				// variable instead of the weapon-style g_vColor0..3 set.
-				// Swap it for the configured paint colour when the material
-				// being built belongs to a gloved item with paint colour on.
 				if ( safe_equals( name, "g_vColorTint" ) )
 				{
 					const auto def_index = current_weapon_context_def_index( );
@@ -427,9 +412,9 @@ thread_local std::unordered_map< void*, vector_state_t > g_vector_states;
 			}
 		}
 
-	} // namespace custom_paint
+	}
 
-} // namespace
+}
 
 namespace hooks {
 
@@ -513,4 +498,4 @@ namespace hooks {
 			append );
 	}
 
-} // namespace hooks
+}

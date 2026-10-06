@@ -99,4 +99,4 @@ namespace systems {
 		return bone_cache;
 	}
 
-} // namespace systems
+}

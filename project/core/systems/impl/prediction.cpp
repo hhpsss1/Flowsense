@@ -54,7 +54,7 @@ namespace systems {
 			std::vector<entry> m_entries;
 		};
 
-	} // namespace detail
+	}
 
 	void prediction::capture_prestate( std::uintptr_t local_pawn, std::uintptr_t movement_services )
 	{
@@ -72,8 +72,6 @@ namespace systems {
 		if ( game_scene_node )
 		{
 			this->m_prestate.origin = memory::read<math::vector3>( game_scene_node + SCHEMA( "CGameSceneNode", "m_vecAbsOrigin"_hash ) );
-			// m_vecOrigin is an encoded network-origin object, not a vector3.
-			// Use the evaluated position anywhere a plain world-space vector is needed.
 			this->m_prestate.networked_origin = this->m_prestate.origin;
 		}
 	}
@@ -319,7 +317,7 @@ namespace systems {
 			memory::call<void>( prediction_set_pawn, pawn_guard, local.pawn );
 			memory::call<void>( prediction_set_state, pred_state, std::uint8_t( 1 ) );
 
-			memory::call_vfunc<void>( movement_services, 46, cmd_ptr );  // SetupContext
+			memory::call_vfunc<void>( movement_services, 46, cmd_ptr );
 			if ( trace )
 			{
 				diag::step( "prediction: context ready" );
@@ -332,12 +330,12 @@ namespace systems {
 			{
 				memory::call<void>( prediction_set_state, pred_state, std::uint8_t( 0 ) );
 				memory::call<void>( prediction_reset_pawn, pawn_guard );
-				memory::call_vfunc<void>( movement_services, 47 );  // CleanupContext
+				memory::call_vfunc<void>( movement_services, 47 );
 				return false;
 			}
 
 			memory::call<void>( prediction_setup_move, move_data, cmd_ptr, next_tick, fb_seedsync ? 1 : 0 );
-			memory::call_vfunc<void>( movement_services, 39, cmd_ptr, move_data );  // SetupMove
+			memory::call_vfunc<void>( movement_services, 39, cmd_ptr, move_data );
 			memory::write<std::uintptr_t>( movement_services + 408, 0 );
 			if ( trace )
 			{
@@ -349,17 +347,13 @@ namespace systems {
 			{
 				diag::step( "prediction: movement processed" );
 			}
-			memory::call_vfunc<void>( movement_services, 43, cmd_ptr, move_data );  // PostThink_Weapon
+			memory::call_vfunc<void>( movement_services, 43, cmd_ptr, move_data );
 			memory::call<void>( prediction_finish_move, movement_services, cmd_ptr, move_data, 1 );
 			if ( trace )
 			{
 				diag::step( "prediction: move finished" );
 			}
 
-			// Run the callback while the prediction context is still active.
-			// Engine helpers such as get_inaccuracy()/get_spread() gate on the
-			// prediction state, so reading them after teardown (state disabled,
-			// pawn reset, context cleaned up) returns non-predicted values.
 			if ( trace )
 			{
 				diag::step( "prediction: callback begin" );
@@ -375,7 +369,7 @@ namespace systems {
 
 			memory::call<void>( prediction_set_state, pred_state, std::uint8_t( 0 ) );
 			memory::call<void>( prediction_reset_pawn, pawn_guard );
-			memory::call_vfunc<void>( movement_services, 47 );  // CleanupContext
+			memory::call_vfunc<void>( movement_services, 47 );
 			if ( trace )
 			{
 				diag::step( "prediction: context cleaned" );
@@ -395,4 +389,4 @@ namespace systems {
 		return true;
 	}
 
-} // namespace systems
+}

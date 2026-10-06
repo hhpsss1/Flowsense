@@ -58,7 +58,7 @@ typedef struct RAW_SMBIOS_DATA
 
 typedef struct _SMBIOS_ENTRY_POINT_2_1
 {
-    UCHAR Signature[4];             // _SM_ (ASCII)
+    UCHAR Signature[4];
     UCHAR Checksum;
     UCHAR Length;
     UCHAR MajorVersion;
@@ -66,7 +66,7 @@ typedef struct _SMBIOS_ENTRY_POINT_2_1
     USHORT MaximumStructureSize;
     UCHAR EntryPointRevision;
     UCHAR Reserved[5];
-    UCHAR Signature2[5];           // _DMI_ (ASCII)
+    UCHAR Signature2[5];
     UCHAR IntermediateChecksum;
     USHORT StructureTableLength;
     ULONG StructureTableAddress;
@@ -78,7 +78,7 @@ C_ASSERT(sizeof(SMBIOS_ENTRY_POINT_2_1) == 0X1F);
 
 typedef struct _SMBIOS_ENTRY_POINT_3_0
 {
-    UCHAR Signature[5];             // _SM3_ (ASCII)
+    UCHAR Signature[5];
     UCHAR Checksum;
     UCHAR Length;
     UCHAR MajorVersion;
@@ -109,34 +109,28 @@ typedef struct _SMBIOS_GENERIC
     UCHAR Data[ANYSIZE_ARRAY];
 } SMBIOS_GENERIC, *PSMBIOS_GENERIC;
 
-//
-// Platform Firmware Information (Type 0)
-//
 
 #define SMBIOS_FIRMWARE_INFORMATION_TYPE ((UCHAR)0)
 
 typedef struct _SMBIOS_FIRMWARE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
-    UCHAR Vendor;                  // string
-    UCHAR Version;                 // string
+    UCHAR Vendor;
+    UCHAR Version;
     USHORT StartingAddressSegment;
-    UCHAR ReleaseDate;             // string
+    UCHAR ReleaseDate;
     UCHAR RomSize;
-    ULONGLONG Characteristics;     // SMBIOS_FIRMWARE_FLAG_*
-    // 2.4+
-    USHORT Characteristics2;       // SMBIOS_FIRMWARE_FLAG_2_*
+    ULONGLONG Characteristics;
+    USHORT Characteristics2;
     UCHAR MajorRelease;
     UCHAR MinorRelease;
     UCHAR ControllerMajorRelease;
     UCHAR ControllerMinorRelease;
-    // 3.1+
     union
     {
         struct
         {
-            USHORT Unit : 2;       // SMBIOS_FIRMWARE_ROM_UNIT_*
+            USHORT Unit : 2;
             USHORT Size : 14;
         };
 
@@ -201,26 +195,20 @@ C_ASSERT(sizeof(SMBIOS_FIRMWARE_INFORMATION) == 0x1A);
 #define SMBIOS_FIRMWARE_ROM_UNIT_RESERVED_1 2
 #define SMBIOS_FIRMWARE_ROM_UNIT_RESERVED_2 3
 
-//
-// System Information (Type 1)
-//
 
 #define SMBIOS_SYSTEM_INFORMATION_TYPE ((UCHAR)1)
 
 typedef struct _SMBIOS_SYSTEM_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
-    UCHAR Manufacturer; // string
-    UCHAR ProductName;  // string
-    UCHAR Version;      // string
-    UCHAR SerialNumber; // string
-    // 2.1+
+    UCHAR Manufacturer;
+    UCHAR ProductName;
+    UCHAR Version;
+    UCHAR SerialNumber;
     GUID UniqueID;
-    UCHAR WakeUpType;   // SMBIOS_SYSTEM_WAKE_UP_TYPE
-    // 2.4+
-    UCHAR SKUNumber;    // string
-    UCHAR Family;       // string
+    UCHAR WakeUpType;
+    UCHAR SKUNumber;
+    UCHAR Family;
 } SMBIOS_SYSTEM_INFORMATION, *PSMBIOS_SYSTEM_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_SYSTEM_INFORMATION) == 0x1B);
@@ -235,26 +223,23 @@ C_ASSERT(sizeof(SMBIOS_SYSTEM_INFORMATION) == 0x1B);
 #define SMBIOS_SYSTEM_WAKE_UP_PCI_PME           ((UCHAR)7)
 #define SMBIOS_SYSTEM_WAKE_UP_AC_POWER_RESTORED ((UCHAR)8)
 
-//
-// Baseboard (or Module) Information (Type 2)
-//
 
 #define SMBIOS_BASEBOARD_INFORMATION_TYPE ((UCHAR)2)
 
 typedef struct _SMBIOS_BASEBOARD_INFORMATION
 {
     SMBIOS_HEADER Header;
-    UCHAR Manufacturer;            // string
-    UCHAR Product;                 // string
-    UCHAR Version;                 // string
-    UCHAR SerialNumber;            // string
-    UCHAR AssetTag;                // string
-    UCHAR Features;                // SMBIOS_BASEBOARD_FEATURE_*
-    UCHAR Location;                // string
+    UCHAR Manufacturer;
+    UCHAR Product;
+    UCHAR Version;
+    UCHAR SerialNumber;
+    UCHAR AssetTag;
+    UCHAR Features;
+    UCHAR Location;
     USHORT ChassisHandle;
-    UCHAR BoardType;               // SMBIOS_BASEBOARD_TYPE_*
+    UCHAR BoardType;
     UCHAR NumberOfHandles;
-    USHORT Handles[ANYSIZE_ARRAY]; // Contained object handles (processors, ports, memory, etc.)
+    USHORT Handles[ANYSIZE_ARRAY];
 } SMBIOS_BASEBOARD_INFORMATION, *PSMBIOS_BASEBOARD_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_BASEBOARD_INFORMATION) == 0x11);
@@ -280,64 +265,54 @@ C_ASSERT(sizeof(SMBIOS_BASEBOARD_INFORMATION) == 0x11);
 #define SMBIOS_BASEBOARD_TYPE_PROCESSOR_IO_MODULE        ((UCHAR)12)
 #define SMBIOS_BASEBOARD_TYPE_INTERCONNECT               ((UCHAR)13)
 
-//
-// System Enclosure or Chassis (Type 3)
-//
 
 #define SMBIOS_CHASSIS_INFORMATION_TYPE ((UCHAR)3)
 
 typedef struct _SMBIOS_CHASSIS_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
-    UCHAR Manufacturer;       // string
+    UCHAR Manufacturer;
     union
     {
         struct
         {
-            UCHAR Type : 7;   // SMBIOS_CHASSIS_TYPE_*
+            UCHAR Type : 7;
             UCHAR Locked : 1;
         };
 
         UCHAR Value;
     } Chassis;
 
-    UCHAR Version;            // string
-    UCHAR SerialNumber;       // string
-    UCHAR AssetTag;           // string
-    // 2.1+
-    UCHAR BootUpState;        // SMBIOS_CHASSIS_STATE_*
-    UCHAR PowerSupplyState;   // SMBIOS_CHASSIS_STATE_*
-    UCHAR ThermalState;       // SMBIOS_CHASSIS_STATE_*
-    UCHAR SecurityState;      // SMBIOS_CHASSIS_SECURITY_STATE_*
-    // 2.3+
+    UCHAR Version;
+    UCHAR SerialNumber;
+    UCHAR AssetTag;
+    UCHAR BootUpState;
+    UCHAR PowerSupplyState;
+    UCHAR ThermalState;
+    UCHAR SecurityState;
     ULONG OEMDefined;
     UCHAR Height;
     UCHAR NumberOfPowerCords;
     UCHAR ElementCount;
     UCHAR ElementLength;
-    UCHAR Elements[ANYSIZE_ARRAY]; // ElementCount * ElementLength, SMBIOS_CHASSIS_CONTAINED_ELEMENT
-    // 2.7+
-    // SMBIOS_CHASSIS_INFORMATION_EX
+    UCHAR Elements[ANYSIZE_ARRAY];
 } SMBIOS_CHASSIS_INFORMATION, *PSMBIOS_CHASSIS_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_CHASSIS_INFORMATION) == 0x16);
 
 typedef struct _SMBIOS_CHASSIS_INFORMATION_EX
 {
-    // 2.7+
-    UCHAR SKUNumber; // string
+    UCHAR SKUNumber;
 } SMBIOS_CHASSIS_INFORMATION_EX, *PSMBIOS_CHASSIS_INFORMATION_EX;
 
 typedef struct _SMBIOS_CHASSIS_CONTAINED_ELEMENT
 {
-    // 2.3+
     union
     {
         struct
         {
-            UCHAR Type : 7;   // SMBIOS_*_INFORMATION_TYPE or SM_BIOS_BASEBOARD_TYPE_*
-            UCHAR Select : 1; // 1 = SMBIOS_*_INFORMATION_TYPE, 0 = SM_BIOS_BASEBOARD_TYPE_*
+            UCHAR Type : 7;
+            UCHAR Select : 1;
         };
 
         UCHAR Value;
@@ -399,32 +374,28 @@ C_ASSERT(sizeof(SMBIOS_CHASSIS_CONTAINED_ELEMENT) == 0x3);
 #define SMBIOS_CHASSIS_SECURITY_STATE_LOCKED_OUT ((UCHAR)4)
 #define SMBIOS_CHASSIS_SECURITY_STATE_ENABLED    ((UCHAR)5)
 
-//
-// Processor Information (Type 4)
-//
 
 #define SMBIOS_PROCESSOR_INFORMATION_TYPE ((UCHAR)4)
 
 typedef struct _SMBIOS_PROCESSOR_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
-    UCHAR SocketDesignation; // string
-    UCHAR Type;              // SMBIOS_PROCESSOR_TYPE_*
-    UCHAR Family;            // SMBIOS_PROCESSOR_FAMILY_*
-    UCHAR Manufacturer;      // string
+    UCHAR SocketDesignation;
+    UCHAR Type;
+    UCHAR Family;
+    UCHAR Manufacturer;
     ULONGLONG Identifier;
-    UCHAR Version;           // string
+    UCHAR Version;
 
     union
     {
         struct
         {
-            UCHAR Capable5000mV : 1; // 5V
-            UCHAR Capable3500mV : 1; // 3.3V
-            UCHAR Capable2900mV : 1; // 2.9V
+            UCHAR Capable5000mV : 1;
+            UCHAR Capable3500mV : 1;
+            UCHAR Capable2900mV : 1;
             UCHAR Reserved : 4;
-            UCHAR Mode : 1;          // 0 = Legacy Mode
+            UCHAR Mode : 1;
         };
 
         UCHAR Value;
@@ -438,7 +409,7 @@ typedef struct _SMBIOS_PROCESSOR_INFORMATION
     {
         struct
         {
-            UCHAR Status : 3;    // SMBIOS_PROCESSOR_STATUS_*
+            UCHAR Status : 3;
             UCHAR Reserved : 3;
             UCHAR Populated : 1;
             UCHAR Reserved2 : 1;
@@ -447,30 +418,23 @@ typedef struct _SMBIOS_PROCESSOR_INFORMATION
         UCHAR Value;
     } Status;
 
-    UCHAR Upgrade;          // SMBIOS_PROCESSOR_UPGRADE_*
-    // 2.1+
+    UCHAR Upgrade;
     USHORT L1CacheHandle;
     USHORT L2CacheHandle;
     USHORT L3CacheHandle;
-    // 2.3+
-    UCHAR SerialNumber;     // string
-    UCHAR AssetTag;         // string
-    UCHAR PartNumber;       // string
-    // 2.5+
+    UCHAR SerialNumber;
+    UCHAR AssetTag;
+    UCHAR PartNumber;
     UCHAR CoreCount;
     UCHAR CoresEnabled;
     UCHAR ThreadCount;
-    USHORT Characteristics; // SMBIOS_PROCESSOR_FLAG_*
-    // 2.6+
-    USHORT Family2;         // SMBIOS_PROCESSOR_FAMILY_*
-    // 3.0+
+    USHORT Characteristics;
+    USHORT Family2;
     USHORT CoreCount2;
     USHORT CoresEnabled2;
     USHORT ThreadCount2;
-    // 3.6+
     USHORT ThreadsEnabled;
-    // 3.8+
-    UCHAR SocketType;       // string
+    UCHAR SocketType;
 } SMBIOS_PROCESSOR_INFORMATION, *PSMBIOS_PROCESSOR_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
@@ -504,7 +468,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CELERON_M_PROCESSOR 20
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_PENTIUM_4_HT_PROCESSOR 21
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_PROCESSOR 22
-// 23 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_AMD_DURON_PROCESSOR_FAMILY 24
 #define SMBIOS_PROCESSOR_FAMILY_K5_FAMILY 25
 #define SMBIOS_PROCESSOR_FAMILY_K6_FAMILY 26
@@ -570,7 +533,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_ULTRASPARC_Iii 86
 #define SMBIOS_PROCESSOR_FAMILY_ULTRASPARC_III 87
 #define SMBIOS_PROCESSOR_FAMILY_ULTRASPARC_IIIi 88
-// 89-95 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_68040_FAMILY 96
 #define SMBIOS_PROCESSOR_FAMILY_68XXX 97
 #define SMBIOS_PROCESSOR_FAMILY_68000 98
@@ -583,15 +545,11 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_AMD_OPTERON_A_SERIES_PROCESSOR 105
 #define SMBIOS_PROCESSOR_FAMILY_AMD_OPTERON_X3000_SERIES_APU 106
 #define SMBIOS_PROCESSOR_FAMILY_AMD_ZEN_PROCESSOR_FAMILY 107
-// 108-111 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_HOBBIT_FAMILY 112
-// 113-119 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_CRUSOE_TM5000_FAMILY 120
 #define SMBIOS_PROCESSOR_FAMILY_CRUSOE_TM3000_FAMILY 121
 #define SMBIOS_PROCESSOR_FAMILY_EFFICEON_TM8000_FAMILY 122
-// 123-127 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_WEITEK 128
-// 129 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_ITANIUM_PROCESSOR 130
 #define SMBIOS_PROCESSOR_FAMILY_AMD_ATHLON_64_PROCESSOR_FAMILY 131
 #define SMBIOS_PROCESSOR_FAMILY_AMD_OPTERON_PROCESSOR_FAMILY 132
@@ -613,7 +571,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_PA_RISC_7200 148
 #define SMBIOS_PROCESSOR_FAMILY_PA_RISC_7100LC 149
 #define SMBIOS_PROCESSOR_FAMILY_PA_RISC_7100 150
-// 151-159 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_V30_FAMILY 160
 #define SMBIOS_PROCESSOR_FAMILY_QUAD_CORE_INTEL_XEON_PROCESSOR_3200_SERIES 161
 #define SMBIOS_PROCESSOR_FAMILY_DUAL_CORE_INTEL_XEON_PROCESSOR_3000_SERIES 162
@@ -663,7 +620,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_I3_PROCESSOR 206
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_I9_PROCESSOR 207
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_XEON_D_PROCESSOR_FAMILY 208
-// 209 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_VIA_C7_M_PROCESSOR_FAMILY 210
 #define SMBIOS_PROCESSOR_FAMILY_VIA_C7_D_PROCESSOR_FAMILY 211
 #define SMBIOS_PROCESSOR_FAMILY_VIA_C7_PROCESSOR_FAMILY 212
@@ -674,12 +630,10 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_VIA_NANO_PROCESSOR_FAMILY 217
 #define SMBIOS_PROCESSOR_FAMILY_DUAL_CORE_INTEL_XEON_PROCESSOR_5XXX_SERIES 218
 #define SMBIOS_PROCESSOR_FAMILY_QUAD_CORE_INTEL_XEON_PROCESSOR_5XXX_SERIES 219
-// 220 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_DUAL_CORE_INTEL_XEON_PROCESSOR_7XXX_SERIES 221
 #define SMBIOS_PROCESSOR_FAMILY_QUAD_CORE_INTEL_XEON_PROCESSOR_7XXX_SERIES 222
 #define SMBIOS_PROCESSOR_FAMILY_MULTI_CORE_INTEL_XEON_PROCESSOR_7XXX_SERIES 223
 #define SMBIOS_PROCESSOR_FAMILY_MULTI_CORE_INTEL_XEON_PROCESSOR_3400_SERIES 224
-// 225-227 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_AMD_OPTERON_3000_SERIES_PROCESSOR 228
 #define SMBIOS_PROCESSOR_FAMILY_AMD_SEMPRON_II_PROCESSOR 229
 #define SMBIOS_PROCESSOR_FAMILY_EMBEDDED_AMD_OPTERON_QUAD_CORE_PROCESSOR_FAMILY 230
@@ -692,17 +646,12 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_AMD_ATHLON_II_PROCESSOR_FAMILY 237
 #define SMBIOS_PROCESSOR_FAMILY_SIX_CORE_AMD_OPTERON_PROCESSOR_FAMILY 238
 #define SMBIOS_PROCESSOR_FAMILY_AMD_SEMPRON_M_PROCESSOR_FAMILY 239
-// 240-249 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_I860 250
 #define SMBIOS_PROCESSOR_FAMILY_I960 251
-// 252-253 - Available for assignment
 #define SMBIOS_PROCESSOR_FAMILY_USE_2ND_FIELD 254
-// 255 RESERVED
-// 256-511 - Available for assignment, except for:
 #define SMBIOS_PROCESSOR_FAMILY_ARMV7 256
 #define SMBIOS_PROCESSOR_FAMILY_ARMV8 257
 #define SMBIOS_PROCESSOR_FAMILY_ARMV9 258
-// 259 - Reserved for future use by ARM
 #define SMBIOS_PROCESSOR_FAMILY_SH_3 260
 #define SMBIOS_PROCESSOR_FAMILY_SH_4 261
 #define SMBIOS_PROCESSOR_FAMILY_ARM 280
@@ -713,7 +662,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_WINCHIP 320
 #define SMBIOS_PROCESSOR_FAMILY_DSP 350
 #define SMBIOS_PROCESSOR_FAMILY_VIDEO_PROCESSOR 500
-// 512-767 - Available for assignment, except for:
 #define SMBIOS_PROCESSOR_FAMILY_RISC_V_RV32 512
 #define SMBIOS_PROCESSOR_FAMILY_RISC_V_RV64 513
 #define SMBIOS_PROCESSOR_FAMILY_RISC_V_RV128 514
@@ -734,7 +682,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_MULTI_CORE_LOONGSON_3B_PROCESSOR_5XXX_SERIES 623
 #define SMBIOS_PROCESSOR_FAMILY_MULTI_CORE_LOONGSON_3C_PROCESSOR_5XXX_SERIES 624
 #define SMBIOS_PROCESSOR_FAMILY_MULTI_CORE_LOONGSON_3D_PROCESSOR_5XXX_SERIES 625
-// 768-1023 - Available for assignment, except for:
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_3 768
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_5 769
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_7 770
@@ -743,8 +690,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_ULTRA_5 773
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_ULTRA_7 774
 #define SMBIOS_PROCESSOR_FAMILY_INTEL_CORE_ULTRA_9 775
-// 1024-65533 - Available for assignment
-// 65534-65535 - RESERVED
 
 #define SMBIOS_PROCESSOR_STATUS_UNKNOWN              0
 #define SMBIOS_PROCESSOR_STATUS_ENABLED              1
@@ -768,7 +713,7 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_UPGRADE_SLOT_A 11
 #define SMBIOS_PROCESSOR_UPGRADE_SLOT_M 12
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_423 13
-#define SMBIOS_PROCESSOR_UPGRADE_SOCKET_A 14 // (Socket 462)
+#define SMBIOS_PROCESSOR_UPGRADE_SOCKET_A 14
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_478 15
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_754 16
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_940 17
@@ -778,7 +723,7 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_LGA775 21
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_S1 22
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_AM2 23
-#define SMBIOS_PROCESSOR_UPGRADE_SOCKET_F 24 // (1207)
+#define SMBIOS_PROCESSOR_UPGRADE_SOCKET_F 24
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_LGA1366 25
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_G34 26
 #define SMBIOS_PROCESSOR_UPGRADE_SOCKET_AM3 27
@@ -856,31 +801,27 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_INFORMATION) == 0x33);
 #define SMBIOS_PROCESSOR_FLAG_ARM64_SOC                 ((USHORT)0x0200)
 #define SMBIOS_PROCESSOR_FLAG_RESERVED_2                ((USHORT)0xFC00)
 
-//
-// Memory Controller Information (Type 5, Obsolete)
-//
 
 #define SMBIOS_MEMORY_CONTROLLER_INFORMATION_TYPE ((UCHAR)5)
 
 typedef struct _SMBIOS_MEMORY_CONTROLLER_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
-    UCHAR ErrorDetectionMethod;        // SMBIOS_MEMORY_CONTROLLER_ERROR_DETECTION_*
-    UCHAR ErrorCorrectionCapabilities; // SMBIOS_MEMORY_CONTROLLER_ERROR_CORRECTION_*
-    UCHAR SupportedInterleave;         // SMBIOS_MEMORY_CONTROLLER_INTERLEAVE_*
-    UCHAR CurrentInterleave;           // SMBIOS_MEMORY_CONTROLLER_INTERLEAVE_*
-    UCHAR MaximumModuleSize;           // 2^n
-    USHORT SupportedSpeeds;            // SMBIOS_MEMORY_CONTROLLER_SPEEDS_*
-    USHORT SupportedTypes;             // SMBIOS_MEMORY_MODULE_TYPE_*
+    UCHAR ErrorDetectionMethod;
+    UCHAR ErrorCorrectionCapabilities;
+    UCHAR SupportedInterleave;
+    UCHAR CurrentInterleave;
+    UCHAR MaximumModuleSize;
+    USHORT SupportedSpeeds;
+    USHORT SupportedTypes;
 
     union
     {
         struct
         {
-            UCHAR Requires5000mV : 1; // 5V
-            UCHAR Requires3500mV : 1; // 3.3V
-            UCHAR Requires2900mV : 1; // 2.9V
+            UCHAR Requires5000mV : 1;
+            UCHAR Requires3500mV : 1;
+            UCHAR Requires2900mV : 1;
             UCHAR Reserved : 5;
         };
 
@@ -889,15 +830,13 @@ typedef struct _SMBIOS_MEMORY_CONTROLLER_INFORMATION
 
     UCHAR NumberOfSlots;
     USHORT SlotHandles[ANYSIZE_ARRAY];
-    // 2.1+
-    // SMBIOS_MEMORY_CONTROLLER_INFORMATION_EX
 } SMBIOS_MEMORY_CONTROLLER_INFORMATION, *PSMBIOS_MEMORY_CONTROLLER_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_MEMORY_CONTROLLER_INFORMATION) == 0x11);
 
 typedef struct _SMBIOS_MEMORY_CONTROLLER_INFORMATION_EX
 {
-    UCHAR EnabledErrorCorrectionCapabilities; // SMBIOS_MEMORY_CONTROLLER_ERROR_CORRECTION_*
+    UCHAR EnabledErrorCorrectionCapabilities;
 } SMBIOS_MEMORY_CONTROLLER_INFORMATION_EX, *PSMBIOS_MEMORY_CONTROLLER_INFORMATION_EX;
 
 #define SMBIOS_MEMORY_CONTROLLER_ERROR_DETECTION_OTHER        ((UCHAR)1)
@@ -930,9 +869,6 @@ typedef struct _SMBIOS_MEMORY_CONTROLLER_INFORMATION_EX
 #define SMBIOS_MEMORY_CONTROLLER_SPEEDS_50NS                  ((USHORT)0x0010)
 #define SMBIOS_MEMORY_CONTROLLER_SPEEDS_RESERVED              ((USHORT)0xFFE0)
 
-//
-// Memory Module Information (Type 6, Obsolete)
-//
 
 #define SMBIOS_MEMORY_MODULE_INFORMATION_TYPE ((UCHAR)6)
 
@@ -944,7 +880,7 @@ typedef union _SMBIOS_MEMORY_MODULE_SIZE
         UCHAR DoubleBank : 1;
     };
 
-    UCHAR Value; // SMBIOS_MEMORY_MODULE_SIZE_VALUE_*
+    UCHAR Value;
 } SMBIOS_MEMORY_MODULE_SIZE, *PSMBIOS_MEMORY_MODULE_SIZE;
 
 #define SMBIOS_MEMORY_MODULE_SIZE_VALUE_NOT_DETERMINABLE ((UCHAR)0x7D)
@@ -954,10 +890,10 @@ typedef union _SMBIOS_MEMORY_MODULE_SIZE
 typedef struct _SMBIOS_MEMORY_MODULE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    UCHAR SocketDesignation; // string
+    UCHAR SocketDesignation;
     UCHAR BankConnections;
     UCHAR CurrentSpeed;
-    USHORT MemoryType;       // SMBIOS_MEMORY_MODULE_TYPE_*
+    USHORT MemoryType;
     SMBIOS_MEMORY_MODULE_SIZE InstalledSize;
     SMBIOS_MEMORY_MODULE_SIZE EnabledSize;
 
@@ -990,9 +926,6 @@ C_ASSERT(sizeof(SMBIOS_MEMORY_MODULE_INFORMATION) == 0xC);
 #define SMBIOS_MEMORY_MODULE_TYPE_SDRAM          ((USHORT)0x0400)
 #define SMBIOS_MEMORY_MODULE_TYPE_RESERVED       ((USHORT)0xF800)
 
-//
-// Cache Information (Type 7)
-//
 
 #define SMBIOS_CACHE_INFORMATION_TYPE ((UCHAR)7)
 
@@ -1001,7 +934,7 @@ typedef union _SMBIOS_CACHE_USHORT
     struct
     {
         USHORT Size : 15;
-        USHORT Granularity : 1; // 0 = 1K, 1 = 64K
+        USHORT Granularity : 1;
     };
 
     USHORT Value;
@@ -1012,7 +945,7 @@ typedef union _SMBIOS_CACHE_ULONG
     struct
     {
         ULONG Size : 31;
-        ULONG Granularity : 1; // 0 = 1K, 1 = 64K
+        ULONG Granularity : 1;
     };
 
     ULONG Value;
@@ -1021,19 +954,18 @@ typedef union _SMBIOS_CACHE_ULONG
 typedef struct _SMBIOS_CACHE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
-    UCHAR SocketDesignation;      // string
+    UCHAR SocketDesignation;
 
     union
     {
         struct
         {
-            USHORT Level : 3;     // L1 through L8
+            USHORT Level : 3;
             USHORT Socketed : 1;
             USHORT Reserved : 1;
-            USHORT Location : 2;  // SMBIOS_CACHE_LOCATION_*
+            USHORT Location : 2;
             USHORT Enabled : 1;
-            USHORT Mode : 2;      // SMBIOS_CACHE_MODE_*
+            USHORT Mode : 2;
             USHORT Reserved2 : 6;
         };
 
@@ -1042,14 +974,12 @@ typedef struct _SMBIOS_CACHE_INFORMATION
 
     SMBIOS_CACHE_USHORT MaximumSize;
     SMBIOS_CACHE_USHORT InstalledSize;
-    USHORT SupportedSRAM;         // SMBIOS_CACHE_SUPPORTED_SRAM_*
-    USHORT CurrentSRAM;           // SMBIOS_CACHE_SUPPORTED_SRAM_*
-    // 2.1+
+    USHORT SupportedSRAM;
+    USHORT CurrentSRAM;
     UCHAR Speed;
-    UCHAR ErrorCorrectionType;    // SMBIOS_CACHE_ERROR_CORRECTION_*
-    UCHAR SystemCacheType;        // SMBIOS_CACHE_SYSTEM_CACHE_*
-    UCHAR Associativity;          // SMBIOS_CACHE_ASSOCIATIVITY_*
-    // 3.1+
+    UCHAR ErrorCorrectionType;
+    UCHAR SystemCacheType;
+    UCHAR Associativity;
     SMBIOS_CACHE_ULONG MaximumSize2;
     SMBIOS_CACHE_ULONG InstalledSize2;
 } SMBIOS_CACHE_INFORMATION, *PSMBIOS_CACHE_INFORMATION;
@@ -1103,20 +1033,17 @@ C_ASSERT(sizeof(SMBIOS_CACHE_INFORMATION) == 0x1B);
 #define SMBIOS_CACHE_ASSOCIATIVITY_64_WAY            ((UCHAR)13)
 #define SMBIOS_CACHE_ASSOCIATIVITY_20_WAY            ((UCHAR)14)
 
-//
-// Port Connector Information (Type 8)
-//
 
 #define SMBIOS_PORT_CONNECTOR_INFORMATION_TYPE ((UCHAR)8)
 
 typedef struct _SMBIOS_PORT_CONNECTOR_INFORMATION
 {
     SMBIOS_HEADER Header;
-    UCHAR InternalReferenceDesignator; // string
-    UCHAR InternalConnectorType;       // SMBIOS_PORT_CONNECTOR_TYPE_*
-    UCHAR ExternalReferenceDesignator; // string
-    UCHAR ExternalConnectorType;       // SMBIOS_PORT_CONNECTOR_TYPE_*
-    UCHAR PortType;                    // SMBIOS_PORT_CONNECTOR_PORT_TYPE_*
+    UCHAR InternalReferenceDesignator;
+    UCHAR InternalConnectorType;
+    UCHAR ExternalReferenceDesignator;
+    UCHAR ExternalConnectorType;
+    UCHAR PortType;
 } SMBIOS_PORT_CONNECTOR_INFORMATION, *PSMBIOS_PORT_CONNECTOR_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_PORT_CONNECTOR_INFORMATION) == 0x9);
@@ -1204,26 +1131,20 @@ C_ASSERT(sizeof(SMBIOS_PORT_CONNECTOR_INFORMATION) == 0x9);
 #define SMBIOS_PORT_CONNECTOR_PORT_TYPE_8251_FIFO          ((UCHAR)161)
 #define SMBIOS_PORT_CONNECTOR_PORT_TYPE_8251_OTHER         ((UCHAR)255)
 
-//
-// System Slots (Type 9)
-//
 
 #define SMBIOS_SYSTEM_SLOT_INFORMATION_TYPE ((UCHAR)9)
 
 typedef struct _SMBIOS_SYSTEM_SLOT_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
-    UCHAR SocketDesignation; // string
-    UCHAR Type;              // SMBIOS_SYSTEM_SLOT_TYPE_*
-    UCHAR BusWidth;          // SMBIOS_SYSTEM_SLOT_BUS_WIDTH_*
-    UCHAR CurrentUsage;      // SMBIOS_SYSTEM_SLOT_USAGE_*
-    UCHAR Length;            // SMBIOS_SYSTEM_SLOT_LENGTH_*
+    UCHAR SocketDesignation;
+    UCHAR Type;
+    UCHAR BusWidth;
+    UCHAR CurrentUsage;
+    UCHAR Length;
     USHORT Identifier;
-    UCHAR Characteristics;   // SMBIOS_SYSTEM_SLOT_FLAG_*
-    // 2.1+
-    UCHAR Characteristics2;  // SMBIOS_SYSTEM_SLOT_FLAG_2_*
-    // 2.6+
+    UCHAR Characteristics;
+    UCHAR Characteristics2;
     USHORT SegmentGroup;
     UCHAR BusNumber;
 
@@ -1238,12 +1159,9 @@ typedef struct _SMBIOS_SYSTEM_SLOT_INFORMATION
         UCHAR Value;
     } DeviceFunctionNumber;
 
-    // 3.2+
     UCHAR BusWidthBase;
     UCHAR PeerGroupingCount;
     UCHAR PeerGroups[ANYSIZE_ARRAY];
-    // 3.4+
-    // SMBIOS_SYSTEM_SLOT_INFORMATION_EX
 } SMBIOS_SYSTEM_SLOT_INFORMATION, *PSMBIOS_SYSTEM_SLOT_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_SYSTEM_SLOT_INFORMATION) == 0x14);
@@ -1253,7 +1171,7 @@ typedef struct _SMBIOS_SYSTEM_SLOT_INFORMATION_EX
     UCHAR Information;
     UCHAR PhysicalWidth;
     USHORT Pitch;
-    UCHAR Height;        // SMBIOS_SYSTEM_SLOT_HEIGHT_*
+    UCHAR Height;
 } SMBIOS_SYSTEM_SLOT_INFORMATION_EX, *PSMBIOS_SYSTEM_SLOT_INFORMATION_EX;
 
 #define SMBIOS_SYSTEM_SLOT_TYPE_OTHER                                             ((UCHAR)1)
@@ -1388,9 +1306,6 @@ typedef struct _SMBIOS_SYSTEM_SLOT_INFORMATION_EX
 #define SMBIOS_SYSTEM_SLOT_HEIGHT_FULL_HEIGHT                                     ((UCHAR)3)
 #define SMBIOS_SYSTEM_SLOT_HEIGHT_LOW_PROFILE                                     ((UCHAR)4)
 
-//
-// On Board Devices Information (Type 10, Obsolete)
-//
 
 #define SMBIOS_ON_BOARD_DEVICE_INFORMATION_TYPE ((UCHAR)10)
 
@@ -1400,19 +1315,19 @@ typedef struct _SMBIOS_ON_BOARD_DEVICE_ENTRY
     {
         struct
         {
-            UCHAR Type : 7; // SMBIOS_ON_BOARD_DEVICE_TYPE_*
+            UCHAR Type : 7;
             UCHAR Enabled : 1;
         };
 
         UCHAR Value;
     } Device;
-    UCHAR Description; // string
+    UCHAR Description;
 } SMBIOS_ON_BOARD_DEVICE_ENTRY, *PSMBIOS_ON_BOARD_DEVICE_ENTRY;
 
 typedef struct _SMBIOS_ON_BOARD_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    SMBIOS_ON_BOARD_DEVICE_ENTRY Devices[ANYSIZE_ARRAY]; // (Header.Length - 4) / 2
+    SMBIOS_ON_BOARD_DEVICE_ENTRY Devices[ANYSIZE_ARRAY];
 } SMBIOS_ON_BOARD_DEVICE_INFORMATION, *PSMBIOS_ON_BOARD_DEVICE_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_ON_BOARD_DEVICE_INFORMATION) == 0x6);
@@ -1430,9 +1345,6 @@ C_ASSERT(sizeof(SMBIOS_ON_BOARD_DEVICE_INFORMATION) == 0x6);
 
 #define SMBIOS_OEM_STRING_INFORMATION_TYPE ((UCHAR)11)
 
-//
-// OEM Strings (Type 11)
-//
 
 typedef struct _SMBIOS_OEM_STRING_INFORMATION
 {
@@ -1442,9 +1354,6 @@ typedef struct _SMBIOS_OEM_STRING_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_OEM_STRING_INFORMATION) == 0x5);
 
-//
-// System Configuration Options (Type 12)
-//
 
 #define SMBIOS_SYSTEM_CONFIGURATION_OPTION_INFORMATION_TYPE ((UCHAR)12)
 
@@ -1456,23 +1365,18 @@ typedef struct _SMBIOS_SYSTEM_CONFIGURATION_OPTION_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_SYSTEM_CONFIGURATION_OPTION_INFORMATION) == 0x5);
 
-//
-// Firmware Language Information (Type 13)
-//
 
 #define SMBIOS_FIRMWARE_LANGUAGE_INFORMATION_TYPE ((UCHAR)13)
 
 typedef struct _SMBIOS_FIRMWARE_LANGUAGE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
     UCHAR InstallableLanguages;
 
     union
     {
         struct
         {
-            // 2.1+
             UCHAR AbbreviatedFormat : 1;
             UCHAR Reserved : 7;
         };
@@ -1481,37 +1385,30 @@ typedef struct _SMBIOS_FIRMWARE_LANGUAGE_INFORMATION
     } Flags;
 
     UCHAR Reserved[15];
-    UCHAR CurrentLanguage; // string
+    UCHAR CurrentLanguage;
 } SMBIOS_FIRMWARE_LANGUAGE_INFORMATION, *PSMBIOS_FIRMWARE_LANGUAGE_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_FIRMWARE_LANGUAGE_INFORMATION) == 0x16);
 
-//
-// Group Associations (Type 14)
-//
 
 #define SMBIOS_GROUP_ASSOCIATION_INFORMATION_TYPE ((UCHAR)14)
 
 typedef struct _SMBIOS_GROUP_ASSOCIATION_INFORMATION
 {
     SMBIOS_HEADER Header;
-    UCHAR Name;        // string
+    UCHAR Name;
     UCHAR ItemType;
     USHORT ItemHandle;
 } SMBIOS_GROUP_ASSOCIATION_INFORMATION, *PSMBIOS_GROUP_ASSOCIATION_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_GROUP_ASSOCIATION_INFORMATION) == 0x8);
 
-//
-// System Event Log (Type 15)
-//
 
 #define SMBIOS_SYSTEM_EVENT_LOG_INFORMATION_TYPE ((UCHAR)15)
 
 typedef struct _SMBIOS_SYSTEM_EVENT_LOG_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.0+
     USHORT AreaLength;
     USHORT HeaderStartOffset;
     USHORT DataStartOffset;
@@ -1531,7 +1428,6 @@ typedef struct _SMBIOS_SYSTEM_EVENT_LOG_INFORMATION
 
     ULONG ChangeToken;
     ULONG AccessMethodAddress;
-    // 2.1+
     UCHAR HeaderFormat;
     UCHAR NumberOfDescriptors;
     UCHAR LengthOfDescriptors;
@@ -1540,23 +1436,18 @@ typedef struct _SMBIOS_SYSTEM_EVENT_LOG_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_SYSTEM_EVENT_LOG_INFORMATION) == 0x18);
 
-//
-// Physical Memory Array (Type 16)
-//
 
 #define SMBIOS_PHYSICAL_MEMORY_ARRAY_INFORMATION_TYPE ((UCHAR)16)
 
 typedef struct _SMBIOS_PHYSICAL_MEMORY_ARRAY_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.1+
-    UCHAR Location;        // SMBIOS_PHYSICAL_MEMORY_ARRAY_LOCATION_*
-    UCHAR Use;             // SMBIOS_PHYSICAL_MEMORY_ARRAY_USE_*
-    UCHAR ErrorCorrection; // SMBIOS_PHYSICAL_MEMORY_ARRAY_ERROR_CORRECTION_*
+    UCHAR Location;
+    UCHAR Use;
+    UCHAR ErrorCorrection;
     ULONG MaximumCapacity;
     USHORT ErrorInformationHandle;
     USHORT NumberOfMemoryDevices;
-    // 2.7+
     ULONGLONG ExtendedMaximumCapacity;
 } SMBIOS_PHYSICAL_MEMORY_ARRAY_INFORMATION, *PSMBIOS_PHYSICAL_MEMORY_ARRAY_INFORMATION;
 
@@ -1594,16 +1485,12 @@ C_ASSERT(sizeof(SMBIOS_PHYSICAL_MEMORY_ARRAY_INFORMATION) == 0x17);
 #define SMBIOS_PHYSICAL_MEMORY_ARRAY_ERROR_CORRECTION_MULTI_BIT_ECC  ((UCHAR)6)
 #define SMBIOS_PHYSICAL_MEMORY_ARRAY_ERROR_CORRECTION_CRC            ((UCHAR)7)
 
-//
-// Memory Device (Type 17)
-//
 
 #define SMBIOS_MEMORY_DEVICE_INFORMATION_TYPE ((UCHAR)17)
 
 typedef struct _SMBIOS_MEMORY_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.1+
     USHORT PhysicalArrayHandle;
     USHORT MemoryErrorInformationHandle;
     USHORT TotalWidth;
@@ -1614,25 +1501,23 @@ typedef struct _SMBIOS_MEMORY_DEVICE_INFORMATION
         struct
         {
             USHORT Size : 15;
-            USHORT Granularity : 1; // 0 = megabytes, 1 = kilobytes
+            USHORT Granularity : 1;
         };
 
         USHORT Value;
     } Size;
 
-    UCHAR FormFactor;        // SMBIOS_MEMORY_DEVICE_FORM_FACTOR_*
+    UCHAR FormFactor;
     UCHAR DeviceSet;
-    UCHAR DeviceLocator;     // string
-    UCHAR BankLocator;       // string
-    UCHAR MemoryType;        // SMBIOS_MEMORY_DEVICE_TYPE_*
-    USHORT TypeDetail;       // SMBIOS_MEMORY_DEVICE_TYPE_DETAIL_*
+    UCHAR DeviceLocator;
+    UCHAR BankLocator;
+    UCHAR MemoryType;
+    USHORT TypeDetail;
     USHORT Speed;
-    // 2.3+
-    UCHAR Manufacturer;      // string
-    UCHAR SerialNumber;      // string
-    UCHAR AssetTag;          // string
-    UCHAR PartNumber;        // string
-    // 2.6+
+    UCHAR Manufacturer;
+    UCHAR SerialNumber;
+    UCHAR AssetTag;
+    UCHAR PartNumber;
 
     union
     {
@@ -1645,17 +1530,14 @@ typedef struct _SMBIOS_MEMORY_DEVICE_INFORMATION
         UCHAR Value;
     } Attributes;
 
-    // 2.7+
     ULONG ExtendedSize;
     USHORT ConfiguredSpeed;
-    // 2.8+
     USHORT MinimumVoltage;
     USHORT MaximumVoltage;
     USHORT ConfiguredVoltage;
-    // 3.2+
-    UCHAR Technology;        // SMBIOS_MEMORY_DEVICE_TECHNOLOGY_*
-    USHORT ModeCapabilities; // SMBIOS_MEMORY_DEVICE_MODE_*
-    UCHAR FirmwareVersion;   // string
+    UCHAR Technology;
+    USHORT ModeCapabilities;
+    UCHAR FirmwareVersion;
     USHORT ModuleManufacturerID;
     USHORT ModuleProductID;
     USHORT SubsystemControllerManufacturerID;
@@ -1664,10 +1546,8 @@ typedef struct _SMBIOS_MEMORY_DEVICE_INFORMATION
     ULONGLONG VolatileSize;
     ULONGLONG CacheSize;
     ULONGLONG LogicalSize;
-    // 3.3+
     ULONG ExtendedSpeed;
     ULONG ExtendedConfiguredSpeed;
-    // 3.7+
     USHORT PMIC0ManufacturerID;
     USHORT PMIC0Revision;
     USHORT RCDManufacturerID;
@@ -1714,7 +1594,6 @@ C_ASSERT(sizeof(SMBIOS_MEMORY_DEVICE_INFORMATION) == 0x64);
 #define SMBIOS_MEMORY_DEVICE_TYPE_DDR                         ((UCHAR)18)
 #define SMBIOS_MEMORY_DEVICE_TYPE_DDR2                        ((UCHAR)19)
 #define SMBIOS_MEMORY_DEVICE_TYPE_DDR2_FB_DIMM                ((UCHAR)20)
-// 21-23 reserved
 #define SMBIOS_MEMORY_DEVICE_TYPE_DDR3                        ((UCHAR)24)
 #define SMBIOS_MEMORY_DEVICE_TYPE_FBD2                        ((UCHAR)25)
 #define SMBIOS_MEMORY_DEVICE_TYPE_DDR4                        ((UCHAR)26)
@@ -1763,19 +1642,15 @@ C_ASSERT(sizeof(SMBIOS_MEMORY_DEVICE_INFORMATION) == 0x64);
 #define SMBIOS_MEMORY_DEVICE_MODE_BLOCK_ACCESSIBLE_PERSISTENT ((USHORT)0x0020)
 #define SMBIOS_MEMORY_DEVICE_MODE_RESERVED2                   ((USHORT)0xFFC0)
 
-//
-// 32-Bit Memory Error Information (Type 18)
-//
 
 #define SMBIOS_32_BIT_MEMORY_ERROR_INFORMATION_TYPE ((UCHAR)18)
 
 typedef struct _SMBIOS_32_BIT_MEMORY_ERROR_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.1+
-    UCHAR Type;        // SMBIOS_MEMORY_ERROR_TYPE_*
-    UCHAR Granularity; // SMBIOS_MEMORY_ERROR_GRANULARITY_*
-    UCHAR Operation;   // SMBIOS_MEMORY_ERROR_OPERATION_*
+    UCHAR Type;
+    UCHAR Granularity;
+    UCHAR Operation;
     ULONG VendorSyndrome;
     ULONG ArrayErrorAddress;
     ULONG DeviceErrorAddress;
@@ -1784,37 +1659,28 @@ typedef struct _SMBIOS_32_BIT_MEMORY_ERROR_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_32_BIT_MEMORY_ERROR_INFORMATION) == 0x17);
 
-//
-// Memory Array Mapped Address (Type 19)
-//
 
 #define SMBIOS_MEMORY_ARRAY_MAPPED_ADDRESS_INFORMATION_TYPE ((UCHAR)19)
 
 typedef struct _SMBIOS_MEMORY_ARRAY_MAPPED_ADDRESS_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.1+
     ULONG StartingAddress;
     ULONG EndingAddress;
     USHORT ArrayHandle;
     UCHAR PartitionWidth;
-    // 2.7+
     ULONGLONG ExtendedStartingAddress;
     ULONGLONG ExtendedEndingAddress;
 } SMBIOS_MEMORY_ARRAY_MAPPED_ADDRESS_INFORMATION, *PSMBIOS_MEMORY_ARRAY_MAPPED_ADDRESS_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_MEMORY_ARRAY_MAPPED_ADDRESS_INFORMATION) == 0x1F);
 
-//
-// Memory Device Mapped Address (Type 20)
-//
 
 #define SMBIOS_MEMORY_DEVICE_MAPPED_ADDRESS_INFORMATION_TYPE ((UCHAR)20)
 
 typedef struct _SMBIOS_MEMORY_DEVICE_MAPPED_ADDRESS_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.1+
     ULONG StartingAddress;
     ULONG EndingAddress;
     USHORT DeviceHandle;
@@ -1822,25 +1688,20 @@ typedef struct _SMBIOS_MEMORY_DEVICE_MAPPED_ADDRESS_INFORMATION
     UCHAR PartitionRowPosition;
     UCHAR InterleavePosition;
     UCHAR InterleavedDataDepth;
-    // 2.7+
     ULONGLONG ExtendedStartingAddress;
     ULONGLONG ExtendedEndingAddress;
 } SMBIOS_MEMORY_DEVICE_MAPPED_ADDRESS_INFORMATION, *PSMBIOS_MEMORY_DEVICE_MAPPED_ADDRESS_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_MEMORY_DEVICE_MAPPED_ADDRESS_INFORMATION) == 0x23);
 
-//
-// Built-in Pointing Device (Type 21)
-//
 
 #define SMBIOS_BUILT_IN_POINTING_DEVICE_INFORMATION_TYPE ((UCHAR)21)
 
 typedef struct _SMBIOS_BUILT_IN_POINTING_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.1+
-    UCHAR PointerType;      // SMBIOS_BUILT_IN_POINTING_DEVICE_TYPE_*
-    UCHAR PointerInterface; // SMBIOS_BUILT_IN_POINTING_DEVICE_INTERFACE_*
+    UCHAR PointerType;
+    UCHAR PointerInterface;
     UCHAR PointerButtons;
 } SMBIOS_BUILT_IN_POINTING_DEVICE_INFORMATION, *PSMBIOS_BUILT_IN_POINTING_DEVICE_INFORMATION;
 
@@ -1870,27 +1731,22 @@ C_ASSERT(sizeof(SMBIOS_BUILT_IN_POINTING_DEVICE_INFORMATION) == 0x7);
 #define SMBIOS_BUILT_IN_POINTING_DEVICE_INTERFACE_I2C       ((UCHAR)163)
 #define SMBIOS_BUILT_IN_POINTING_DEVICE_INTERFACE_SPI       ((UCHAR)164)
 
-//
-// Portable Battery (Type 22)
-//
 
 #define SMBIOS_PORTABLE_BATTERY_INFORMATION_TYPE ((UCHAR)22)
 
 typedef struct _SMBIOS_PORTABLE_BATTERY_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.1+
-    UCHAR Location;             // string
-    UCHAR Manufacturer;         // string
-    UCHAR ManufactureDate;      // string
-    UCHAR SerialNumber;         // string
-    UCHAR DeviceName;           // string
-    UCHAR DeviceChemistry;      // SMBIOS_PORTABLE_BATTERY_CHEMISTRY_*
+    UCHAR Location;
+    UCHAR Manufacturer;
+    UCHAR ManufactureDate;
+    UCHAR SerialNumber;
+    UCHAR DeviceName;
+    UCHAR DeviceChemistry;
     USHORT DesignCapacity;
     USHORT DesignVoltage;
-    UCHAR SBDSVersionNumber;    // string
+    UCHAR SBDSVersionNumber;
     UCHAR MaximumError;
-    // 2.2+
     USHORT SBDSSerialNumber;
 
     union
@@ -1899,13 +1755,13 @@ typedef struct _SMBIOS_PORTABLE_BATTERY_INFORMATION
         {
             USHORT Day : 5;
             USHORT Month : 4;
-            USHORT Year : 7;  // Biased by 1980
+            USHORT Year : 7;
         };
 
         USHORT Value;
     } SBDSManufactureDate;
 
-    UCHAR SBDSDeviceChemistry;  // string
+    UCHAR SBDSDeviceChemistry;
     UCHAR DesignCapacityMultiplier;
     ULONG OEMSpecific;
 } SMBIOS_PORTABLE_BATTERY_INFORMATION, *PSMBIOS_PORTABLE_BATTERY_INFORMATION;
@@ -1921,24 +1777,20 @@ C_ASSERT(sizeof(SMBIOS_PORTABLE_BATTERY_INFORMATION) == 0x1A);
 #define SMBIOS_PORTABLE_BATTERY_CHEMISTRY_ZINC_AIR        ((UCHAR)7)
 #define SMBIOS_PORTABLE_BATTERY_CHEMISTRY_LITHIUM_POLYMER ((UCHAR)8)
 
-//
-// System Reset (Type 23)
-//
 
 #define SMBIOS_SYSTEM_RESET_INFORMATION_TYPE ((UCHAR)23)
 
 typedef struct _SMBIOS_SYSTEM_RESET_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
 
     union
     {
         struct
         {
             UCHAR UserEnabled : 1;
-            UCHAR WatchdogReset : 2;   // SMBIOS_SYSTEM_RESET_WATCHDOG_*
-            UCHAR WatchdogAction : 2;  // SMBIOS_SYSTEM_RESET_WATCHDOG_*
+            UCHAR WatchdogReset : 2;
+            UCHAR WatchdogAction : 2;
             UCHAR WatchdogExists : 1;
             UCHAR Reserved : 2;
         };
@@ -1959,25 +1811,21 @@ C_ASSERT(sizeof(SMBIOS_SYSTEM_RESET_INFORMATION) == 0xD);
 #define SMBIOS_SYSTEM_RESET_WATCHDOG_SYSTEM_UTILITES  ((UCHAR)2)
 #define SMBIOS_SYSTEM_RESET_WATCHDOG_DO_NOT_REBOOT    ((UCHAR)3)
 
-//
-// Hardware Security (Type 24)
-//
 
 #define SMBIOS_HARDWARE_SECURITY_INFORMATION_TYPE ((UCHAR)24)
 
 typedef struct _SMBIOS_HARDWARE_SECURITY_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
 
     union
     {
         struct
         {
-            UCHAR FrontPanelReset : 2;       // SMBIOS_HARDWARE_SECURITY_SETTING_*
-            UCHAR AdministratorPassword : 2; // SMBIOS_HARDWARE_SECURITY_SETTING_*
-            UCHAR KeyboardPassword : 2;      // SMBIOS_HARDWARE_SECURITY_SETTING_*
-            UCHAR PowerOnPassword : 2;       // SMBIOS_HARDWARE_SECURITY_SETTING_*
+            UCHAR FrontPanelReset : 2;
+            UCHAR AdministratorPassword : 2;
+            UCHAR KeyboardPassword : 2;
+            UCHAR PowerOnPassword : 2;
         };
 
         UCHAR Value;
@@ -1991,16 +1839,12 @@ C_ASSERT(sizeof(SMBIOS_HARDWARE_SECURITY_INFORMATION) == 0x5);
 #define SMBIOS_HARDWARE_SECURITY_SETTING_NOT_IMPLEMENTED ((UCHAR)2)
 #define SMBIOS_HARDWARE_SECURITY_SETTING_UNKNOWN         ((UCHAR)3)
 
-//
-// System Power Controls (Type 25)
-//
 
 #define SMBIOS_SYSTEM_POWER_CONTROLS_INFORMATION_TYPE ((UCHAR)25)
 
 typedef struct _SMBIOS_SYSTEM_POWER_CONTROLS_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
     UCHAR Month;
     UCHAR Day;
     UCHAR Hour;
@@ -2010,24 +1854,20 @@ typedef struct _SMBIOS_SYSTEM_POWER_CONTROLS_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_SYSTEM_POWER_CONTROLS_INFORMATION) == 0x9);
 
-//
-// Voltage Probe (Type 26)
-//
 
 #define SMBIOS_VOLTAGE_PROBE_INFORMATION_TYPE ((UCHAR)26)
 
 typedef struct _SMBIOS_VOLTAGE_PROBE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
-    UCHAR Description; // string
+    UCHAR Description;
 
     union
     {
         struct
         {
-            UCHAR Location : 5; // SMBIOS_VOLTAGE_PROBE_LOCATION_*
-            UCHAR Status : 3;   // SMBIOS_PROBE_STATUS_*
+            UCHAR Location : 5;
+            UCHAR Status : 3;
         };
 
         UCHAR Value;
@@ -2056,24 +1896,20 @@ C_ASSERT(sizeof(SMBIOS_VOLTAGE_PROBE_INFORMATION) == 0x16);
 #define SMBIOS_VOLTAGE_PROBE_LOCATION_POWER_UNIT               ((UCHAR)10)
 #define SMBIOS_VOLTAGE_PROBE_LOCATION_ADD_IN_CARD              ((UCHAR)11)
 
-//
-// Cooling Device (Type 27)
-//
 
 #define SMBIOS_COOLING_DEVICE_INFORMATION_TYPE ((UCHAR)27)
 
 typedef struct _SMBIOS_COOLING_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
     USHORT TemperatureProbeHandle;
 
     union
     {
         struct
         {
-            UCHAR DeviceType : 5; // SMBIOS_COOLING_DEVICE_TYPE_*
-            UCHAR Status : 3;     // SMBIOS_COOLING_DEVICE_STATUS_*
+            UCHAR DeviceType : 5;
+            UCHAR Status : 3;
         };
 
         UCHAR Value;
@@ -2082,8 +1918,7 @@ typedef struct _SMBIOS_COOLING_DEVICE_INFORMATION
     UCHAR CoolingUnitGroup;
     ULONG OEMDefined;
     USHORT NominalSpeed;
-    // 2.7+
-    UCHAR Description; // string
+    UCHAR Description;
 } SMBIOS_COOLING_DEVICE_INFORMATION, *PSMBIOS_COOLING_DEVICE_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_COOLING_DEVICE_INFORMATION) == 0xF);
@@ -2107,24 +1942,20 @@ C_ASSERT(sizeof(SMBIOS_COOLING_DEVICE_INFORMATION) == 0xF);
 #define SMBIOS_COOLING_DEVICE_STATUS_CRITICAL               ((UCHAR)5)
 #define SMBIOS_COOLING_DEVICE_STATUS_NON_RECOVERABLE        ((UCHAR)6)
 
-//
-// Temperature Probe (Type 28)
-//
 
 #define SMBIOS_TEMPERATURE_PROBE_INFORMATION_TYPE ((UCHAR)28)
 
 typedef struct _SMBIOS_TEMPERATURE_PROBE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
-    UCHAR Description; // string
+    UCHAR Description;
 
     union
     {
         struct
         {
-            UCHAR Location : 5; // SMBIOS_TEMPERATURE_PROBE_LOCATION_*
-            UCHAR Status : 3;   // SMBIOS_PROBE_STATUS_*
+            UCHAR Location : 5;
+            UCHAR Status : 3;
         };
 
         UCHAR Value;
@@ -2157,24 +1988,20 @@ C_ASSERT(sizeof(SMBIOS_TEMPERATURE_PROBE_INFORMATION) == 0x16);
 #define SMBIOS_TEMPERATURE_PROBE_LOCATION_POWER_SYSTEM_BOARD       ((UCHAR)14)
 #define SMBIOS_TEMPERATURE_PROBE_LOCATION_DRIVE_BACK_PLANE         ((UCHAR)15)
 
-//
-// Electrical Current Probe (Type 29)
-//
 
 #define SMBIOS_ELECTRICAL_CURRENT_PROBE_INFORMATION_TYPE ((UCHAR)29)
 
 typedef struct _SMBIOS_ELECTRICAL_CURRENT_PROBE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
-    UCHAR Description; // string
+    UCHAR Description;
 
     union
     {
         struct
         {
-            UCHAR Location : 5; // SMBIOS_ELECTRICAL_CURRENT_PROBE_LOCATION_*
-            UCHAR Status : 3;   // SMBIOS_PROBE_STATUS_*
+            UCHAR Location : 5;
+            UCHAR Status : 3;
         };
 
         UCHAR Value;
@@ -2203,17 +2030,13 @@ C_ASSERT(sizeof(SMBIOS_ELECTRICAL_CURRENT_PROBE_INFORMATION) == 0x16);
 #define SMBIOS_ELECTRICAL_CURRENT_PROBE_LOCATION_POWER_UNIT               ((UCHAR)10)
 #define SMBIOS_ELECTRICAL_CURRENT_PROBE_LOCATION_ADD_IN_CARD              ((UCHAR)11)
 
-//
-// Out-of-Band Remote Access (Type 30)
-//
 
 #define SMBIOS_OUT_OF_BAND_REMOTE_ACCESS_INFORMATION_TYPE ((UCHAR)30)
 
 typedef struct _SMBIOS_OUT_OF_BAND_REMOTE_ACCESS_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.2+
-    UCHAR Manufacturer; // string
+    UCHAR Manufacturer;
 
     union
     {
@@ -2230,29 +2053,18 @@ typedef struct _SMBIOS_OUT_OF_BAND_REMOTE_ACCESS_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_OUT_OF_BAND_REMOTE_ACCESS_INFORMATION) == 0x6);
 
-//
-// Boot Integrity Services (BIS) Entry Point (Type 31)
-//
 
 #define SMBIOS_BOOT_INTEGRITY_SERVICES_ENTRY_POINT ((UCHAR)31)
 
-//
-// Structure type 31 (decimal) is reserved for use by the Boot Integrity Services (BIS).
-// See the Boot Integrity Services API Specification for details.
-//
 
-//
-// System Boot Information (Type 32)
-//
 
 #define SMBIOS_SYSTEM_BOOT_INFORMATION_TYPE ((UCHAR)32)
 
 typedef struct _SMBIOS_SYSTEM_BOOT_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3+
     UCHAR Reserved[6];
-    UCHAR BootStatus;  // SMBIOS_SYSTEM_BOOT_STATUS_*
+    UCHAR BootStatus;
 } SMBIOS_SYSTEM_BOOT_INFORMATION, *PSMBIOS_SYSTEM_BOOT_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_SYSTEM_BOOT_INFORMATION) == 0xB);
@@ -2266,23 +2078,16 @@ C_ASSERT(sizeof(SMBIOS_SYSTEM_BOOT_INFORMATION) == 0xB);
 #define SMBIOS_SYSTEM_BOOT_STATUS_SECURITY_VIOLATION                          ((UCHAR)6)
 #define SMBIOS_SYSTEM_BOOT_STATUS_PREVIOUSLY_REQUESTED_IMAGE                  ((UCHAR)7)
 #define SMBIOS_SYSTEM_BOOT_STATUS_WATCHDOG_EXPIRED                            ((UCHAR)8)
-// 9-127 specification reserved
-// 128-191 OEM reserved
-// 192-255 product specific
 
-//
-// 64-Bit Memory Error Information (Type 33)
-//
 
 #define SMBIOS_64_BIT_MEMORY_ERROR_INFORMATION_TYPE ((UCHAR)33)
 
 typedef struct _SMBIOS_64_BIT_MEMORY_ERROR_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3+
-    UCHAR Type;        // SMBIOS_MEMORY_ERROR_TYPE_*
-    UCHAR Granularity; // SMBIOS_MEMORY_ERROR_GRANULARITY_*
-    UCHAR Operation;   // SMBIOS_MEMORY_ERROR_OPERATION_*
+    UCHAR Type;
+    UCHAR Granularity;
+    UCHAR Operation;
     ULONG VendorSyndrome;
     ULONGLONG ArrayErrorAddress;
     ULONGLONG DeviceErrorAddress;
@@ -2291,20 +2096,16 @@ typedef struct _SMBIOS_64_BIT_MEMORY_ERROR_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_64_BIT_MEMORY_ERROR_INFORMATION) == 0x1F);
 
-//
-// Management Device (Type 34)
-//
 
 #define SMBIOS_MANAGEMENT_DEVICE_INFORMATION_TYPE ((UCHAR)34)
 
 typedef struct _SMBIOS_MANAGEMENT_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3+
-    UCHAR Description; // string
-    UCHAR DeviceType;  // SMBIOS_MANAGEMENT_DEVICE_TYPE_*
+    UCHAR Description;
+    UCHAR DeviceType;
     ULONG Address;
-    UCHAR AddressType; // SMBIOS_MANAGEMENT_DEVICE_ADDRESS_TYPE_*
+    UCHAR AddressType;
 } SMBIOS_MANAGEMENT_DEVICE_INFORMATION, *PSMBIOS_MANAGEMENT_DEVICE_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_MANAGEMENT_DEVICE_INFORMATION) == 0xB);
@@ -2329,17 +2130,13 @@ C_ASSERT(sizeof(SMBIOS_MANAGEMENT_DEVICE_INFORMATION) == 0xB);
 #define SMBIOS_MANAGEMENT_DEVICE_ADDRESS_TYPE_MEMORY  ((UCHAR)4)
 #define SMBIOS_MANAGEMENT_DEVICE_ADDRESS_TYPE_SMBUS   ((UCHAR)5)
 
-//
-// Management Device Component (Type 35)
-//
 
 #define SMBIOS_MANAGEMENT_DEVICE_COMPONENT_INFORMATION_TYPE ((UCHAR)35)
 
 typedef struct _SMBIOS_MANAGEMENT_DEVICE_COMPONENT_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3+
-    UCHAR Description; // string
+    UCHAR Description;
     USHORT ManagementDeviceHandle;
     USHORT ComponentHandle;
     USHORT ThresholdHandle;
@@ -2347,16 +2144,12 @@ typedef struct _SMBIOS_MANAGEMENT_DEVICE_COMPONENT_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_MANAGEMENT_DEVICE_COMPONENT_INFORMATION) == 0xB);
 
-//
-// Management Device Threshold Data (Type 36)
-//
 
 #define SMBIOS_MANAGEMENT_DEVICE_THRESHOLD_INFORMATION_TYPE ((UCHAR)36)
 
 typedef struct _SMBIOS_MANAGEMENT_DEVICE_THRESHOLD_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3+
     USHORT LowerThresholdNonCritical;
     USHORT UpperThresholdNonCritical;
     USHORT LowerThresholdCritical;
@@ -2367,9 +2160,6 @@ typedef struct _SMBIOS_MANAGEMENT_DEVICE_THRESHOLD_INFORMATION
 
 C_ASSERT(sizeof(SMBIOS_MANAGEMENT_DEVICE_THRESHOLD_INFORMATION) == 0x10);
 
-//
-// Memory Channel (Type 37)
-//
 
 #define SMBIOS_MEMORY_CHANNEL_INFORMATION_TYPE ((UCHAR)37)
 
@@ -2382,8 +2172,7 @@ typedef struct _SMBIOS_MEMORY_CHANNEL_ENTRY
 typedef struct _SMBIOS_MEMORY_CHANNEL_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3+
-    UCHAR Type;         // SMBIOS_MEMORY_CHANNEL_TYPE_*
+    UCHAR Type;
     UCHAR MaximumLoad;
     UCHAR Count;
     SMBIOS_MEMORY_CHANNEL_ENTRY Entries[ANYSIZE_ARRAY];
@@ -2396,17 +2185,13 @@ C_ASSERT(sizeof(SMBIOS_MEMORY_CHANNEL_INFORMATION) == 0xA);
 #define SMBIOS_MEMORY_CHANNEL_TYPE_RAMBUS    ((UCHAR)3)
 #define SMBIOS_MEMORY_CHANNEL_TYPE_SYNC_LINK ((UCHAR)4)
 
-//
-// IPMI Device Information (Type 38)
-//
 
 #define SMBIOS_IPMI_DEVICE_INFORMATION_TYPE ((UCHAR)38)
 
 typedef struct _SMBIOS_IPMI_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3+
-    UCHAR Type; // SMBIOS_IPMI_INTERFACE_TYPE_*
+    UCHAR Type;
 
     union
     {
@@ -2427,13 +2212,13 @@ typedef struct _SMBIOS_IPMI_DEVICE_INFORMATION
     {
         struct
         {
-            UCHAR InterruptTriggerMode : 1; // 1 = level, 0 = edge
-            UCHAR InterruptPolarity : 1;    // 1 = active high, 0 = active low
+            UCHAR InterruptTriggerMode : 1;
+            UCHAR InterruptPolarity : 1;
             UCHAR Reserved : 1;
-            UCHAR InterruptInfo : 1;        // 1 = specified, 0 = not specified
-            UCHAR LSBAddress : 1;           // address bit 0 value
+            UCHAR InterruptInfo : 1;
+            UCHAR LSBAddress : 1;
             UCHAR Reserved2 : 1;
-            UCHAR RegisterSpacing : 2;      // SMBIOS_IPMI_REGISTER_SPACING_*
+            UCHAR RegisterSpacing : 2;
         };
 
         UCHAR Value;
@@ -2455,24 +2240,20 @@ C_ASSERT(sizeof(SMBIOS_IPMI_DEVICE_INFORMATION) == 0x12);
 #define SMBIOS_IPMI_REGISTER_SPACING_16_BIT     ((UCHAR)2)
 #define SMBIOS_IPMI_REGISTER_SPACING_RESERVED   ((UCHAR)3)
 
-//
-// System Power Supply (Type 39)
-//
 
 #define SMBIOS_SYSTEM_POWER_SUPPLY_INFORMATION_TYPE ((UCHAR)39)
 
 typedef struct _SMBIOS_SYSTEM_POWER_SUPPLY_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.3.1+
     UCHAR PowerUnitGroup;
-    UCHAR Location;          // string
-    UCHAR DeviceName;        // string
-    UCHAR Manufacturer;      // string
-    UCHAR SerialNumber;      // string
-    UCHAR AssetTag;          // string
-    UCHAR ModelPartNumber;   // string
-    UCHAR Revision;          // string
+    UCHAR Location;
+    UCHAR DeviceName;
+    UCHAR Manufacturer;
+    UCHAR SerialNumber;
+    UCHAR AssetTag;
+    UCHAR ModelPartNumber;
+    UCHAR Revision;
     USHORT MaxPowerCapacity;
 
     union
@@ -2482,9 +2263,9 @@ typedef struct _SMBIOS_SYSTEM_POWER_SUPPLY_INFORMATION
             USHORT HostSwappable : 1;
             USHORT Present : 1;
             USHORT Unplugged : 1;
-            USHORT RangeSwitching : 4; // SMBIOS_POWER_SUPPLY_RANGE_SWITCHING_*
-            USHORT Status : 3;         // SMBIOS_POWER_SUPPLY_STATUS_*
-            USHORT Type : 4;           // SMBIOS_POWER_SUPPLY_TYPE_*
+            USHORT RangeSwitching : 4;
+            USHORT Status : 3;
+            USHORT Type : 4;
             USHORT Reserved : 2;
         };
 
@@ -2520,9 +2301,6 @@ C_ASSERT(sizeof(SMBIOS_SYSTEM_POWER_SUPPLY_INFORMATION) == 0x16);
 #define SMBIOS_POWER_SUPPLY_TYPE_CONVERTER                  ((USHORT)7)
 #define SMBIOS_POWER_SUPPLY_TYPE_REGULATOR                  ((USHORT)8)
 
-//
-// Additional Information (Type 40)
-//
 
 #define SMBIOS_ADDITIONAL_INFORMATION_TYPE ((UCHAR)40)
 
@@ -2531,37 +2309,32 @@ typedef struct _SMBIOS_ADDITIONAL_ENTRY
     UCHAR Length;
     USHORT ReferencedHandle;
     UCHAR ReferencedOffset;
-    UCHAR String; // string
+    UCHAR String;
     UCHAR Value[ANYSIZE_ARRAY];
 } SMBIOS_ADDITIONAL_ENTRY, *PSMBIOS_ADDITIONAL_ENTRY;
 
 typedef struct _SMBIOS_ADDITIONAL_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.6+
     UCHAR Count;
     SMBIOS_ADDITIONAL_ENTRY Entries[ANYSIZE_ARRAY];
 } SMBIOS_ADDITIONAL_INFORMATION, *PSMBIOS_ADDITIONAL_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_ADDITIONAL_INFORMATION) == 0xB);
 
-//
-// Onboard Devices Extended Information (Type 41)
-//
 
 #define SMBIOS_ONBOARD_DEVICE_INFORMATION_TYPE ((UCHAR)41)
 
 typedef struct _SMBIOS_ONBOARD_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.6+
-    UCHAR ReferenceDesignation; // string
+    UCHAR ReferenceDesignation;
 
     union
     {
         struct
         {
-            UCHAR Type : 7;     // SMBIOS_ONBOARD_DEVICE_TYPE_*
+            UCHAR Type : 7;
             UCHAR Enabled : 1;
         };
 
@@ -2604,27 +2377,22 @@ C_ASSERT(sizeof(SMBIOS_ONBOARD_DEVICE_INFORMATION) == 0xB);
 #define SMBIOS_ONBOARD_DEIVCE_TYPE_NVME         ((UCHAR)15)
 #define SMBIOS_ONBOARD_DEVICE_TYPE_UFS          ((UCHAR)16)
 
-//
-// Management Controller Host Interface (Type 42)
-//
 
 #define SMBIOS_MCHI_INFORMATION_TYPE ((UCHAR)42)
 
 typedef struct _SMBIOS_MCHI_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.6+
-    UCHAR Type;   // SMBIOS_MCHI_TYPE_*
+    UCHAR Type;
     UCHAR Length;
     UCHAR Data[ANYSIZE_ARRAY];
-    // SMBIOS_MCHI_PROTOCOL_RECORDS
 } SMBIOS_MCHI_INFORMATION, *PSMBIOS_MCHI_INFORMATION;
 
 C_ASSERT(sizeof(SMBIOS_MCHI_INFORMATION) == 0x7);
 
 typedef struct _SMBIOS_MCHI_PROTOCOL_RECORD
 {
-    UCHAR Type;   // SMBIOS_MCHI_PROTOCOL_TYPE_*
+    UCHAR Type;
     UCHAR Length;
     UCHAR Data[ANYSIZE_ARRAY];
 } SMBIOS_MCHI_PROTOCOL_RECORD, *PSMBIOS_MCHI_PROTOCOL_RECORD;
@@ -2639,7 +2407,6 @@ typedef struct _SMBIOS_MCHI_PROTOCOL_RECORDS
 
 C_ASSERT(sizeof(SMBIOS_MCHI_PROTOCOL_RECORDS) == 0x4);
 
-// 0-63 MCTP host interfaces
 #define SMBIOS_MCHI_TYPE_NETWORK_INTERFACE ((UCHAR)64)
 #define SMBIOS_MCHI_TYPE_OEM_DEFINED       ((UCHAR)240)
 
@@ -2650,23 +2417,19 @@ C_ASSERT(sizeof(SMBIOS_MCHI_PROTOCOL_RECORDS) == 0x4);
 #define SMBIOS_MCHI_PROTOCOL_TYPE_REFRESH_OVER_IP ((UCHAR)4)
 #define SMBIOS_MCHI_PROTOCOL_TYPE_OEM_DEFINED     ((UCHAR)240)
 
-//
-// TPM Device (Type 43)
-//
 
 #define SMBIOS_TPM_DEVICE_INFORMATION_TYPE ((UCHAR)43)
 
 typedef struct _SMBIOS_TPM_DEVICE_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.6+
     UCHAR VendorID[4];
     UCHAR MajorSpecVersion;
     UCHAR MinorSpecVersion;
     ULONG FirmwareVersion1;
     ULONG FirmwareVersion2;
-    UCHAR Description;         // string
-    ULONGLONG Characteristics; // SMBIOS_TPM_DEVICE_*
+    UCHAR Description;
+    ULONGLONG Characteristics;
     ULONG OEMDefined;
 } SMBIOS_TPM_DEVICE_INFORMATION, *PSMBIOS_TPM_DEVICE_INFORMATION;
 
@@ -2679,16 +2442,13 @@ C_ASSERT(sizeof(SMBIOS_TPM_DEVICE_INFORMATION) == 0x1F);
 #define SMBIOS_TPM_DEVICE_CONFIGURABLE_VIA_PROPRIETARY_UPDATE 0x0000000000000010ULL
 #define SMBIOS_TPM_DEIVCE_RESERVED                            0xFFFFFFFFFFFFFFE0ULL
 
-//
-// Processor Additional Information (Type 44)
-//
 
 #define SMBIOS_PROCESSOR_ADDITIONAL_INFORMATION_TYPE ((UCHAR)44)
 
 typedef struct _SMBIOS_PROCESSOR_SPECIFIC_BLOCK
 {
     UCHAR Length;
-    UCHAR Type;   // SMBIOS_PROCESSOR_ARCHITECTURE_TYPE_*
+    UCHAR Type;
     UCHAR Data[ANYSIZE_ARRAY];
 } SMBIOS_PROCESSOR_SPECIFIC_BLOCK, *PSMBIOS_PROCESSOR_SPECIFIC_BLOCK;
 
@@ -2697,7 +2457,6 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_SPECIFIC_BLOCK) == 0x3);
 typedef struct _SMBIOS_PROCESSOR_ADDITIONAL_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 2.6+
     USHORT Handle;
     SMBIOS_PROCESSOR_SPECIFIC_BLOCK Blocks[ANYSIZE_ARRAY];
 } SMBIOS_PROCESSOR_ADDITIONAL_INFORMATION, *PSMBIOS_PROCESSOR_ADDITIONAL_INFORMATION;
@@ -2715,27 +2474,23 @@ C_ASSERT(sizeof(SMBIOS_PROCESSOR_ADDITIONAL_INFORMATION) == 0x9);
 #define SMBIOS_PROCESSOR_ARCHITECTURE_TYPE_LOONGARCH32 ((UCHAR)9)
 #define SMBIOS_PROCESSOR_ARCHITECTURE_TYPE_LOONGARCH64 ((UCHAR)10)
 
-//
-// Firmware Inventory Information (Type 45)
-//
 
 #define SMBIOS_FIRMWARE_INVENTORY_INFORMATION_TYPE ((UCHAR)45)
 
 typedef struct _SMBIOS_FIRMWARE_INVENTORY_INFORMATION
 {
     SMBIOS_HEADER Header;
-    // 3.5+
-    UCHAR ComponentName;          // string
-    UCHAR Version;                // string
+    UCHAR ComponentName;
+    UCHAR Version;
     UCHAR VersionFormat;
-    UCHAR Identifier;             // string
+    UCHAR Identifier;
     UCHAR IdentifierFormat;
-    UCHAR ReleaseDate;            // string
-    UCHAR Manufacturer;           // string
-    UCHAR LowestSupportedVersion; // string
+    UCHAR ReleaseDate;
+    UCHAR Manufacturer;
+    UCHAR LowestSupportedVersion;
     ULONGLONG ImageSize;
-    USHORT Characteristics;       // SMBIOS_FIRMWARE_INVENTORY_FLAG_*
-    UCHAR State;                  // SMBIOS_FIRMWARE_INVENTORY_STATE_*
+    USHORT Characteristics;
+    UCHAR State;
     UCHAR AssociatedComponents;
     USHORT AssociatedComponentHandles[ANYSIZE_ARRAY];
 } SMBIOS_FIRMWARE_INVENTORY_INFORMATION, *PSMBIOS_FIRMWARE_INVENTORY_INFORMATION;
@@ -2755,18 +2510,14 @@ C_ASSERT(sizeof(SMBIOS_FIRMWARE_INVENTORY_INFORMATION) == 0x1A);
 #define SMBIOS_FIRMWARE_INVENTORY_STATE_STANDBY_SPARE   ((UCHAR)7)
 #define SMBIOS_FIRMWARE_INVENTORY_STATE_OFFLINE         ((UCHAR)8)
 
-//
-// String Property (Type 46)
-//
 
 #define SMBIOS_STRING_PROPERTY_TYPE ((UCHAR)46)
 
 typedef struct _SMBIOS_STRING_PROPERTY
 {
     SMBIOS_HEADER Header;
-    // 3.5+
-    USHORT Identifier;   // SMBIOS_STRING_PROPERTY_ID_*
-    UCHAR String;        // string
+    USHORT Identifier;
+    UCHAR String;
     USHORT ParentHandle;
 } SMBIOS_STRING_PROPERTY, *PSMBIOS_STRING_PROPERTY;
 
@@ -2775,9 +2526,6 @@ C_ASSERT(sizeof(SMBIOS_STRING_PROPERTY) == 0x9);
 #define SMBIOS_STRING_PROPERTY_ID_RESERVED          ((UCHAR)1)
 #define SMBIOS_STRING_PROPERTY_ID_UEIF_DEVICE_PATH  ((UCHAR)2)
 
-//
-// Inactive (Type 126)
-//
 
 #define SMBIOS_INACTIVE_TYPE     ((UCHAR)126)
 
@@ -2788,9 +2536,6 @@ typedef struct _SMBIOS_INACTIVE
 
 C_ASSERT(sizeof(SMBIOS_INACTIVE) == 0x4);
 
-//
-// End-of-Table (Type 127)
-//
 
 #define SMBIOS_END_OF_TABLE_TYPE ((UCHAR)127)
 

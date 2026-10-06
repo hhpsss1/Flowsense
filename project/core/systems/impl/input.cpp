@@ -34,7 +34,6 @@ namespace systems {
 		}
 
 		auto has_move_subticks = [] (proto::base_usercmd_pb* base_cmd) {
-			// just use protobufs atp
 			for (size_t i = 0; i < base_cmd->subtick_moves_size (); i++) {
 				proto::subtick_move_step* step = base_cmd->mutable_subtick_moves (i);
 				if (step->m_has_bits.test (0x8) || step->m_has_bits.test (0x10))
@@ -47,7 +46,6 @@ namespace systems {
 			return false;
 		};
 
-		// fix movement for ag2
 		diag::set_exception_phase( "input apply: subtick movement" );
 		if (!suppress_move_alignment && !has_move_subticks (base)) {
 			if (const auto step = systems::g_input.acquire_subtick_step (base->mutable_subtick_moves ())) {
@@ -430,4 +428,4 @@ namespace systems {
 		return true;
 	}
 
-} // namespace systems
+}

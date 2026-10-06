@@ -138,7 +138,6 @@ namespace systems {
 			return nullptr;
 		}
 
-		// CEntityClass owns the current SchemaClassInfo pointer at 0x58.
 		const auto class_info = memory::safe_read<std::uintptr_t>( entity_class + 0x58 ).value_or( 0 );
 		if ( !class_info )
 		{
@@ -296,4 +295,4 @@ namespace systems {
 		}
 	}
 
-} // namespace systems
+}

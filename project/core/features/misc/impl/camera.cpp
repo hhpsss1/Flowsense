@@ -34,7 +34,6 @@ namespace features::misc {
 			this->do_fov_change( view_setup, local.pawn );
 		}
 
-		// Aspect conversion must run after the base FOV has been selected.
 		this->do_aspect_ratio_change( view_setup );
 	}
 
@@ -82,8 +81,6 @@ namespace features::misc {
 			return;
 		}
 
-		// Close on grenade: drop back to firstperson while a grenade is the
-		// active weapon so the player can aim their throw precisely.
 		if ( settings::g_misc.thirdperson_grenade.value )
 		{
 			const auto weapon_services = memory::safe_read<std::uintptr_t>( local_pawn + SCHEMA( "C_CSPlayerPawn", "m_pWeaponServices"_hash ) ).value_or( 0 );
@@ -158,7 +155,6 @@ namespace features::misc {
 			const auto base_fov = memory::read<float>( view_setup + k_fov_offset );
 			const auto flags = memory::read<std::uint8_t>( view_setup + k_view_flags_offset );
 
-			// Explicit aspect bypasses the game's native 4:3-based FOV conversion.
 			memory::write<float>( view_setup + k_fov_offset, scale_horizontal_fov( base_fov, cfg.aspect_ratio ) );
 			memory::write<float>( view_setup + k_aspect_ratio_offset, cfg.aspect_ratio );
 			memory::write<std::uint8_t>( view_setup + k_view_flags_offset, flags | k_explicit_aspect_ratio_flag );
@@ -171,4 +167,4 @@ namespace features::misc {
 		}
 	}
 
-} // namespace features::misc
+}

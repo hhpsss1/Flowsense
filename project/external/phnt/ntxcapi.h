@@ -39,7 +39,6 @@ RtlRaiseException(
     );
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_20H1)
-// rev
 NTSYSAPI
 VOID
 NTAPI
@@ -47,7 +46,6 @@ RtlRaiseExceptionForReturnAddressHijack(
     VOID
     );
 
-// rev
 _Analysis_noreturn_
 NTSYSAPI
 DECLSPEC_NORETURN
@@ -57,7 +55,7 @@ RtlRaiseNoncontinuableException(
     _In_ PEXCEPTION_RECORD ExceptionRecord,
     _In_ PCONTEXT ContextRecord
     );
-#endif // PHNT_VERSION >= PHNT_WINDOWS_10_20H1
+#endif
 
 NTSYSCALLAPI
 NTSTATUS
@@ -84,27 +82,18 @@ typedef struct _KCONTINUE_ARGUMENT
     ULONGLONG Reserved[2];
 } KCONTINUE_ARGUMENT, *PKCONTINUE_ARGUMENT;
 
-#define KCONTINUE_FLAG_TEST_ALERT 0x00000001 // wbenny
-#define KCONTINUE_FLAG_DELIVER_APC 0x00000002 // wbenny
+#define KCONTINUE_FLAG_TEST_ALERT 0x00000001
+#define KCONTINUE_FLAG_DELIVER_APC 0x00000002
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
 NtContinueEx(
     _In_ PCONTEXT ContextRecord,
-    _In_ PVOID ContinueArgument // PKCONTINUE_ARGUMENT and BOOLEAN are valid
+    _In_ PVOID ContinueArgument
     );
 
-//FORCEINLINE
-//NTSTATUS
-//NtContinue(
-//    _In_ PCONTEXT ContextRecord,
-//    _In_ BOOLEAN TestAlert
-//    )
-//{
-//    return NtContinueEx(ContextRecord, (PCONTINUE_ARGUMENT)TestAlert);
-//}
-#endif // PHNT_VERSION >= PHNT_WINDOWS_10
+#endif
 
 NTSYSCALLAPI
 NTSTATUS
@@ -127,4 +116,4 @@ RtlAssert(
     _In_opt_ PCSTR MutableMessage
     );
 
-#endif // _NTXCAPI_H
+#endif

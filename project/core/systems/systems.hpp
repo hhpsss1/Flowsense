@@ -124,9 +124,6 @@ namespace systems {
 		};
 
 		void update( );
-		// suppress_move_alignment: skip the ag2 alignment delta. While
-		// antiaim re-bases movement onto fake viewangles the delta would
-		// inject the whole rotation difference as an extra movement impulse.
 		void apply( bool suppress_move_alignment = false );
 
 		[[nodiscard]] usercmd* get( ) const { return this->m_current_cmd; }
@@ -147,30 +144,6 @@ namespace systems {
 		proto::base_usercmd_pb m_backup{};
 
 		bool calculate_crc( proto::base_usercmd_pb* base ) const;
-	};
-
-	class legit_input
-	{
-	public:
-		//void press( std::uintptr_t button_bit, float when = -1.0f );
-		//void release( std::uintptr_t button_bit, float when = -1.0f );
-		void add_mouse_delta( float pitch_degrees, float yaw_degrees );
-
-		//void on_create_move( input::usercmd* cmd );
-		void on_process_input_event( std::uintptr_t csgo_input, int slot );
-
-	private:
-		//[[nodiscard]] float resolve_when( ) const;
-
-		bool m_pending_press{};
-		bool m_pending_release{};
-		std::uintptr_t m_press_button{};
-		std::uintptr_t m_release_button{};
-		float m_press_when{ -1.0f };
-		float m_release_when{ -1.0f };
-
-		float m_pending_pitch{};
-		float m_pending_yaw{};
 	};
 
 	class entities
@@ -246,7 +219,6 @@ namespace systems {
 		[[nodiscard]] bool is_in_time_freeze( ) const { return this->m_is_in_time_freeze.load( ); }
 		[[nodiscard]] bool is_in_deathmatch( ) const { return this->m_is_deathmatch.load( ); }
 
-		// made this public, to be called by level_shutdown
 		void reset( );
 
 	private:
@@ -298,6 +270,9 @@ namespace systems {
 
 		[[nodiscard]] math::vector2 project( const math::vector3& world_pos );
 		[[nodiscard]] projection project_full( const math::vector3& world_pos ) const;
+
+
+		[[nodiscard]] static projection project_fast( const math::vector3& world_pos, const math::matrix4x4& m, int sw, int sh ) noexcept;
 		[[nodiscard]] bool projection_valid( const math::vector2& screen_pos ) { return screen_pos.x != this->k_invalid && screen_pos.y != this->k_invalid; }
 
 		[[nodiscard]] bool has_camera( ) const { return this->m_matrix_valid.load( std::memory_order_acquire ); }
@@ -384,10 +359,19 @@ namespace systems {
 	public:
 		struct filter
 		{
-			std::byte data[ 0x48 ];
+			std::uintptr_t vtable;
+			std::uintptr_t mask;
+			std::array<std::int64_t, 2> v1;
+			std::array<int, 4> skip_handles;
+			std::array<std::int16_t, 2> collisions;
+			std::int16_t v2;
+			std::uint8_t layer;
+			std::uint8_t flags;
+			std::uint8_t v5;
+			std::uint8_t v6;
+			std::byte pad0[ 0x6 ];
+			char v7;
 		};
-
-		static_assert( sizeof( filter ) == 0x48 );
 
 		struct ray
 		{
@@ -400,20 +384,21 @@ namespace systems {
 
 		struct result
 		{
-			void* surface;                 // 0x00 m_pSurface
-			std::uintptr_t hit_entity;     // 0x08 m_pHitEntity
-			void* hitbox_data;             // 0x10 m_pHitboxData
-			std::byte pad0[ 0x60 ];        // 0x18
-			math::vector3 start_pos;       // 0x78
-			math::vector3 end_pos;         // 0x84
-			math::vector3 normal;          // 0x90
-			std::byte pad1[ 0xc ];         // 0x9C
-			float distance;                // 0xA8
-			float fraction;                // 0xAC
-			void* body;                    // 0xB0 m_pHitPhysObj
-			std::uint16_t surface_flags;   // 0xB8 m_nSurfaceFlags
-			std::uint8_t trace_type;       // 0xBA m_nTraceType
-			bool all_solid;                // 0xBB m_bAllSolid
+			void* surface;
+			std::uintptr_t hit_entity;
+			void* hitbox_data;
+			std::byte pad0[ 0x38 ];
+			std::uint32_t contents;
+			std::byte pad1[ 0x24 ];
+			math::vector3 start_pos;
+			math::vector3 end_pos;
+			math::vector3 normal;
+			math::vector3 position;
+			std::byte pad2[ 0x4 ];
+			float fraction;
+			std::byte pad3[ 0x6 ];
+			bool all_solid;
+			std::byte pad4[ 0x4d ];
 		};
 
 		struct trace_array_element
@@ -423,26 +408,31 @@ namespace systems {
 
 		struct trace_data
 		{
-			int unknown1;                     // 0x0000 mod_count
-			float unknown2{ 52.0f };          // 0x0004
-			void* array_pointer;              // 0x0008 mod_data
-			int unknown3{ 128 };              // 0x0010 mod_alloc
-			int unknown4{ static_cast< int >( 0x80000000 ) }; // 0x0014 mod_flags
-			std::array<trace_array_element, 0x80> elements;   // 0x0018 mod_inline
-			std::byte pad0[ 0x8 ];            // 0x1c18
-			int num_hits;                     // 0x1c20 arr_count
-			int unknown5;                     // 0x1c24
-			void* hit_array_pointer;          // 0x1c28 arr_data
-			int hit_capacity{ 8 };            // 0x1c30 arr_alloc
-			int hit_flags{ static_cast< int >( 0x80000000 ) }; // 0x1c34 arr_flags
-			std::byte hit_elements[ 0x1c0 ];  // 0x1c38 arr_inline
-			std::byte tail[ 0x208 ];          // 0x1df8 -> 0x2000
+			int unknown1;
+			float unknown2{ 52.0f };
+			void* array_pointer;
+			int unknown3{ 128 };
+			int unknown4{ static_cast< int >( 0x80000000 ) };
+			std::array<trace_array_element, 0x80> elements;
+			std::byte pad0[ 0x8 ];
+			int num_hits;
+			int unknown5;
+			void* hit_array_pointer;
+			int hit_capacity{ 8 };
+			int hit_flags{ static_cast< int >( 0x80000000 ) };
+			std::byte hit_elements[ 0xc0 ];
+			math::vector3 start;
+			math::vector3 direction;
+			float fraction{ 1.0f };
+			bool unknown6;
+			std::byte pad1[ 0x4b ];
 		};
 
 		static_assert( offsetof( trace_data, elements ) == 0x18 );
 		static_assert( offsetof( trace_data, num_hits ) == 0x1c20 );
 		static_assert( offsetof( trace_data, hit_array_pointer ) == 0x1c28 );
-		static_assert( sizeof( trace_data ) == 0x2000 );
+		static_assert( offsetof( trace_data, start ) == 0x1cf8 );
+		static_assert( sizeof( trace_data ) == 0x1d60 );
 
 		struct player_movement_filter
 		{
@@ -530,24 +520,18 @@ namespace systems {
 
 	namespace panorama {
 
-		// A registered capture: the composition-layer texture name we want and the
-		// SRV that the GetResourceView hook hands us once it becomes available.
 		struct srv_capture {
 			const char* name = nullptr;
 			const char* texture_name = nullptr;
 			ID3D11ShaderResourceView* srv = nullptr;
 		};
 
-		// Registers a texture name to capture. Fills out_index with the capture slot.
 		void add_capture( const char* name, const char* texture_name, std::size_t& out_index );
-		// Called from the resource-view hook with every SRV the renderer binds.
 		void on_resource_view( const char* texture_name, ID3D11ShaderResourceView* srv );
-		// Returns the captured SRV for a registered capture slot.
 		ID3D11ShaderResourceView* get_srv( std::size_t index );
-		// Releases every captured SRV and clears the registry.
 		void shutdown( );
 
-	} // namespace panorama
+	}
 
 	class model_preview
 	{
@@ -559,26 +543,17 @@ namespace systems {
 		bool m_script_injected = false;
 		std::size_t m_capture_index = 0;
 
-		// The context panel (MainMenuPanel or CsgoHudPanel) the create script was
-		// last run against. Changing contexts (main menu <-> match) forces a fresh
-		// injection into the new context so the preview keeps rendering.
 		features::misc::c_ui_panel* m_script_panel {};
 
-		// The CUIPanel backing the MapPlayerPreviewPanel we created. Resolved once
-		// and validated on re-entry. Used to read portrait_world and world_to_clip.
 		features::misc::c_ui_panel* m_preview_panel {};
 		std::uintptr_t m_preview_panel_scan_tick {};
 		std::uintptr_t m_capture_wait_tick {};
 
-		// The C_CSGO_PreviewPlayer spawned by that panel. Pushed from the
-		// GeneratePrimitives hook (render-side). Guarded by an atomic; drawn only
-		// after the bone cache has been finalized by the engine.
 		std::atomic<std::uintptr_t> m_preview_player {};
 
 		std::string m_last_model_path {};
 		std::int16_t m_last_def_index {};
 
-		// IPanoramaUIEngine->GetUIEngineSource2()->RunScript(CUIPanel*, script, origin, line)
 		void run_script( features::misc::c_ui_panel* panel, const char* script );
 		[[nodiscard]] features::misc::c_ui_panel* find_script_panel();
 		[[nodiscard]] features::misc::c_ui_panel* find_preview_panel();
@@ -601,7 +576,6 @@ namespace systems {
 	};
 
 	inline input g_input{};
-	inline legit_input g_legit_input{};
 	inline entities g_entities{};
 	inline local g_local{};
 	inline prediction g_prediction{};
@@ -614,7 +588,7 @@ namespace systems {
 	inline icons g_icons{};
 	inline model_preview g_model_preview{};
 
-} // namespace systems
+}
 
 #define SCHEMA( class_name, field_hash ) \
 	[]( ) -> int { \

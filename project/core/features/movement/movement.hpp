@@ -6,18 +6,6 @@ namespace features::movement {
 	{
 	public:
 		void on_create_move( systems::input::usercmd* cmd ) const;
-
-	private:
-		// create_move runs several times per command (per rendered frame plus
-		// prediction replays) and antiaim's restore_input_snapshot rebuilds the
-		// subtick list from a pristine snapshot on every replay. The landing
-		// prediction therefore has to be latched per command, otherwise a replay
-		// whose prediction comes back "no landing this tick" wipes the jump that
-		// an earlier pass of the same command already committed - which is what
-		// made a held hop drop intermittently.
-		mutable int m_decision_command{ -1 };
-		mutable bool m_decision_jump{ false };
-		mutable float m_decision_when{ 1.0f };
 	};
 
 	class airstrafe
@@ -41,6 +29,7 @@ namespace features::movement {
 	{
 	public:
 		void on_create_move( systems::input::usercmd* cmd );
+		void on_level_change( );
 		[[nodiscard]] bool active_this_tick( ) const { return this->m_active_this_tick; }
 		[[nodiscard]] float landing_fraction( ) const { return this->m_landing_fraction; }
 
@@ -49,6 +38,8 @@ namespace features::movement {
 
 		float m_landing_fraction{ 1.0f };
 		bool m_active_this_tick{ false };
+		bool m_was_on_ground_last_tick{ false };
+		bool m_jb_fired_this_landing{ false };
 	};
 
 	class fastladder
@@ -102,7 +93,8 @@ namespace features::movement {
 
 		std::uintptr_t m_last_buttons{};
 		std::uintptr_t m_last_pressed{};
+		int m_substep_counter{};
 		bool m_handled_this_tick{};
 	};
 
-} // namespace features::movement
+}

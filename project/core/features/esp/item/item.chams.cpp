@@ -40,13 +40,8 @@ namespace features::esp::item {
 		}
 
 		{
-			// No scene-object flag writes: the through-wall pass is produced entirely by the
-			// ignorez material twin, so mutating object flags here is unnecessary and, on
-			// some builds, breaks the occluded (ignorez) draw.
 		}
 
-		// Maps a visible material to its depth-disabled (ignorez) twin so the primary
-		// layer can always emit a through-wall pass.
 		const auto ignorez_twin = [ ]( settings::esp::cham_ids id ) -> settings::esp::cham_ids
 			{
 			switch ( id )
@@ -66,7 +61,6 @@ namespace features::esp::item {
 			}
 			};
 
-		// Occluded pass first (through walls), then the depth-tested visible passes.
 		if ( cfg.primary.enabled.value )
 		{
 			this->apply_layer( primitive_buffer, original_fn, a1, scene_object, scene_view, cfg.primary.invisible_color, ignorez_twin( cfg.primary.material.value ) );
@@ -176,4 +170,4 @@ namespace features::esp::item {
 		}
 	}
 
-} // namespace features::esp::item
+}

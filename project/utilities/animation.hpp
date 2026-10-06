@@ -252,4 +252,4 @@ namespace animation {
 		float m_alpha_target{ 0.0f };
 	};
 
-} // namespace animation
+}

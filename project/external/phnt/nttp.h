@@ -7,11 +7,9 @@
 #ifndef _NTTP_H
 #define _NTTP_H
 
-// Some types are already defined in winnt.h.
 
 typedef struct _TP_ALPC TP_ALPC, *PTP_ALPC;
 
-// private
 /**
  * Defines the callback function for ALPC completion notifications.
  *
@@ -27,7 +25,6 @@ VOID NTAPI TP_ALPC_CALLBACK(
     );
 typedef TP_ALPC_CALLBACK *PTP_ALPC_CALLBACK;
 
-// rev
 /**
  * Defines the extended callback function for ALPC completion notifications.
  *
@@ -45,7 +42,6 @@ VOID NTAPI TP_ALPC_CALLBACK_EX(
     );
 typedef TP_ALPC_CALLBACK_EX *PTP_ALPC_CALLBACK_EX;
 
-// winbase:CreateThreadpool
 /**
  * Allocates a new pool of threads to execute callbacks.
  *
@@ -62,7 +58,6 @@ TpAllocPool(
     _Reserved_ PVOID Reserved
     );
 
-// winbase:CloseThreadpool
 /**
  * Closes the specified thread pool.
  *
@@ -77,7 +72,6 @@ TpReleasePool(
     _Inout_ PTP_POOL Pool
     );
 
-// winbase:SetThreadpoolThreadMaximum
 /**
  * Sets the maximum number of threads that the specified thread pool can allocate to process callbacks.
  *
@@ -94,7 +88,6 @@ TpSetPoolMaxThreads(
     _In_ ULONG MaxThreads
     );
 
-// winbase:SetThreadpoolThreadMinimum
 /**
  * Sets the minimum number of threads that the specified thread pool must make available to process callbacks.
  *
@@ -111,7 +104,6 @@ TpSetPoolMinThreads(
     _In_ ULONG MinThreads
     );
 
-// winbase:QueryThreadpoolStackInformation
 /**
  * Retrieves the stack reserve and commit sizes for threads in the specified thread pool.
  *
@@ -128,7 +120,6 @@ TpQueryPoolStackInformation(
     _Out_ PTP_POOL_STACK_INFORMATION PoolStackInformation
     );
 
-// winbase:SetThreadpoolStackInformation
 /**
  * Sets the stack reserve and commit sizes for threads in the specified thread pool.
  *
@@ -145,7 +136,6 @@ TpSetPoolStackInformation(
     _In_ PTP_POOL_STACK_INFORMATION PoolStackInformation
     );
 
-// rev
 /**
  * Sets the base priority for worker threads in the specified thread pool.
  *
@@ -161,7 +151,6 @@ TpSetPoolThreadBasePriority(
     _In_ ULONG BasePriority
     );
 
-// winbase:CreateThreadpoolCleanupGroup
 /**
  * Creates a cleanup group that applications can use to track one or more thread pool callbacks.
  *
@@ -176,7 +165,6 @@ TpAllocCleanupGroup(
     _Out_ PTP_CLEANUP_GROUP *CleanupGroup
     );
 
-// winbase:CloseThreadpoolCleanupGroup
 /**
  * Closes the specified cleanup group.
  *
@@ -190,7 +178,6 @@ TpReleaseCleanupGroup(
     _Inout_ PTP_CLEANUP_GROUP CleanupGroup
     );
 
-// winbase:CloseThreadpoolCleanupGroupMembers
 /**
  * Releases the members of the specified cleanup group.
  *
@@ -208,7 +195,6 @@ TpReleaseCleanupGroupMembers(
     _Inout_opt_ PVOID CleanupParameter
     );
 
-// winbase:SetEventWhenCallbackReturns
 /**
  * Sets an event object when the current callback function returns.
  *
@@ -224,7 +210,6 @@ TpCallbackSetEventOnCompletion(
     _In_ HANDLE Event
     );
 
-// winbase:ReleaseSemaphoreWhenCallbackReturns
 /**
  * Releases a semaphore when the current callback function returns.
  *
@@ -242,7 +227,6 @@ TpCallbackReleaseSemaphoreOnCompletion(
     _In_ ULONG ReleaseCount
     );
 
-// winbase:ReleaseMutexWhenCallbackReturns
 /**
  * Releases a mutex when the current callback function returns.
  *
@@ -258,7 +242,6 @@ TpCallbackReleaseMutexOnCompletion(
     _In_ HANDLE Mutex
     );
 
-// winbase:LeaveCriticalSectionWhenCallbackReturns
 /**
  * Leaves a critical section when the current callback function returns.
  *
@@ -274,7 +257,6 @@ TpCallbackLeaveCriticalSectionOnCompletion(
     _Inout_ PRTL_CRITICAL_SECTION CriticalSection
     );
 
-// winbase:FreeLibraryWhenCallbackReturns
 /**
  * Frees the specified DLL when the current callback function returns.
  *
@@ -290,7 +272,6 @@ TpCallbackUnloadDllOnCompletion(
     _In_ PVOID DllHandle
     );
 
-// winbase:CallbackMayRunLong
 /**
  * Indicates that the callback may not return quickly.
  *
@@ -305,7 +286,6 @@ TpCallbackMayRunLong(
     _Inout_ PTP_CALLBACK_INSTANCE Instance
     );
 
-// winbase:DisassociateCurrentThreadFromCallback
 /**
  * Removes the association between the current thread and the callback instance.
  *
@@ -334,7 +314,6 @@ VOID NTAPI TP_CALLBACK_ROUTINE(
     );
 typedef TP_CALLBACK_ROUTINE* PTP_CALLBACK_ROUTINE;
 
-// winbase:TrySubmitThreadpoolCallback
 /**
  * Requests that a thread pool worker thread call the specified callback function.
  *
@@ -353,7 +332,6 @@ TpSimpleTryPost(
     _In_opt_ PTP_CALLBACK_ENVIRON CallbackEnviron
     );
 
-// winbase:CreateThreadpoolWork
 /**
  * Allocates a work object.
  *
@@ -374,7 +352,6 @@ TpAllocWork(
     _In_opt_ PTP_CALLBACK_ENVIRON CallbackEnviron
     );
 
-// winbase:CloseThreadpoolWork
 /**
  * Closes the specified work object.
  *
@@ -389,7 +366,6 @@ TpReleaseWork(
     _Inout_ PTP_WORK Work
     );
 
-// winbase:SubmitThreadpoolWork
 /**
  * Submits a work object to the thread pool.
  *
@@ -404,7 +380,6 @@ TpPostWork(
     _Inout_ PTP_WORK Work
     );
 
-// winbase:WaitForThreadpoolWorkCallbacks
 /**
  * Waits for outstanding work callbacks to complete and optionally cancels pending callbacks.
  *
@@ -421,7 +396,6 @@ TpWaitForWork(
     _In_ LOGICAL CancelPendingCallbacks
     );
 
-// winbase:CreateThreadpoolTimer
 /**
  * Allocates a timer object.
  *
@@ -442,7 +416,6 @@ TpAllocTimer(
     _In_opt_ PTP_CALLBACK_ENVIRON CallbackEnviron
     );
 
-// winbase:CloseThreadpoolTimer
 /**
  * Closes the specified timer object.
  *
@@ -456,7 +429,6 @@ TpReleaseTimer(
     _Inout_ PTP_TIMER Timer
     );
 
-// winbase:SetThreadpoolTimer
 /**
  * Sets the due time and periodic interval for the specified timer object.
  *
@@ -478,7 +450,6 @@ TpSetTimer(
     );
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_8)
-// winbase:SetThreadpoolTimerEx
 /**
  * Sets the due time and periodic interval for the specified timer object and returns status.
  *
@@ -500,7 +471,6 @@ TpSetTimerEx(
     );
 #endif
 
-// winbase:IsThreadpoolTimerSet
 /**
  * Determines whether a timer object is currently set.
  *
@@ -515,7 +485,6 @@ TpIsTimerSet(
     _In_ PTP_TIMER Timer
     );
 
-// winbase:WaitForThreadpoolTimerCallbacks
 /**
  * Waits for outstanding timer callbacks to complete and optionally cancels pending callbacks.
  *
@@ -531,7 +500,6 @@ TpWaitForTimer(
     _In_ LOGICAL CancelPendingCallbacks
     );
 
-// winbase:CreateThreadpoolWait
 /**
  * Allocates a wait object.
  *
@@ -552,7 +520,6 @@ TpAllocWait(
     _In_opt_ PTP_CALLBACK_ENVIRON CallbackEnviron
     );
 
-// winbase:CloseThreadpoolWait
 /**
  * Closes the specified wait object.
  *
@@ -566,7 +533,6 @@ TpReleaseWait(
     _Inout_ PTP_WAIT Wait
     );
 
-// winbase:SetThreadpoolWait
 /**
  * Sets the object to wait on and optional timeout for a wait object.
  *
@@ -585,7 +551,6 @@ TpSetWait(
     );
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_8)
-// winbase:SetThreadpoolWaitEx
 /**
  * Sets the object to wait on and optional timeout for a wait object and returns status.
  *
@@ -607,7 +572,6 @@ TpSetWaitEx(
     );
 #endif
 
-// winbase:WaitForThreadpoolWaitCallbacks
 /**
  * Waits for outstanding wait callbacks to complete and optionally cancels pending callbacks.
  *
@@ -623,7 +587,6 @@ TpWaitForWait(
     _In_ LOGICAL CancelPendingCallbacks
     );
 
-// private
 /**
  * Defines the callback function for asynchronous I/O completion callbacks.
  *
@@ -644,7 +607,6 @@ VOID NTAPI TP_IO_CALLBACK(
     );
 typedef TP_IO_CALLBACK *PTP_IO_CALLBACK;
 
-// winbase:CreateThreadpoolIo
 /**
  * Allocates an I/O completion object associated with a file handle.
  *
@@ -667,7 +629,6 @@ TpAllocIoCompletion(
     _In_opt_ PTP_CALLBACK_ENVIRON CallbackEnviron
     );
 
-// winbase:CloseThreadpoolIo
 /**
  * Closes the specified I/O completion object.
  *
@@ -681,7 +642,6 @@ TpReleaseIoCompletion(
     _Inout_ PTP_IO Io
     );
 
-// winbase:StartThreadpoolIo
 /**
  * Marks the start of one or more asynchronous I/O operations on the I/O completion object.
  *
@@ -695,7 +655,6 @@ TpStartAsyncIoOperation(
     _Inout_ PTP_IO Io
     );
 
-// winbase:CancelThreadpoolIo
 /**
  * Cancels callbacks for outstanding asynchronous I/O operations.
  *
@@ -709,7 +668,6 @@ TpCancelAsyncIoOperation(
     _Inout_ PTP_IO Io
     );
 
-// winbase:WaitForThreadpoolIoCallbacks
 /**
  * Waits for outstanding I/O callbacks to complete and optionally cancels pending callbacks.
  *
@@ -725,7 +683,6 @@ TpWaitForIoCompletion(
     _In_ LOGICAL CancelPendingCallbacks
     );
 
-// private
 /**
  * Allocates an ALPC completion object.
  *
@@ -747,7 +704,6 @@ TpAllocAlpcCompletion(
     _In_opt_ PTP_CALLBACK_ENVIRON CallbackEnviron
     );
 
-// rev
 /**
  * Allocates an ALPC completion object with extended callback context.
  *
@@ -769,7 +725,6 @@ TpAllocAlpcCompletionEx(
     _In_opt_ PTP_CALLBACK_ENVIRON CallbackEnviron
     );
 
-// private
 /**
  * Releases an ALPC completion object.
  *
@@ -782,7 +737,6 @@ TpReleaseAlpcCompletion(
     _Inout_ PTP_ALPC Alpc
     );
 
-// private
 /**
  * Waits for ALPC completion processing to finish.
  *
@@ -795,7 +749,6 @@ TpWaitForAlpcCompletion(
     _Inout_ PTP_ALPC Alpc
     );
 
-// rev
 /**
  * Registers the ALPC completion list for the specified ALPC completion object.
  *
@@ -808,7 +761,6 @@ TpAlpcRegisterCompletionList(
     _Inout_ PTP_ALPC Alpc
     );
 
-// rev
 /**
  * Unregisters the ALPC completion list for the specified ALPC completion object.
  *
@@ -822,7 +774,6 @@ TpAlpcUnregisterCompletionList(
     _Inout_ PTP_ALPC Alpc
     );
 
-// private
 typedef enum _TP_TRACE_TYPE
 {
     TpTraceThreadPriority = 1,
@@ -830,7 +781,6 @@ typedef enum _TP_TRACE_TYPE
     MaxTpTraceType
 } TP_TRACE_TYPE;
 
-// private
 /**
  * Captures caller context for thread pool tracing.
  *
@@ -844,7 +794,6 @@ TpCaptureCaller(
     _In_ TP_TRACE_TYPE Type
     );
 
-// private
 /**
  * Checks whether a worker thread should terminate.
  *
@@ -858,4 +807,4 @@ TpCheckTerminateWorker(
     _In_ HANDLE Thread
     );
 
-#endif // _NTTP_H
+#endif

@@ -1,0 +1,8 @@
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/freetype.dir
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/package.dir
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/package_source.dir
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/edit_cache.dir
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/rebuild_cache.dir
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/list_install_components.dir
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/install.dir
+C:/Users/laura/Music/aetheris.win/main project/vcpkg_installed/vcpkg/blds/freetype/x64-windows-static-dbg/CMakeFiles/install/local.dir

@@ -6,11 +6,6 @@
 #include <protection/game_addresses.hpp>
 #include "../changer.hpp"
 
-// Sticker / keychain attributes are applied the same way gloves are:
-// SetOrAddAttributeValueByName on the item view's dynamic attribute list.
-// Integer values (sticker id, schema, keychain id, keychain seed) are stored
-// as float32 bit-casts, exactly like the working server-side plugins do
-// (ViewAsFloat(id)). An id of 0 clears the slot.
 
 namespace features::changer::detail {
 
@@ -18,10 +13,8 @@ namespace features::changer::detail {
 
 		constexpr std::size_t sticker_slot_count {5};
 
-		// Runtime C_KeychainModule vftable (resolved via RTTI on first use).
 		std::uintptr_t keychain_module_vtable {};
 
-		// Reads a NUL-terminated C string through a possibly-bad pointer.
 		[[nodiscard]] bool try_read_string (std::uintptr_t address, char* out, std::size_t capacity)
 		{
 			if (!address || address <= 0x10000)
@@ -61,10 +54,6 @@ namespace features::changer::detail {
 			dump_name_hashes ();
 		}
 
-		// The keychain module spawns parented to the weapon model, so it shows
-		// up as a child in the weapon's game scene node tree. Walk that chain
-		// and match the owner entity's vtable - the same trick the reference
-		// implementation uses to detect an already-attached charm.
 		[[nodiscard]] std::uintptr_t find_keychain_module (std::uintptr_t weapon)
 		{
 			ensure_keychain_vtable ();
@@ -115,8 +104,6 @@ namespace features::changer::detail {
 			set_attribute (item_view, name, bits_to_float (static_cast<std::uint32_t>(value)));
 		}
 
-		// Ground-truth check: dump the item view's dynamic attribute list so we
-		// can see whether our writes actually land under the names we use.
 		void dump_item_attributes (std::uintptr_t item_view)
 		{
 			const auto list = item_view + SCHEMA ("C_EconItemView", "m_AttributeList"_hash);
@@ -146,10 +133,6 @@ namespace features::changer::detail {
 
 			logging::console::print (xs ("[attrdump] iv={:#x} list={:#x} header: {}"), item_view, list, hex);
 
-			// Header layout observed: {static_ptr, count, data*, capacity}.
-			// Follow the data pointer and search every dword for the murmur
-			// hashes of the attribute names we write; print hits with the
-			// following float/u32 payload so layout can be confirmed.
 			const auto count = memory::read<std::int32_t> (list + 8);
 			const auto data = memory::read<std::uintptr_t> (list + 16);
 			if (!data || count <= 0 || count > 256)
@@ -206,7 +189,6 @@ namespace features::changer::detail {
 
 			logging::console::print (xs ("[attrdump] count={} data={:#x} hits: {}"), count, data, found);
 
-			// Raw first elements - decode stride/key layout offline.
 			char elem_hex[3 * 64] {};
 			std::size_t eoff {};
 			__try
@@ -226,11 +208,6 @@ namespace features::changer::detail {
 			elem_hex [eoff] = '\0';
 			logging::console::print (xs ("[attrdump] first elems: {}"), elem_hex);
 
-			// Raw bytes of the game's lazily-initialized attribute-name slots
-			// used by the keychain attr packer sub_180750280 (id/x/y/z/seed/
-			// highlight/sticker) plus the two id/x/y/z cache clusters used by
-			// the spawn-side readers. Layout per slot: {char* name, void*
-			// resolved_def, u32 schema_version}. Interpret offline.
 			struct slot_entry { const char* tag; std::uint32_t rva; };
 			constexpr slot_entry slots []
 			{
@@ -263,8 +240,6 @@ namespace features::changer::detail {
 			}
 		}
 
-		// Murmur2-lower hashes of the attribute names we write, for matching
-		// against dumped attribute keys.
 		void dump_name_hashes ()
 		{
 			constexpr const char* names []
@@ -283,7 +258,7 @@ namespace features::changer::detail {
 			}
 		}
 
-} // namespace
+}
 
 	void apply_stattrak_attributes (std::uintptr_t item_view, bool enabled, int value)
 	{
@@ -292,9 +267,6 @@ namespace features::changer::detail {
 			return;
 		}
 
-		// Def 80 "kill eater" / def 81 "kill eater score type". Stored as a
-		// float bit-cast, exactly like the reference implementations pass the
-		// counter: ViewAsFloat(count). A bit-cast of -1 means "no stattrack".
 		if (enabled)
 		{
 			set_attribute (item_view, "kill eater", bits_to_float (static_cast<std::uint32_t>(value)));
@@ -338,25 +310,12 @@ namespace features::changer::detail {
 
 	namespace {
 
-		// Per-weapon keycharm sync state.
-		//
-		// Two game behaviours force this to be a state machine:
-		//  1. UTIL_Remove is deferred - the module survives until the end of the
-		//     frame, so remove+add in the same tick leaves the weapon's stored
-		//     module handle still resolving to the dying entity.
-		//  2. AddKeychainEntity early-outs WITHOUT spawning when that stored
-		//     handle resolves and the module's defid+seed match the item view's
-		//     attributes (offset-only edits match!). Combined with (1) an offset
-		//     change would kill the charm permanently.
-		// Therefore: remove this tick, add on a later tick once the old module
-		// stopped resolving; and never re-add while a queued spawn has not yet
-		// materialized in the scene tree.
 		struct keychain_sync_state
 		{
 			settings::changer::keychain_slot requested {};
-			bool valid {};            // a spawn was requested for this config
-			bool pending {};          // spawn queued but not yet materialized
-			bool removed {};          // removal issued, waiting for it to die
+			bool valid {};
+			bool pending {};
+			bool removed {};
 			std::chrono::steady_clock::time_point since {};
 		};
 
@@ -394,14 +353,6 @@ namespace features::changer::detail {
 			}
 		}
 
-		// The charm placement code inside add_keychain_entity reads the offset
-		// attributes through {name*, def*, schema_version} caches in .data
-		// (rva 0x2074580/98/B0/C8). Those slots are lazily initialized by the
-		// game and can still hold unrelated data when we spawn a module, which
-		// makes every float lookup silently fail and drops our offsets.
-		// Repair them directly: point the name slot at the canonical literal,
-		// null the def and stamp a bogus version so the reader re-resolves it
-		// with its own schema resolver on the next call.
 		void refresh_keychain_attr_caches ()
 		{
 			struct attr_cache_entry
@@ -412,10 +363,10 @@ namespace features::changer::detail {
 
 			static constexpr attr_cache_entry entries []
 			{
-				{ 0x1A644A0, 0x2074580 }, // has-attribute check ("keychain slot 0 offset x")
-				{ 0x1A644A0, 0x2074598 }, // offset x -> placement [0]
-				{ 0x1A644C0, 0x20745B0 }, // offset y -> placement [1]
-				{ 0x1A644E0, 0x20745C8 }, // offset z -> placement [2]
+				{ 0x1A644A0, 0x2074580 },
+				{ 0x1A644A0, 0x2074598 },
+				{ 0x1A644C0, 0x20745B0 },
+				{ 0x1A644E0, 0x20745C8 },
 			};
 
 			const auto base = memory::get_module_base ("client.dll");
@@ -471,9 +422,6 @@ namespace features::changer::detail {
 
 	}
 
-	// Idempotent charm sync - see changer.hpp declaration. Called from the FSN
-	// applier for every owned gun/knife whose cosmetic config changed, plus on
-	// first sight of the weapon.
 	void sync_keychain (std::uint32_t weapon_handle, std::uintptr_t weapon, std::uintptr_t item_view, const settings::changer::keychain_slot& kc)
 	{
 		if (!weapon || !item_view)
@@ -484,8 +432,6 @@ namespace features::changer::detail {
 		auto& state = keychain_states ()[weapon_handle];
 		const auto now = std::chrono::steady_clock::now ();
 
-		// A previously queued spawn never materialized (module destroyed by the
-		// game, round restart, ...). Give up waiting so future updates work.
 		if (state.pending && now - state.since > keychain_pending_timeout)
 		{
 			logging::console::print (xs ("[kcdbg] sync: pending spawn timed out h={}"), weapon_handle);
@@ -494,10 +440,6 @@ namespace features::changer::detail {
 
 		const auto existing = find_keychain_module (weapon);
 
-		// Phase 1 of a respawn: we removed the old module last tick. Wait until
-		// it is really gone so add()'s stored-handle duplicate check cannot
-		// early-out against the dying entity. Fallback timer keeps us unstuck if
-		// the scene walk loses sight of it.
 		if (state.removed && !existing)
 		{
 			state.removed = false;
@@ -512,8 +454,6 @@ namespace features::changer::detail {
 			return;
 		}
 
-		// While our last spawn is still materializing the scene walk cannot see
-		// it - re-adding here would queue a duplicate. Wait until it shows up.
 		if (state.pending)
 		{
 			if (existing)
@@ -529,7 +469,6 @@ namespace features::changer::detail {
 
 		if (kc.id != 0)
 		{
-			// Live module already matches exactly what is configured: nothing to do.
 			if (existing && state.valid && state.requested == kc)
 			{
 				return;
@@ -548,8 +487,6 @@ namespace features::changer::detail {
 
 			if (existing)
 			{
-				// Remove first; the actual spawn happens on a later tick once
-				// this module stopped resolving (see struct comment).
 				remove_keychain_module (weapon);
 				state.valid = false;
 				state.removed = true;
@@ -675,4 +612,4 @@ namespace features::changer::detail {
 		set_attribute (item_view, "keychain slot 0 id", 0.0f);
 	}
 
-} // namespace features::changer::detail
+}

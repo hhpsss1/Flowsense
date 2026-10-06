@@ -56,4 +56,4 @@ namespace hooking::manager {
 		return true;
 	}
 
-} // namespace hooking::manager
+}

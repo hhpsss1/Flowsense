@@ -20,7 +20,7 @@ namespace security {
 		bool initialize( );
 		cached_hash* get( std::uintptr_t module_base );
 
-	} // namespace integrity
+	}
 
 	namespace regions {
 
@@ -34,7 +34,7 @@ namespace security {
 		void add_module( HMODULE module );
 		bool is_protected( const void* address, std::size_t size );
 
-	} // namespace regions
+	}
 
 	namespace prologues {
 
@@ -48,6 +48,6 @@ namespace security {
 		void add( std::uintptr_t target, const std::uint8_t* bytes, std::size_t length );
 		hook_info* get( std::uintptr_t address );
 
-	} // namespace prologues
+	}
 
-} // namespace security
+}

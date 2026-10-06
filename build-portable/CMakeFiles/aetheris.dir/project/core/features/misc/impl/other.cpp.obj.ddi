@@ -1,0 +1,9 @@
+{
+  "revision": 0,
+  "rules": [
+    {
+      "primary-output": "CMakeFiles\\aetheris.dir\\project\\core\\features\\misc\\impl\\other.cpp.obj"
+    }
+  ],
+  "version": 1
+}

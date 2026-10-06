@@ -26,6 +26,7 @@ namespace steam {
 	public:
 		static bool initialize( );
 		static int get_medium_friend_avatar( std::uint64_t steam_id );
+		static const char* get_persona_name( );
 	};
 
 	class user
@@ -43,4 +44,4 @@ namespace steam {
 		static bool get_image_rgba( int image, std::uint8_t* dest, int dest_size );
 	};
 
-} // namespace steam
+}

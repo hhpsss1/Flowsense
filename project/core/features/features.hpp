@@ -14,10 +14,9 @@ namespace features {
 		inline shared g_shared{};
 		inline misc g_misc{};
 		inline rage g_rage{};
-		inline legit g_legit{};
 		inline vac g_vac{};
 
-	} // namespace esp
+	}
 
 	namespace esp {
 
@@ -27,7 +26,7 @@ namespace features {
 			inline chams g_chams{};
 			inline overlay g_overlay{};
 
-		} // namespace player
+		}
 
 		namespace item {
 
@@ -35,22 +34,22 @@ namespace features {
 			inline chams g_chams{};
 			inline overlay g_overlay{};
 
-		} // namespace item
+		}
 
 		namespace projectile {
 
 			inline overlay g_overlay{};
 			inline tracers g_tracers{};
 
-		} // namespace projectile
+		}
 
 		namespace other {
 
 			inline overlay g_overlay{};
 
-		} // namespace other
+		}
 
-	} // namespace esp
+	}
 
 	namespace misc {
 
@@ -63,8 +62,9 @@ namespace features {
 		inline hud g_hud{};
 		inline other g_other{};
 		inline scoreboard_weapons g_scoreboard_weapons{};
+		inline lua g_lua{};
 
-	} // namespace misc
+	}
 
 	namespace movement {
 
@@ -78,7 +78,7 @@ namespace features {
 		inline edgebug g_edgebug{};
 		inline slowwalk g_slowwalk{};
 
-	} // namespace movement
+	}
 
 	namespace world {
 
@@ -86,7 +86,7 @@ namespace features {
 		inline scene g_scene{};
 		inline smoke g_smoke{};
 
-	} // namespace world
+	}
 
 	namespace changer {
 
@@ -97,6 +97,6 @@ namespace features {
 		inline knives g_knives{};
 		inline musickits g_musickits{};
 
-	} // namespace changer
+	}
 
-} // namespace features
+}

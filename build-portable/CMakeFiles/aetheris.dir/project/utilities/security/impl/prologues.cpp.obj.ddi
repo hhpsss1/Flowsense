@@ -1,0 +1,9 @@
+{
+  "revision": 0,
+  "rules": [
+    {
+      "primary-output": "CMakeFiles\\aetheris.dir\\project\\utilities\\security\\impl\\prologues.cpp.obj"
+    }
+  ],
+  "version": 1
+}

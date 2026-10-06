@@ -66,7 +66,6 @@ namespace jm {
             return ( static_cast< std::uint64_t >( first_part ) << 32 ) | second_part;
         }
 
-        // loads up to 8 characters of string into uint64 and xors it with the key
         template<std::size_t N, class CharT>
         XORSTR_FORCEINLINE constexpr std::uint64_t
             load_xored_str8( std::uint64_t key, std::size_t idx, const CharT* str ) noexcept
@@ -84,7 +83,6 @@ namespace jm {
             return value;
         }
 
-        // forces compiler to use registers instead of stuffing constants in rdata
         XORSTR_FORCEINLINE std::uint64_t load_from_reg( std::uint64_t value ) noexcept
         {
 #if defined(__clang__) || defined(__GNUC__)
@@ -96,7 +94,7 @@ namespace jm {
 #endif
         }
 
-    } // namespace detail
+    }
 
     template<class CharT, std::size_t Size, class Keys, class Indices>
     class xor_string;
@@ -129,7 +127,6 @@ namespace jm {
 
         XORSTR_FORCEINLINE void crypt( ) noexcept
         {
-            // everything is inlined by hand because a certain compiler with a certain linker is _very_ slow
 #if defined(__clang__)
             alignas( alignment )
                 std::uint64_t arr[ ]{ ::jm::detail::load_from_reg( Keys )... };
@@ -146,7 +143,7 @@ namespace jm {
                 veorq_u64( __builtin_neon_vld1q_v( reinterpret_cast< const uint64_t* >( _storage ) + Indices * 2, 51 ),
                     __builtin_neon_vld1q_v( reinterpret_cast< const uint64_t* >( keys ) + Indices * 2, 51 ) ),
                 51 ) ), ... );
-#else // GCC, MSVC
+#else
             ( ( Indices >= sizeof( _storage ) / 16 ? static_cast< void >( 0 ) : vst1q_u64(
                 reinterpret_cast< uint64_t* >( _storage ) + Indices * 2,
                 veorq_u64( vld1q_u64( reinterpret_cast< const uint64_t* >( _storage ) + Indices * 2 ),
@@ -184,7 +181,6 @@ namespace jm {
 
         XORSTR_FORCEINLINE pointer crypt_get( ) noexcept
         {
-            // crypt() is inlined by hand because a certain compiler with a certain linker is _very_ slow
 #if defined(__clang__)
             alignas( alignment )
                 std::uint64_t arr[ ]{ ::jm::detail::load_from_reg( Keys )... };
@@ -201,7 +197,7 @@ namespace jm {
                 veorq_u64( __builtin_neon_vld1q_v( reinterpret_cast< const uint64_t* >( _storage ) + Indices * 2, 51 ),
                     __builtin_neon_vld1q_v( reinterpret_cast< const uint64_t* >( keys ) + Indices * 2, 51 ) ),
                 51 ) ), ... );
-#else // GCC, MSVC
+#else
             ( ( Indices >= sizeof( _storage ) / 16 ? static_cast< void >( 0 ) : vst1q_u64(
                 reinterpret_cast< uint64_t* >( _storage ) + Indices * 2,
                 veorq_u64( vld1q_u64( reinterpret_cast< const uint64_t* >( _storage ) + Indices * 2 ),
@@ -237,6 +233,6 @@ namespace jm {
         std::integer_sequence<std::uint64_t, detail::key8<Indices>( )...>,
         std::index_sequence<Indices...>>;
 
-} // namespace jm
+}
 
-#endif // include guard
+#endif

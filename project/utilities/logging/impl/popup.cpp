@@ -9,7 +9,7 @@ namespace logging::popup {
 
 		inline std::uintptr_t game_ui {0};
 
-	} // namespace detail
+	}
 
 	bool initialize () {
 		detail::game_ui = memory::find_instance_by_rtti (MODULE_BASE ("client.dll"), xs ("CLegacyGameUI"));
@@ -24,4 +24,4 @@ namespace logging::popup {
 		memory::call_vfunc<void> (detail::game_ui, 28, title, message, true, false, nullptr, nullptr, nullptr, 0, 0ll);
 	}
 
-} // namespace logging::popup
+}

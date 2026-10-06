@@ -57247,4 +57247,4 @@ namespace resources::fonts::inter {
 		0x83, 0x54, 0x7E, 0x00
 	};
 
-} // namespace resources::fonts::inter
+}

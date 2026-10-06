@@ -89,7 +89,6 @@ namespace rendering {
 
 		xdraw::begin_frame( true );
 		{
-			// In-game HUD widgets render outside the menu — apply the lime theme for the whole frame.
 			g_menu.sync_theme_style( );
 
 			auto& dl = xdraw::get( xdraw::layer::bottom );
@@ -104,11 +103,12 @@ namespace rendering {
 				features::esp::player::g_overlay.on_render( dl );
 				features::misc::g_projectile_trajectory.on_render( dl );
 				features::combat::g_rage.on_render( dl );
-				features::combat::g_legit.on_render( dl );
 				features::misc::g_impacts.on_render( dl );
 				features::misc::g_hud.on_render( dl );
 				features::esp::other::g_overlay.on_render( dl );
 			}
+
+			features::misc::g_lua.on_render( dl );
 
 			if ( this->m_ui_assets_ready )
 			{
@@ -167,4 +167,4 @@ namespace rendering {
 		xui::initialize( window );
 	}
 
-} // namespace rendering
+}

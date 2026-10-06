@@ -100,7 +100,7 @@ namespace features::changer {
 			( void ) once;
 		}
 
-	} // namespace
+	}
 
 	void guns::on_frame_stage_notify( )
 	{
@@ -136,7 +136,6 @@ namespace features::changer {
 			this->m_tracked_pawn = local.pawn;
 		}
 
-		// Get the local player's account ID to check weapon ownership
 		const auto local_account_id = memory::read<std::uint32_t>( local.controller + SCHEMA( "CBasePlayerController", "m_iAccountID"_hash ) );
 
 		auto did_update = false;
@@ -160,15 +159,12 @@ namespace features::changer {
 				continue;
 			}
 
-			// Skip weapons picked up from enemies - only apply skins to weapons we bought/own
 			const auto weapon_account_id = memory::read<std::uint32_t>( iv + SCHEMA( "C_EconItemView", "m_iAccountID"_hash ) );
 			if ( weapon_account_id != 0 && weapon_account_id != local_account_id )
 			{
 				continue;
 			}
 
-			// Snapshot under the menu's mutex; the pointer is used by apply()
-			// after the scope closes.
 			settings::changer::applied_skin skin{};
 
 			{
@@ -199,10 +195,6 @@ namespace features::changer {
 			const auto current_wear = memory::read<float>( weapon + SCHEMA( "C_EconEntity", "m_flFallbackWear"_hash ) );
 			const auto current_seed = memory::read<int>( weapon + SCHEMA( "C_EconEntity", "m_nFallbackSeed"_hash ) );
 
-			// Drive the charm state machine every tick: offset/seed-only edits
-			// clear needs_update as soon as apply() refreshes the cosmetic
-			// cache, and the deferred remove->respawn sequence has to keep
-			// progressing even when nothing else changed.
 			detail::sync_keychain( handle, weapon, iv, skin.keychain );
 
 			const auto custom_name = iv + SCHEMA( "C_EconItemView", "m_szCustomName"_hash );
@@ -260,17 +252,14 @@ namespace features::changer {
 
 		if ( skin->paint_kit_id > 0 )
 		{
-			// Subclass must match the weapon's own def_index
 			memory::write<std::uint32_t>( weapon + SCHEMA( "C_BaseEntity", "m_nSubclassID"_hash ), detail::make_subclass_token( def_index ) );
 			memory::call<void>( PATTERN( patterns::update_subclass ), weapon );
 
-			// Fallback fields
 			memory::write<int>( weapon + SCHEMA( "C_EconEntity", "m_nFallbackPaintKit"_hash ), skin->paint_kit_id );
 			memory::write<float>( weapon + SCHEMA( "C_EconEntity", "m_flFallbackWear"_hash ), skin->wear );
 			memory::write<int>( weapon + SCHEMA( "C_EconEntity", "m_nFallbackSeed"_hash ), skin->seed );
 			memory::write<int>( weapon + SCHEMA( "C_EconEntity", "m_nFallbackStatTrak"_hash ), skin->stattrak ? skin->stattrak_value : -1 );
 
-			// Item fields - force EconItemView lookup miss - fallback path
 			memory::write<std::uint32_t>( iv + SCHEMA( "C_EconItemView", "m_iItemIDHigh"_hash ), 0xFFFFFFFF );
 			memory::write<std::uint32_t>( iv + SCHEMA( "C_EconItemView", "m_iItemIDLow"_hash ), 0 );
 			memory::write<bool>( iv + SCHEMA( "C_EconItemView", "m_bInitialized"_hash ), true );
@@ -286,8 +275,6 @@ namespace features::changer {
 				detail::add_nametag_entity( weapon, iv );
 			}
 
-			// Re-apply the model after the fallback fields are written so the
-			// precache/material refresh picks up the new paint kit.
 			if ( const auto def = g_econ_item_system.find_def( def_index ) )
 			{
 				if ( !def->model_player.empty( ) )
@@ -305,22 +292,19 @@ namespace features::changer {
 				detail::add_stattrak_entity( weapon, iv );
 			}
 
-			// Deferred-spawn aware charm sync (handles id=0 cleanup too).
 			if ( skin->keychain.id != 0 )
 			{
 				detail::update_composite_material( weapon );
 			}
 			this->m_last_cosmetic[ def_index ] = detail::cosmetic_state{ handle, detail::make_cosmetic_config( *skin ) };
 
-			// Call chain
 			memory::call<void>( PATTERN( patterns::apply_econ_customization ), weapon, true );
-			memory::call_vfunc<void>( weapon, 113, true );
-			memory::call_vfunc<void>( weapon, 200 );
+			memory::call_vfunc<void>( weapon, 110, true );
+			memory::call_vfunc<void>( weapon, 195 );
 			memory::call_vfunc<void>( weapon, 105, true );
 			memory::call<void>( PATTERN( patterns::update_subclass ), weapon );
 			memory::call<void>( detail::regenerate_weapon_skin_fn( ), weapon, false );
 
-			// Mesh mask from paint kit's old/new model flag
 			const auto pk = g_econ_item_system.find_paint_kit( skin->paint_kit_id );
 			const auto uses_old_model = pk && pk->legacy_model;
 			const auto mesh_mask = 1 + static_cast< std::uint64_t >( uses_old_model );
@@ -366,7 +350,6 @@ namespace features::changer {
 				detail::add_stattrak_entity( weapon, iv );
 			}
 
-			// Deferred-spawn aware charm sync (handles id=0 cleanup too).
 			if ( skin->keychain.id != 0 )
 			{
 				detail::update_composite_material( weapon );
@@ -374,7 +357,7 @@ namespace features::changer {
 			this->m_last_cosmetic[ def_index ] = detail::cosmetic_state{ handle, detail::make_cosmetic_config( *skin ) };
 
 			memory::call<void>( PATTERN( patterns::apply_econ_customization ), weapon, true );
-			memory::call_vfunc<void>( weapon, 113, true );
+			memory::call_vfunc<void>( weapon, 110, true );
 			memory::call_vfunc<void>( weapon, 105, true );
 			memory::call<void>( detail::regenerate_weapon_skin_fn( ), weapon, true );
 
@@ -401,4 +384,4 @@ namespace features::changer {
 		memory::call<void>( PATTERN( patterns::weapon_set_mesh_group_mask ), view_model_scene_node, 1 + static_cast< std::uint64_t >( uses_old_model ) );
 	}
 
-} // namespace features::changer
+}

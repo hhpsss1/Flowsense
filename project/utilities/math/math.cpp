@@ -174,7 +174,6 @@ namespace math {
 		return vec;
 	}
 
-	// -------------------------------- //
 
 	quaternion::quaternion( ) noexcept : x( 0.0f ), y( 0.0f ), z( 0.0f ), w( 1.0f ) {}
 	constexpr quaternion::quaternion( float x, float y, float z, float w ) noexcept : x( x ), y( y ), z( z ), w( w ) {}
@@ -213,7 +212,6 @@ namespace math {
 		return v + uv + uuv;
 	}
 
-	// -------------------------------- //
 
 	const float* matrix3x4::operator[]( int i ) const noexcept
 	{
@@ -235,7 +233,6 @@ namespace math {
 		return mat[ index ];
 	}
 
-	// -------------------------------- //
 
 	namespace helpers {
 
@@ -348,6 +345,6 @@ namespace math {
 			return yaw;
 		}
 
-	} // namespace helpers
+	}
 
-} // namespace math
+}

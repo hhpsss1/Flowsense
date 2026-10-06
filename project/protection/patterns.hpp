@@ -177,6 +177,6 @@ namespace patterns {
 	extern const ::protection::addresses::address_t& print_to_chat;
 	extern const ::protection::addresses::address_t& send_message_client;
 
-} // namespace patterns
+}
 
-#endif // !PATTERNS_HPP
+#endif

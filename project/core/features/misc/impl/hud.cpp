@@ -28,7 +28,6 @@ namespace features::misc {
 
 		this->do_scope( draw_list, cx, cy, static_cast< float >( screen_h ), local.pawn );
 		this->do_crosshair( draw_list, cx, cy );
-		// Hat and velocity HUD removed per task #33.
 	}
 
 	void hud::do_crosshair( xdraw::draw_list& draw_list, float cx, float cy ) const
@@ -124,4 +123,4 @@ namespace features::misc {
 		draw_line( cx + gap, cy, cx + gap + length, cy );
 	}
 
-} // namespace features::misc
+}

@@ -21,27 +21,63 @@ namespace features::esp::player {
 
 		auto players = systems::g_entities.get_by_type( systems::entities::type::player );
 		{
+
+
+
 			const auto camera = systems::g_view.origin( );
 
-			std::sort( players.begin( ), players.end( ), [ & ]( const systems::entities::cached& a, const systems::entities::cached& b )
+			struct sort_entry
+			{
+				float dist_sq{};
+				std::size_t index{};
+			};
+
+			std::vector<sort_entry> order;
+			order.reserve( players.size( ) );
+
+			for ( auto i = 0ull; i < players.size( ); ++i )
+			{
+				const auto node = memory::safe_read<std::uintptr_t>( players[ i ].ptr + SCHEMA( "C_BaseEntity", "m_pGameSceneNode"_hash ) ).value_or( 0 );
+				auto dist_sq = 0.0f;
+
+				if ( node )
 				{
-					const auto node_a = memory::safe_read<std::uintptr_t>( a.ptr + SCHEMA( "C_BaseEntity", "m_pGameSceneNode"_hash ) ).value_or( 0 );
-					const auto node_b = memory::safe_read<std::uintptr_t>( b.ptr + SCHEMA( "C_BaseEntity", "m_pGameSceneNode"_hash ) ).value_or( 0 );
+					dist_sq = ( memory::safe_read<math::vector3>( node + SCHEMA( "CGameSceneNode", "m_vecAbsOrigin"_hash ) ).value_or( math::vector3{} ) - camera ).length_sqr( );
+				}
 
-					if ( !node_a || !node_b )
-					{
-						return !node_a && node_b;
-					}
+				order.push_back( { dist_sq, i } );
+			}
 
-					const auto da = node_a ? ( memory::safe_read<math::vector3>( node_a + SCHEMA( "CGameSceneNode", "m_vecAbsOrigin"_hash ) ).value_or( math::vector3{} ) - camera ).length_sqr( ) : 0.0f;
-					const auto db = node_b ? ( memory::safe_read<math::vector3>( node_b + SCHEMA( "CGameSceneNode", "m_vecAbsOrigin"_hash ) ).value_or( math::vector3{} ) - camera ).length_sqr( ) : 0.0f;
-
-					return da > db;
+			std::sort( order.begin( ), order.end( ), [ ]( const sort_entry& a, const sort_entry& b )
+				{
+					return a.dist_sq > b.dist_sq;
 				} );
+
+			std::vector<systems::entities::cached> sorted;
+			sorted.reserve( players.size( ) );
+			for ( const auto& e : order )
+			{
+				sorted.push_back( players[ e.index ] );
+			}
+			players = std::move( sorted );
 		}
 
 		for ( const auto& player : players )
 		{
+
+
+			{
+				const auto alive = memory::safe_read<bool>( player.ptr + SCHEMA( "CCSPlayerController", "m_bPawnIsAlive"_hash ) ).value_or( false );
+				const auto pawn_handle = alive ? memory::safe_read<std::uint32_t>( player.ptr + SCHEMA( "CBasePlayerController", "m_hPawn"_hash ) ).value_or( 0 ) : 0;
+				const auto pawn = pawn_handle ? systems::g_entities.lookup( pawn_handle ) : 0;
+				const auto team = pawn ? memory::safe_read<int>( pawn + SCHEMA( "C_BaseEntity", "m_iTeamNum"_hash ) ).value_or( 0 ) : 0;
+
+				if ( !pawn || !settings::g_esp.m_player.m_overlay[ local.is_this_other_team( team ) ? 0 : 1 ].enabled.value )
+				{
+					continue;
+				}
+			}
+
 			const auto info = this->get_info( player, local );
 			if ( !info.valid( ) )
 			{
@@ -282,6 +318,9 @@ namespace features::esp::player {
 
 		constexpr auto max_segment_len = 500.0f;
 
+		const auto [viewport_w, viewport_h] = xdraw::viewport_size( );
+		const auto view_matrix = systems::g_view.matrix( );
+
 		for ( const auto& chain : chains )
 		{
 			std::optional<math::vector2> prev{};
@@ -300,14 +339,14 @@ namespace features::esp::player {
 					continue;
 				}
 
-				const auto projected = systems::g_view.project( positions[ idx ] );
-				if ( !systems::g_view.projection_valid( projected ) )
+				const auto projected = systems::view::project_fast( positions[ idx ], view_matrix, viewport_w, viewport_h );
+				if ( projected.w <= 0.001f || !systems::g_view.projection_valid( projected.screen ) )
 				{
 					prev.reset( );
 					continue;
 				}
 
-				math::vector2 pt{ projected.x, projected.y };
+				math::vector2 pt{ projected.screen.x, projected.screen.y };
 
 				if ( prev )
 				{
@@ -575,8 +614,6 @@ namespace features::esp::player {
 	{
 		xdraw::push_font( rendering::g_fonts.inter_tight[ rendering::fonts::size::petite ] );
 
-		// Decide display casing. If the player typed ALL CAPS, keep ALL CAPS;
-		// otherwise keep the original mixed casing so the name still feels personal.
 		std::string display_name = info.name;
 		bool all_upper = !display_name.empty( );
 		for ( const auto c : display_name )
@@ -593,8 +630,6 @@ namespace features::esp::player {
 				[ ]( unsigned char c ) { return static_cast< char >( std::toupper( c ) ); } );
 		}
 
-		// Render at the slightly wider size: pad each non-final character with
-		// extra spacing so the text reads ~10% wider without touching xdraw.
 		constexpr float k_width_scale = 1.10f;
 
 		const auto measured = xdraw::measure_text( display_name );
@@ -603,10 +638,6 @@ namespace features::esp::player {
 		const auto text_x = std::floorf( bounds.min.x + ( bounds.width( ) * 0.5f ) - ( text_w * 0.5f ) );
 		const auto text_y = std::floorf( bounds.min.y - text_h - 2.0f - offsets.top );
 
-		// Render each codepoint individually so we can stretch the advance.
-		// Using a manual quad emitter requires accessing glyph atlas directly,
-		// so we use the public path: draw the full string centered as-is, then
-		// re-center using the scaled width we report to offsets.
 		draw_list.text( text_x, text_y, display_name, cfg.color, xdraw::text_style::outlined );
 		offsets.top += text_h + 2.0f;
 
@@ -631,7 +662,6 @@ namespace features::esp::player {
 				const auto ix = std::floorf( bounds.min.x + ( bounds.width( ) * 0.5f ) - ( iw * 0.5f ) );
 				const auto iy = std::floorf( bounds.max.y + 2.0f + offsets.bottom + total_height );
 
-				// All icons render as solid white, no border/outline.
 				constexpr auto white = xdraw::color{ 255, 255, 255, 255 };
 				draw_list.image( ix, iy, iw, ih, ico->texture.Get( ), white );
 
@@ -760,8 +790,6 @@ namespace features::esp::player {
 			return;
 		}
 
-		// Match the live input yaw and player origins used by the reference OOF implementation.
-		// The view system's cached origin/angles describe a different render structure.
 		const auto target_yaw = std::atan2f( to_target.y, to_target.x );
 		const auto view_yaw = math::helpers::deg_to_rad( systems::g_input.get_view_angles( ).y );
 		const auto angle = view_yaw - target_yaw - std::numbers::pi_v<float> *0.5f;
@@ -844,15 +872,11 @@ namespace features::esp::player {
 			return info;
 		}
 
-		// m_bDormant is ambiguous across the current schema scopes and can
-		// resolve to unrelated data. Keep the last known transform, as chams do.
 
 		const auto name_ptr = memory::safe_read<std::uintptr_t>( info.controller + SCHEMA( "CCSPlayerController", "m_sSanitizedPlayerName"_hash ) ).value_or( 0 );
 		if ( name_ptr )
 		{
 			info.name = memory::read_string( name_ptr, 128 );
-			// Preserve the original casing the player chose.
-			// CS:GO/CS2 sanitization can yield odd whitespace; trim trailing spaces.
 			while ( !info.name.empty( ) && ( info.name.back( ) == ' ' || info.name.back( ) == '\t' ) )
 			{
 				info.name.pop_back( );
@@ -914,4 +938,4 @@ namespace features::esp::player {
 		return info;
 	}
 
-} // namespace features::esp::player
+}

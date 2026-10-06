@@ -8,11 +8,11 @@
 #define _NTKEAPI_H
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
-#define LOW_PRIORITY 0 // Lowest thread priority level
-#define LOW_REALTIME_PRIORITY 16 // Lowest realtime priority level
-#define HIGH_PRIORITY 31 // Highest thread priority level
-#define MAXIMUM_PRIORITY 32 // Number of thread priority levels
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#define LOW_PRIORITY 0
+#define LOW_REALTIME_PRIORITY 16
+#define HIGH_PRIORITY 31
+#define MAXIMUM_PRIORITY 32
+#endif
 
 typedef enum _KTHREAD_STATE
 {
@@ -29,7 +29,6 @@ typedef enum _KTHREAD_STATE
     MaximumThreadState
 } KTHREAD_STATE, *PKTHREAD_STATE;
 
-// private
 typedef enum _KHETERO_CPU_POLICY
 {
     KHeteroCpuPolicyAll = 0,
@@ -38,7 +37,7 @@ typedef enum _KHETERO_CPU_POLICY
     KHeteroCpuPolicySmall = 3,
     KHeteroCpuPolicySmallOrIdle = 4,
     KHeteroCpuPolicyDynamic = 5,
-    KHeteroCpuPolicyStaticMax = 5, // valid
+    KHeteroCpuPolicyStaticMax = 5,
     KHeteroCpuPolicyBiasedSmall = 6,
     KHeteroCpuPolicyBiasedLarge = 7,
     KHeteroCpuPolicyDefault = 8,
@@ -51,49 +50,49 @@ typedef enum _KHETERO_CPU_POLICY
  */
 typedef enum _KWAIT_REASON
 {
-    Executive,               // Waiting for an executive event.
-    FreePage,                // Waiting for a free page.
-    PageIn,                  // Waiting for a page to be read in.
-    PoolAllocation,          // Waiting for a pool allocation.
-    DelayExecution,          // Waiting due to a delay execution.           // NtDelayExecution
-    Suspended,               // Waiting because the thread is suspended.    // NtSuspendThread
-    UserRequest,             // Waiting due to a user request.              // NtWaitForSingleObject
-    WrExecutive,             // Waiting for an executive event.
-    WrFreePage,              // Waiting for a free page.
-    WrPageIn,                // Waiting for a page to be read in.
-    WrPoolAllocation,        // Waiting for a pool allocation.              // 10
-    WrDelayExecution,        // Waiting due to a delay execution.
-    WrSuspended,             // Waiting because the thread is suspended.
-    WrUserRequest,           // Waiting due to a user request.
-    WrEventPair,             // Waiting for an event pair.                  // NtCreateEventPair
-    WrQueue,                 // Waiting for a queue.                        // NtRemoveIoCompletion
-    WrLpcReceive,            // Waiting for an LPC receive.                 // NtReplyWaitReceivePort
-    WrLpcReply,              // Waiting for an LPC reply.                   // NtRequestWaitReplyPort
-    WrVirtualMemory,         // Waiting for virtual memory.
-    WrPageOut,               // Waiting for a page to be written out.       // NtFlushVirtualMemory
-    WrRendezvous,            // Waiting for a rendezvous.                   // 20
-    WrKeyedEvent,            // Waiting for a keyed event.                  // NtCreateKeyedEvent
-    WrTerminated,            // Waiting for thread termination.
-    WrProcessInSwap,         // Waiting for a process to be swapped in.
-    WrCpuRateControl,        // Waiting for CPU rate control.
-    WrCalloutStack,          // Waiting for a callout stack.
-    WrKernel,                // Waiting for a kernel event.
-    WrResource,              // Waiting for a resource.
-    WrPushLock,              // Waiting for a push lock.
-    WrMutex,                 // Waiting for a mutex.
-    WrQuantumEnd,            // Waiting for the end of a quantum.           // 30
-    WrDispatchInt,           // Waiting for a dispatch interrupt.
-    WrPreempted,             // Waiting because the thread was preempted.
-    WrYieldExecution,        // Waiting to yield execution.
-    WrFastMutex,             // Waiting for a fast mutex.
-    WrGuardedMutex,          // Waiting for a guarded mutex.
-    WrRundown,               // Waiting for a rundown.
-    WrAlertByThreadId,       // Waiting for an alert by thread ID.
-    WrDeferredPreempt,       // Waiting for a deferred preemption.
-    WrPhysicalFault,         // Waiting for a physical fault.
-    WrIoRing,                // Waiting for an I/O ring.                    // 40
-    WrMdlCache,              // Waiting for an MDL cache.
-    WrRcu,                   // Waiting for read-copy-update (RCU) synchronization.
+    Executive,
+    FreePage,
+    PageIn,
+    PoolAllocation,
+    DelayExecution,
+    Suspended,
+    UserRequest,
+    WrExecutive,
+    WrFreePage,
+    WrPageIn,
+    WrPoolAllocation,
+    WrDelayExecution,
+    WrSuspended,
+    WrUserRequest,
+    WrEventPair,
+    WrQueue,
+    WrLpcReceive,
+    WrLpcReply,
+    WrVirtualMemory,
+    WrPageOut,
+    WrRendezvous,
+    WrKeyedEvent,
+    WrTerminated,
+    WrProcessInSwap,
+    WrCpuRateControl,
+    WrCalloutStack,
+    WrKernel,
+    WrResource,
+    WrPushLock,
+    WrMutex,
+    WrQuantumEnd,
+    WrDispatchInt,
+    WrPreempted,
+    WrYieldExecution,
+    WrFastMutex,
+    WrGuardedMutex,
+    WrRundown,
+    WrAlertByThreadId,
+    WrDeferredPreempt,
+    WrPhysicalFault,
+    WrIoRing,
+    WrMdlCache,
+    WrRcu,
     MaximumWaitReason
 } KWAIT_REASON, *PKWAIT_REASON;
 
@@ -126,7 +125,7 @@ typedef enum _KPROFILE_SOURCE
     ProfileMaximum
 } KPROFILE_SOURCE;
 
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
 
@@ -163,6 +162,6 @@ NtYieldExecution(
     VOID
     );
 
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
-#endif // _NTKEAPI_H
+#endif

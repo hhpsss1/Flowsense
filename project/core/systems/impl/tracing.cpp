@@ -129,23 +129,19 @@ namespace systems {
 	{
 		player_movement_filter filter{};
 
-		// trace_filter_set_collision resolves in this build but its >E8 call
-		// target does not accept this argument layout (crashes inside the engine
-		// trace with an invalid handle deref). Seed the movement filter with the
-		// proven trace_filter_init path used by the render-thread traces instead.
-		static_cast< void >( collision_group );
-		memory::call<void>(PATTERN (patterns::trace_filter_init), &filter, entity, mask, 4, 7 );
+		memory::call<void>(PATTERN (patterns::trace_filter_set_collision), &filter, entity, mask, static_cast< int >( collision_group ) );
 
 		return filter;
 	}
 
 	tracing::result tracing::trace_player_bbox( const math::vector3& start, const math::vector3& end, const bbox_collision& bbox, const player_movement_filter& filter, std::uintptr_t movement_services ) const
 	{
-		// The dedicated trace_hull >E8 call target also crashes for this build;
-		// reuse the standard TraceShape (trace_ray) hull path with the bbox set
-		// on the ray, matching the known-good camera/visibility traces.
-		static_cast< void >( movement_services );
+		(void)movement_services;
 
+		// NOTE: routed through the generic ray-cast path with hull extents
+		// instead of the movement-services hull helper: the helper resolves an
+		// entity handle out of its 4th argument and crashes on stale data,
+		// while TraceShape + our result layout is verified working.
 		ray ray{};
 		ray.mins = bbox.mins;
 		ray.maxs = bbox.maxs;
@@ -153,7 +149,7 @@ namespace systems {
 
 		result result{};
 
-		memory::call<bool>(PATTERN (patterns::trace_ray), addresses::globals::game_trace_manager, &ray, &start, &end, reinterpret_cast< const struct filter* >( &filter ), &result );
+		memory::call<bool>(PATTERN (patterns::trace_ray), addresses::globals::game_trace_manager, &ray, &start, &end, reinterpret_cast< const tracing::filter* >( &filter ), &result );
 
 		return result;
 	}
@@ -173,4 +169,4 @@ namespace systems {
 		memory::call<void>(PATTERN (patterns::trace_bullet_update), trace_data, hit, unknown_float, unknown );
 	}
 
-} // namespace systems
+}

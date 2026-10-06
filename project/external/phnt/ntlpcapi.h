@@ -7,16 +7,10 @@
 #ifndef _NTLPCAPI_H
 #define _NTLPCAPI_H
 
- //
- // ALPC Object Specific Access Rights
- //
 
 #define PORT_CONNECT 0x0001
 #define PORT_ALL_ACCESS (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x1)
 
-//
-// ALPC information structures
-//
 
 typedef struct _PORT_MESSAGE
 {
@@ -46,8 +40,8 @@ typedef struct _PORT_MESSAGE
     ULONG MessageId;
     union
     {
-        SIZE_T ClientViewSize; // only valid for LPC_CONNECTION_REQUEST messages
-        ULONG CallbackId; // only valid for LPC_REQUEST messages
+        SIZE_T ClientViewSize;
+        ULONG CallbackId;
     };
 } PORT_MESSAGE, *PPORT_MESSAGE;
 
@@ -125,11 +119,7 @@ typedef struct _REMOTE_PORT_VIEW
     PVOID ViewBase;
 } REMOTE_PORT_VIEW, *PREMOTE_PORT_VIEW;
 
-// WOW64 definitions
 
-// Except in a small number of special cases, WOW64 programs using the LPC APIs must use the 64-bit versions of the
-// PORT_MESSAGE, PORT_VIEW and REMOTE_PORT_VIEW data structures. Note that we take a different approach than the
-// official NT headers, which produce 64-bit versions in a 32-bit environment when USE_LPC6432 is defined.
 
 typedef struct _PORT_MESSAGE64
 {
@@ -159,8 +149,8 @@ typedef struct _PORT_MESSAGE64
     ULONG MessageId;
     union
     {
-        ULONGLONG ClientViewSize; // only valid for LPC_CONNECTION_REQUEST messages
-        ULONG CallbackId; // only valid for LPC_REQUEST messages
+        ULONGLONG ClientViewSize;
+        ULONG CallbackId;
     };
 } PORT_MESSAGE64, *PPORT_MESSAGE64;
 
@@ -187,9 +177,6 @@ typedef struct _REMOTE_PORT_VIEW64
     ULONGLONG ViewBase;
 } REMOTE_PORT_VIEW64, *PREMOTE_PORT_VIEW64;
 
-//
-// Port creation
-//
 
 NTSYSCALLAPI
 NTSTATUS
@@ -213,9 +200,6 @@ NtCreateWaitablePort(
     _In_opt_ ULONG MaxPoolUsage
     );
 
-//
-// Port connection (client)
-//
 
 NTSYSCALLAPI
 NTSTATUS
@@ -246,9 +230,6 @@ NtSecureConnectPort(
     _Inout_opt_ PULONG ConnectionInformationLength
     );
 
-//
-// Port connection (server)
-//
 
 NTSYSCALLAPI
 NTSTATUS
@@ -277,9 +258,6 @@ NtCompleteConnectPort(
     _In_ HANDLE PortHandle
     );
 
-//
-// General
-//
 
 NTSYSCALLAPI
 NTSTATUS
@@ -384,20 +362,16 @@ NtQueryInformationPort(
     _Out_opt_ PULONG ReturnLength
     );
 
-//
-// Asynchronous Local Inter-process Communication
-//
 
-// rev
 typedef HANDLE ALPC_HANDLE, *PALPC_HANDLE;
 
 #define ALPC_PORFLG_NONE                           0x0
-#define ALPC_PORFLG_LPC_MODE                       0x1000 // kernel only
+#define ALPC_PORFLG_LPC_MODE                       0x1000
 #define ALPC_PORFLG_ALLOW_IMPERSONATION            0x10000
-#define ALPC_PORFLG_ALLOW_LPC_REQUESTS             0x20000 // rev
-#define ALPC_PORFLG_WAITABLE_PORT                  0x40000 // dbg
+#define ALPC_PORFLG_ALLOW_LPC_REQUESTS             0x20000
+#define ALPC_PORFLG_WAITABLE_PORT                  0x40000
 #define ALPC_PORFLG_ALLOW_DUP_OBJECT               0x80000
-#define ALPC_PORFLG_SYSTEM_PROCESS                 0x100000 // dbg
+#define ALPC_PORFLG_SYSTEM_PROCESS                 0x100000
 #define ALPC_PORFLG_WAKE_POLICY1                   0x200000
 #define ALPC_PORFLG_WAKE_POLICY2                   0x400000
 #define ALPC_PORFLG_WAKE_POLICY3                   0x800000
@@ -424,7 +398,6 @@ typedef HANDLE ALPC_HANDLE, *PALPC_HANDLE;
      ALPC_PORFLG_OBJECT_TYPE_TOKEN | ALPC_PORFLG_OBJECT_TYPE_COMPOSITION | \
      ALPC_PORFLG_OBJECT_TYPE_JOB)
 
-// symbols
 typedef struct _ALPC_PORT_ATTRIBUTES
 {
     ULONG Flags;
@@ -441,28 +414,23 @@ typedef struct _ALPC_PORT_ATTRIBUTES
 #endif
 } ALPC_PORT_ATTRIBUTES, *PALPC_PORT_ATTRIBUTES;
 
-// begin_rev
 #define ALPC_MESSAGE_HANDLE_ATTRIBUTE 0x10000000
 #define ALPC_MESSAGE_CONTEXT_ATTRIBUTE 0x20000000
 #define ALPC_MESSAGE_VIEW_ATTRIBUTE 0x40000000
 #define ALPC_MESSAGE_SECURITY_ATTRIBUTE 0x80000000
 
-// Convenience macro for all message attributes
 #define ALPC_MESSAGE_ATTRIBUTES_ALL \
     (ALPC_MESSAGE_HANDLE_ATTRIBUTE | \
      ALPC_MESSAGE_CONTEXT_ATTRIBUTE | \
      ALPC_MESSAGE_VIEW_ATTRIBUTE | \
      ALPC_MESSAGE_SECURITY_ATTRIBUTE)
-// end_rev
 
-// symbols
 typedef struct _ALPC_MESSAGE_ATTRIBUTES
 {
     ULONG AllocatedAttributes;
     ULONG ValidAttributes;
 } ALPC_MESSAGE_ATTRIBUTES, *PALPC_MESSAGE_ATTRIBUTES;
 
-// symbols
 typedef struct _ALPC_COMPLETION_LIST_STATE
 {
     union
@@ -477,9 +445,8 @@ typedef struct _ALPC_COMPLETION_LIST_STATE
     } u1;
 } ALPC_COMPLETION_LIST_STATE, *PALPC_COMPLETION_LIST_STATE;
 
-#define ALPC_COMPLETION_LIST_BUFFER_GRANULARITY_MASK 0x3f // dbg
+#define ALPC_COMPLETION_LIST_BUFFER_GRANULARITY_MASK 0x3f
 
-// symbols
 typedef struct DECLSPEC_ALIGN(128) _ALPC_COMPLETION_LIST_HEADER
 {
     ULONG64 StartMagic;
@@ -505,7 +472,6 @@ typedef struct DECLSPEC_ALIGN(128) _ALPC_COMPLETION_LIST_HEADER
     ULONG64 EndMagic;
 } ALPC_COMPLETION_LIST_HEADER, *PALPC_COMPLETION_LIST_HEADER;
 
-// private
 typedef struct _ALPC_CONTEXT_ATTR
 {
     PVOID PortContext;
@@ -515,13 +481,10 @@ typedef struct _ALPC_CONTEXT_ATTR
     ULONG CallbackId;
 } ALPC_CONTEXT_ATTR, *PALPC_CONTEXT_ATTR;
 
-// begin_rev
 #define ALPC_HANDLEFLG_DUPLICATE_SAME_ACCESS 0x10000
 #define ALPC_HANDLEFLG_DUPLICATE_SAME_ATTRIBUTES 0x20000
 #define ALPC_HANDLEFLG_DUPLICATE_INHERIT 0x80000
-// end_rev
 
-// private
 typedef struct _ALPC_HANDLE_ATTR32
 {
     ULONG Flags;
@@ -532,12 +495,11 @@ typedef struct _ALPC_HANDLE_ATTR32
     ULONG Inherit;
     ULONG Reserved1;
     ULONG Handle;
-    ULONG ObjectType; // ObjectTypeCode, not ObjectTypeIndex
+    ULONG ObjectType;
     ACCESS_MASK DesiredAccess;
     ACCESS_MASK GrantedAccess;
 } ALPC_HANDLE_ATTR32, *PALPC_HANDLE_ATTR32;
 
-// private
 typedef struct _ALPC_HANDLE_ATTR
 {
     ULONG Flags;
@@ -549,57 +511,51 @@ typedef struct _ALPC_HANDLE_ATTR
     ULONG Reserved1;
     HANDLE Handle;
     PALPC_HANDLE_ATTR32 HandleAttrArray;
-    ULONG ObjectType; // ObjectTypeCode, not ObjectTypeIndex
+    ULONG ObjectType;
     ULONG HandleCount;
     ACCESS_MASK DesiredAccess;
     ACCESS_MASK GrantedAccess;
 } ALPC_HANDLE_ATTR, *PALPC_HANDLE_ATTR;
 
-#define ALPC_SECFLG_CREATE_HANDLE 0x20000 // dbg
+#define ALPC_SECFLG_CREATE_HANDLE 0x20000
 #define ALPC_SECFLG_NOSECTIONHANDLE 0x40000
 
-// private
 typedef struct _ALPC_SECURITY_ATTR
 {
     ULONG Flags;
     PSECURITY_QUALITY_OF_SERVICE QoS;
-    ALPC_HANDLE ContextHandle; // dbg
+    ALPC_HANDLE ContextHandle;
 } ALPC_SECURITY_ATTR, *PALPC_SECURITY_ATTR;
 
-// begin_rev
 #define ALPC_VIEWFLG_UNMAP_EXISTING     0x10000
 #define ALPC_VIEWFLG_AUTO_RELEASE       0x20000
 #define ALPC_VIEWFLG_NOT_SECURE         0x40000
-// end_rev
 
-// private
 typedef struct _ALPC_DATA_VIEW_ATTR
 {
     ULONG Flags;
     ALPC_HANDLE SectionHandle;
-    PVOID ViewBase; // must be zero on input
+    PVOID ViewBase;
     SIZE_T ViewSize;
 } ALPC_DATA_VIEW_ATTR, *PALPC_DATA_VIEW_ATTR;
 
-// private
 typedef enum _ALPC_PORT_INFORMATION_CLASS
 {
-    AlpcBasicInformation, // q: out ALPC_BASIC_INFORMATION
-    AlpcPortInformation, // s: in ALPC_PORT_ATTRIBUTES
-    AlpcAssociateCompletionPortInformation, // s: in ALPC_PORT_ASSOCIATE_COMPLETION_PORT
-    AlpcConnectedSIDInformation, // q: in SID
-    AlpcServerInformation, // q: inout ALPC_SERVER_INFORMATION
-    AlpcMessageZoneInformation, // s: in ALPC_PORT_MESSAGE_ZONE_INFORMATION
-    AlpcRegisterCompletionListInformation, // s: in ALPC_PORT_COMPLETION_LIST_INFORMATION
-    AlpcUnregisterCompletionListInformation, // s: VOID
-    AlpcAdjustCompletionListConcurrencyCountInformation, // s: in ULONG
-    AlpcRegisterCallbackInformation, // s: ALPC_REGISTER_CALLBACK // kernel-mode only
-    AlpcCompletionListRundownInformation, // s: VOID // 10
+    AlpcBasicInformation,
+    AlpcPortInformation,
+    AlpcAssociateCompletionPortInformation,
+    AlpcConnectedSIDInformation,
+    AlpcServerInformation,
+    AlpcMessageZoneInformation,
+    AlpcRegisterCompletionListInformation,
+    AlpcUnregisterCompletionListInformation,
+    AlpcAdjustCompletionListConcurrencyCountInformation,
+    AlpcRegisterCallbackInformation,
+    AlpcCompletionListRundownInformation,
     AlpcWaitForPortReferences,
-    AlpcServerSessionInformation // q: ALPC_SERVER_SESSION_INFORMATION // since 19H2
+    AlpcServerSessionInformation
 } ALPC_PORT_INFORMATION_CLASS;
 
-// private
 typedef struct _ALPC_BASIC_INFORMATION
 {
     ULONG Flags;
@@ -607,14 +563,12 @@ typedef struct _ALPC_BASIC_INFORMATION
     PVOID PortContext;
 } ALPC_BASIC_INFORMATION, *PALPC_BASIC_INFORMATION;
 
-// private
 typedef struct _ALPC_PORT_ASSOCIATE_COMPLETION_PORT
 {
     PVOID CompletionKey;
     HANDLE CompletionPort;
 } ALPC_PORT_ASSOCIATE_COMPLETION_PORT, *PALPC_PORT_ASSOCIATE_COMPLETION_PORT;
 
-// private
 typedef struct _ALPC_SERVER_INFORMATION
 {
     union
@@ -632,43 +586,38 @@ typedef struct _ALPC_SERVER_INFORMATION
     };
 } ALPC_SERVER_INFORMATION, *PALPC_SERVER_INFORMATION;
 
-// private
 typedef struct _ALPC_PORT_MESSAGE_ZONE_INFORMATION
 {
     PVOID Buffer;
     ULONG Size;
 } ALPC_PORT_MESSAGE_ZONE_INFORMATION, *PALPC_PORT_MESSAGE_ZONE_INFORMATION;
 
-// private
 typedef struct _ALPC_PORT_COMPLETION_LIST_INFORMATION
 {
-    PVOID Buffer; // PALPC_COMPLETION_LIST_HEADER
+    PVOID Buffer;
     ULONG Size;
     ULONG ConcurrencyCount;
     ULONG AttributeFlags;
 } ALPC_PORT_COMPLETION_LIST_INFORMATION, *PALPC_PORT_COMPLETION_LIST_INFORMATION;
 
-// private
 typedef struct _ALPC_REGISTER_CALLBACK
 {
-    PVOID CallbackObject; // PCALLBACK_OBJECT
+    PVOID CallbackObject;
     PVOID CallbackContext;
 } ALPC_REGISTER_CALLBACK, *PALPC_REGISTER_CALLBACK;
 
-// private
 typedef struct _ALPC_SERVER_SESSION_INFORMATION
 {
     ULONG SessionId;
     ULONG ProcessId;
 } ALPC_SERVER_SESSION_INFORMATION, *PALPC_SERVER_SESSION_INFORMATION;
 
-// private
 typedef enum _ALPC_MESSAGE_INFORMATION_CLASS
 {
-    AlpcMessageSidInformation, // q: out SID
-    AlpcMessageTokenModifiedIdInformation,  // q: out LUID
+    AlpcMessageSidInformation,
+    AlpcMessageTokenModifiedIdInformation,
     AlpcMessageDirectStatusInformation,
-    AlpcMessageHandleInformation, // ALPC_MESSAGE_HANDLE_INFORMATION
+    AlpcMessageHandleInformation,
     MaxAlpcMessageInfoClass
 } ALPC_MESSAGE_INFORMATION_CLASS, *PALPC_MESSAGE_INFORMATION_CLASS;
 
@@ -681,11 +630,7 @@ typedef struct _ALPC_MESSAGE_HANDLE_INFORMATION
     ACCESS_MASK GrantedAccess;
 } ALPC_MESSAGE_HANDLE_INFORMATION, *PALPC_MESSAGE_HANDLE_INFORMATION;
 
-// begin_private
 
-//
-// System calls
-//
 
 NTSYSCALLAPI
 NTSTATUS
@@ -725,7 +670,7 @@ NtAlpcSetInformation(
     _In_ ULONG Length
     );
 
-#define ALPC_CREATEPORTSECTIONFLG_SECURE 0x40000 // rev
+#define ALPC_CREATEPORTSECTIONFLG_SECURE 0x40000
 
 NTSYSCALLAPI
 NTSTATUS
@@ -826,12 +771,12 @@ NtAlpcQueryInformationMessage(
 
 #define ALPC_MSGFLG_REPLY_MESSAGE 0x1
 #define ALPC_MSGFLG_LPC_MODE 0x2
-#define ALPC_MSGFLG_RELEASE_MESSAGE 0x10000 // dbg
-#define ALPC_MSGFLG_SYNC_REQUEST 0x20000 // dbg
+#define ALPC_MSGFLG_RELEASE_MESSAGE 0x10000
+#define ALPC_MSGFLG_SYNC_REQUEST 0x20000
 #define ALPC_MSGFLG_TRACK_PORT_REFERENCES 0x40000
 #define ALPC_MSGFLG_WAIT_USER_MODE 0x100000
 #define ALPC_MSGFLG_WAIT_ALERTABLE 0x200000
-#define ALPC_MSGFLG_WOW64_CALL 0x80000000 // dbg
+#define ALPC_MSGFLG_WOW64_CALL 0x80000000
 
 NTSYSCALLAPI
 NTSTATUS
@@ -898,9 +843,9 @@ NtAlpcSendWaitReceivePort(
     _In_opt_ PLARGE_INTEGER Timeout
     );
 
-#define ALPC_CANCELFLG_TRY_CANCEL 0x1 // dbg
+#define ALPC_CANCELFLG_TRY_CANCEL 0x1
 #define ALPC_CANCELFLG_NO_CONTEXT_CHECK 0x8
-#define ALPC_CANCELFLGP_FLUSH 0x10000 // dbg
+#define ALPC_CANCELFLGP_FLUSH 0x10000
 
 NTSYSCALLAPI
 NTSTATUS
@@ -913,7 +858,6 @@ NtAlpcCancelMessage(
 
 #define ALPC_IMPERSONATEFLG_ANONYMOUS 0x1
 #define ALPC_IMPERSONATEFLG_REQUIRE_IMPERSONATE 0x2
-//ALPC_IMPERSONATEFLG 0x3-0x10 (SECURITY_IMPERSONATION_LEVEL)
 
 NTSYSCALLAPI
 NTSTATUS
@@ -959,9 +903,6 @@ NtAlpcOpenSenderThread(
     _In_ POBJECT_ATTRIBUTES ObjectAttributes
     );
 
-//
-// Support functions
-//
 
 NTSYSAPI
 ULONG
@@ -970,10 +911,9 @@ AlpcMaxAllowedMessageLength(
     VOID
     );
 
-// ALPC message attribute flags (internal state)
-#define ALPC_ATTRFLG_ALLOCATEDATTR   0x20000000  // Attribute buffer was allocated
-#define ALPC_ATTRFLG_VALIDATTR       0x40000000  // Attribute buffer is valid
-#define ALPC_ATTRFLG_KEEPRUNNINGATTR 0x60000000  // Keep running attribute
+#define ALPC_ATTRFLG_ALLOCATEDATTR   0x20000000
+#define ALPC_ATTRFLG_VALIDATTR       0x40000000
+#define ALPC_ATTRFLG_KEEPRUNNINGATTR 0x60000000
 
 NTSYSAPI
 ULONG
@@ -1018,7 +958,6 @@ AlpcUnregisterCompletionList(
     _In_ HANDLE PortHandle
     );
 
-// rev
 NTSYSAPI
 NTSTATUS
 NTAPI
@@ -1088,6 +1027,5 @@ AlpcGetCompletionListMessageAttributes(
     _In_ PPORT_MESSAGE Message
     );
 
-// end_private
 
 #endif

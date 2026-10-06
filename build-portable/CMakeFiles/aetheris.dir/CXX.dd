@@ -1,0 +1,203 @@
+ninja_dyndep_version = 1.0
+build CMakeFiles\aetheris.dir\project\core\features\changer\impl\agents.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\changer\impl\musickits.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\changer\impl\guns.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\changer\impl\gloves.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\changer\impl\stickers.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\changer\impl\econ_item_system.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\changer\impl\knives.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\combat\impl\extrapolation.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\combat\impl\misc.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\combat\impl\rage.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\combat\impl\shared.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\combat\impl\vac.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\item\item.chams.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\item\item.glow.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\item\item.overlay.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\other\other.overlay.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\player\player.chams.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\player\player.glow.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\player\player.overlay.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\projectile\projectile.tracers.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\esp\projectile\projectile.overlay.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\camera.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\chat_logs.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\dlight.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\hud.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\impacts.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\lua.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\other.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\projectile.trajectory.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\removals.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\misc\impl\scoreboard_weapons.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\airstrafe.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\test_strafer.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\bunnyhop.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\edgebug.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\edgejump.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\edgestop.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\fastladder.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\jumpbug.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\movement\impl\slowwalk.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\world\impl\scene.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\world\impl\smoke.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\features\world\impl\weather.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\hooks\impl\cheat.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\hooks\impl\skins.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\hooks\impl\utility.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\context.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\fonts.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.config.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.core.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.lua.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\CModelChanger.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.misc.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.player.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.ragebot.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.skins.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\menu\menu.world.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\rendering\impl\widgets.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\bones.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\bounds.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\entities.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\events.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\frame_data.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\hitboxes.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\icons.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\input.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\local.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\materials.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\model_preview.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\prediction.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\schemas.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\tracing.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\core\systems\impl\view.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\entry.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\external\stackwalker\stackwalker.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\external\xdraw\xdraw.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\external\xdraw\xui\xui.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\pch\pch.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\protection\patterns.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\addresses\impl\functions.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\addresses\impl\globals.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\addresses\impl\interfaces\engine_cvar.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\addresses\impl\modules.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\hooking\impl\allocator.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\hooking\impl\jmp.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\hooking\impl\manager.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\logging\impl\console.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\logging\impl\popup.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\math\math.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\memory\memory.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\overrides.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\proto\proto.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\random\random.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\security\impl\integrity.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\security\impl\prologues.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\security\impl\regions.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\steam\impl\friends.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\steam\impl\http.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\steam\impl\user.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\steam\impl\utils.cpp.obj: dyndep
+
+build CMakeFiles\aetheris.dir\project\utilities\threadpool\threadpool.cpp.obj: dyndep
+

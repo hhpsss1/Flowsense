@@ -14,8 +14,6 @@ namespace features::changer {
 		constexpr auto max_attempts {300};
 		constexpr auto retry_delay {std::chrono::milliseconds (100)};
 
-		// Early injection can precede the schema's item-definition and paint-kit
-		// tables. Wait until both are populated, then parse exactly once.
 		for (auto attempt = 0; attempt < max_attempts; ++attempt) {
 			const auto system = memory::call<std::uintptr_t> (addresses::globals::item_system);
 			schema = system
@@ -57,8 +55,6 @@ namespace features::changer {
 			return false;
 		}
 
-		// Music kits live in their own schema map (CMusicKit instances) that
-		// items_game.txt only mirrors partially - parse them from memory.
 		this->parse_music_kits (schema);
 
 		this->build_indices ();
@@ -309,7 +305,7 @@ namespace features::changer {
 			return;
 		}
 
-		auto path = module->parent_path () / L"nexoria_econ_dump.txt";
+		auto path = module->parent_path () / L"aetheris_econ_dump.txt";
 		std::ofstream file (path, std::ios::trunc);
 		if (!file.is_open ()) {
 			return;
@@ -563,8 +559,6 @@ namespace features::changer {
 
 	namespace {
 
-		// Minimal quoted-key/value tokenizer for the Valve KV text format used
-		// by items_game.txt.
 		struct vdf_reader {
 			std::string_view text {};
 			std::size_t pos {};
@@ -608,19 +602,9 @@ namespace features::changer {
 		};
 
 
-	} // namespace
+	}
 
 	void econ_item_system::parse_kit_defs () {
-		// Individual stickers and keychains (charms) are not CEconItemDefinition
-		// entries - the schema only carries the base tools ("sticker" def 1209,
-		// "keychain" def 1355). The actual kits live in items_game.txt under
-		// "sticker_kits" and "keychain_definitions", keyed by kit id. The
-		// "sticker slot N id" / "keychain slot 0 id" attributes expect those
-		// kit ids, so we parse the file straight out of the vpk.
-		//
-		// The same file used to carry the music kits ("music_definitions"),
-		// but that table is stale - the live schema map is authoritative and
-		// is parsed separately in parse_music_kits ().
 
 		using reader = vdf_reader;
 
@@ -686,8 +670,6 @@ namespace features::changer {
 			}
 		};
 
-		// vpk index keys omit the file extension (the extension is the tree
-		// header), so "items_game" not "items_game.txt".
 		auto data = this->read_vpk (xs ("scripts/items/items_game"));
 		if (data.empty ()) {
 			data = this->read_vpk (xs ("scripts/items/items_game_cdn"));
@@ -703,16 +685,12 @@ namespace features::changer {
 			0
 		};
 
-		// each collect pass scans the whole file, so rewind between them
 		r.pos = 0;
 		collect (r, xs ("sticker_kits"), false, this->m_stickers);
 
 		r.pos = 0;
 		collect (r, xs ("keychain_definitions"), true, this->m_keychains);
 
-		// item_name / loc_name are localization tokens (e.g.
-		// "#StickerKit_dh_gologo1"). Resolve them the same way paint kit
-		// names are resolved, falling back to the raw kit name.
 		for (auto& kit : this->m_stickers) {
 			kit.localized_name = this->resolve_kit_name (kit);
 		}
@@ -727,11 +705,6 @@ namespace features::changer {
 	}
 
 	void econ_item_system::parse_music_kits (std::uintptr_t schema) {
-		// The schema keeps music kits in a dedicated CUtlMap<int, CMusicKit*>:
-		// map = { int count; int capacity_flags; node_t* elements; } with
-		// node_t = { int left; int right; value; int flag; int key; } (24b).
-		// items_game.txt's "music_definitions" mirrors this only partially
-		// and carries stale names/images, so memory is authoritative.
 		constexpr auto k_map_offset {0x4D0};
 		constexpr auto k_node_size {24};
 		constexpr auto k_node_value {0x8};
@@ -751,9 +724,6 @@ namespace features::changer {
 				continue;
 			}
 
-			// CMusicKit: { int id; int unk_rarity; const char* name;
-			// const char* loc_token; const char* loc_desc;
-			// const char* pedestal_model; const char* inventory_image; }
 			const auto id = memory::safe_read<int> (kit_ptr).value_or (0);
 			const auto rarity_raw = memory::safe_read<int> (kit_ptr + 4).value_or (0);
 			if (id <= 0) {
@@ -775,8 +745,6 @@ namespace features::changer {
 				continue;
 			}
 
-			// Schema tokens arrive without the '#' prefix; prefixing them lets
-			// the shared resolver localize them like any other kit.
 			kit.localized_name = !token.empty () ? "#" + token : std::string {};
 			this->m_music_kits.push_back (std::move (kit));
 		}
@@ -808,12 +776,6 @@ namespace features::changer {
 		{
 			std::lock_guard lock (this->m_vpk_mutex);
 
-			// Inventory icons are not named consistently across asset types:
-			// generated weapon skins follow "<path>_png" but music kits (and
-			// other panorama icons) may use another suffix or omit the
-			// "econ/" prefix entirely. Try the known conventions first, then
-			// fall back to scanning the index for anything derived from the
-			// parsed path.
 			const auto png_suffix = std::string (xs ("_png"));
 			const auto econ_prefix = std::string (xs ("econ/"));
 
@@ -1000,7 +962,6 @@ namespace features::changer {
 
 		const auto& entry = it->second;
 
-		// Fully preloaded entries live inside the directory vpk itself.
 		if (!entry.preload.empty () && entry.length <= entry.preload.size ()) {
 			return entry.preload;
 		}
@@ -1258,4 +1219,4 @@ namespace features::changer {
 		return std::string (xs ("econ/default_generated/")) + std::string (stem) + "_" + pk->name + xs ("_light");
 	}
 
-} // namespace features::changer
+}

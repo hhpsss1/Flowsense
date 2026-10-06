@@ -36,7 +36,7 @@ namespace interfaces {
 			return try_hash_name_impl( name, hash );
 		}
 
-	} // namespace
+	}
 
 	c_convar* c_engine_cvar::find(std::uint32_t name_hash)
 	{
@@ -114,4 +114,4 @@ namespace interfaces {
 		return current == invalid_index;
 	}
 
-} // namespace interfaces
+}

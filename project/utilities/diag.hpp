@@ -1,8 +1,5 @@
 #pragma once
 
-// Lightweight diagnostics used before the rest of the project is initialized.
-// The logger deliberately uses Win32 file I/O so it remains usable from SEH
-// handlers and does not depend on the state of iostreams.
 namespace diag {
 
 	enum class level
@@ -26,7 +23,6 @@ namespace diag {
 	inline thread_local const char* g_exception_phase{ "none" };
 
 #if defined( DEV )
-	// DbgHelp declares this structure under 4-byte packing, including on x64.
 #pragma pack( push, 4 )
 	struct minidump_exception_information
 	{
@@ -61,8 +57,6 @@ namespace diag {
 
 	inline crash_report_request g_crash_request{};
 
-	// MINIDUMP_TYPE flags from dbghelp.h. Keeping the ABI-compatible values
-	// local avoids adding a static dbghelp dependency to the injected DLL.
 	inline constexpr unsigned long minidump_with_unloaded_modules = 0x20;
 	inline constexpr unsigned long minidump_with_indirectly_referenced_memory = 0x40;
 	inline constexpr unsigned long minidump_with_thread_info = 0x1000;
@@ -217,18 +211,38 @@ namespace diag {
 			}
 		}
 
-#if defined( DEV )
-		make_artifact_path(
+make_artifact_path(
 			g_log_path,
 			MAX_PATH,
 			directory,
-			L"nexoria_init.log" );
+			L"aetheris_init.log" );
 		make_artifact_path(
 			g_previous_log_path,
 			MAX_PATH,
 			directory,
-			L"nexoria_init.previous.log" );
-#endif
+			L"aetheris_init.previous.log" );
+
+		if ( g_log_file )
+		{
+			FlushFileBuffers( g_log_file );
+			CloseHandle( g_log_file );
+			g_log_file = nullptr;
+		}
+
+		if ( g_log_path[ 0 ] )
+		{
+			DeleteFileW( g_previous_log_path );
+			MoveFileW( g_log_path, g_previous_log_path );
+
+			g_log_file = CreateFileW(
+				g_log_path,
+				GENERIC_WRITE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE,
+				nullptr,
+				CREATE_ALWAYS,
+				FILE_ATTRIBUTE_NORMAL,
+				nullptr );
+		}
 
 		const auto* dos_header =
 			reinterpret_cast<const IMAGE_DOS_HEADER*>( module_handle );
@@ -247,18 +261,6 @@ namespace diag {
 		}
 
 #if defined( DEV )
-		// Minidump target lives next to the init log. write_minidump() silently
-		// returns when this stays empty, so it must be filled in here.
-		make_artifact_path(
-			g_dump_path,
-			MAX_PATH,
-			directory,
-			L"nexoria_crash.dmp" );
-		make_artifact_path(
-			g_previous_dump_path,
-			MAX_PATH,
-			directory,
-			L"nexoria_crash.previous.dmp" );
 #endif
 
 		writef(
@@ -275,49 +277,7 @@ namespace diag {
 
 	inline void initialize_crash_dumps( )
 	{
-		// Keep the last run's dump around so a crash loop still leaves evidence
-		// of the first failure instead of only the most recent one.
-		if ( g_dump_path[ 0 ] )
-		{
-			MoveFileExW(
-				g_dump_path,
-				g_previous_dump_path,
-				MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH );
-		}
-
-		// Open the init log on the init thread (not DllMain) to keep the
-		// loader lock free of file I/O. Rotate the previous run aside first.
-		if ( g_log_path[ 0 ] && !g_log_file )
-		{
-			MoveFileExW(
-				g_log_path,
-				g_previous_log_path,
-				MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH );
-
-			g_log_file = CreateFileW(
-				g_log_path,
-				GENERIC_WRITE,
-				FILE_SHARE_READ | FILE_SHARE_WRITE,
-				nullptr,
-				CREATE_ALWAYS,
-				FILE_ATTRIBUTE_NORMAL,
-				nullptr );
-
-			if ( g_log_file == INVALID_HANDLE_VALUE )
-			{
-				g_log_file = nullptr;
-			}
-			else
-			{
-				writef(
-					level::info,
-					"log file opened; path=%ls",
-					g_log_path );
-			}
-		}
-
 #if defined( DEV )
-		// Resolve outside the loader lock; LoadLibrary is unsafe from DLL attach.
 		if ( const auto dbghelp = LoadLibraryW( L"dbghelp.dll" ) )
 		{
 			g_minidump_write = reinterpret_cast<minidump_write_fn>(
@@ -325,9 +285,9 @@ namespace diag {
 		}
 
 		writef(
-			( g_minidump_write && g_dump_path[ 0 ] ) ? level::info : level::warning,
+			g_minidump_write ? level::info : level::warning,
 			"crash dumps %s; path=%ls",
-			( g_minidump_write && g_dump_path[ 0 ] ) ? "enabled" : "unavailable",
+			g_minidump_write ? "enabled" : "unavailable",
 			g_dump_path );
 #endif
 	}
@@ -362,9 +322,6 @@ namespace diag {
 		const char* m_previous_phase;
 	};
 
-	// Suppresses expected first-chance exceptions from an explicit SEH probe.
-	// Construct this in a caller of the function containing __try; MSVC does not
-	// permit unwindable C++ locals in the same function as SEH.
 	class probe_scope
 	{
 	public:
@@ -483,15 +440,9 @@ namespace diag {
 		EXCEPTION_POINTERS* info,
 		DWORD fault_thread_id )
 	{
-		if ( !g_minidump_write )
+		if ( !g_minidump_write || !g_dump_path[ 0 ] )
 		{
 			write( level::error, "minidump unavailable: dbghelp export not resolved" );
-			return false;
-		}
-
-		if ( !g_dump_path[ 0 ] )
-		{
-			write( level::error, "minidump unavailable: dump path not configured" );
 			return false;
 		}
 
@@ -713,8 +664,6 @@ namespace diag {
 			stage ? stage : "unknown" );
 		g_crash_request.fault_thread_id = fault_thread_id;
 
-		// DbgHelp is not safe to invoke from a faulting thread. Use a clean
-		// stack for every crash, not only stack-overflow exceptions.
 		if ( const auto thread = CreateThread(
 				nullptr,
 				0,
@@ -797,4 +746,6 @@ namespace diag {
 		g_log_file = nullptr;
 	}
 
-} // namespace diag
+	void request_unload( );
+
+}

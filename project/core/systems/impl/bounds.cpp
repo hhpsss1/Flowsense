@@ -17,15 +17,19 @@ namespace systems {
 			return {};
 		}
 
-		// m_vecOrigin is a quantized network-origin type in current CS2 builds,
-		// not a plain vector3. Use the evaluated world-space origin instead.
 		const auto origin = memory::safe_read<math::vector3>( game_scene_node + SCHEMA( "CGameSceneNode", "m_vecAbsOrigin"_hash ) ).value_or( math::vector3{} );
 		const auto mins = memory::safe_read<math::vector3>( collision + SCHEMA( "CCollisionProperty", "m_vecMins"_hash ) ).value_or( math::vector3{} ) + origin;
 		const auto maxs = memory::safe_read<math::vector3>( collision + SCHEMA( "CCollisionProperty", "m_vecMaxs"_hash ) ).value_or( math::vector3{} ) + origin;
 
+		if ( !g_view.has_camera( ) )
+		{
+			return {};
+		}
+
 		const auto [viewport_w, viewport_h] = xdraw::viewport_size( );
 		const auto sw = static_cast< float >( viewport_w );
 		const auto sh = static_cast< float >( viewport_h );
+		const auto view_matrix = g_view.matrix( );
 
 		data result{};
 		result.min = { FLT_MAX, FLT_MAX };
@@ -43,7 +47,7 @@ namespace systems {
 				( i & 4 ) ? maxs.z : mins.z
 			};
 
-			const auto proj = g_view.project_full( corner );
+			const auto proj = view::project_fast( corner, view_matrix, viewport_w, viewport_h );
 			if ( proj.w <= 0.001f || !std::isfinite( proj.screen.x ) || !std::isfinite( proj.screen.y ) )
 			{
 				continue;
@@ -68,4 +72,4 @@ namespace systems {
 		return result;
 	}
 
-} // namespace systems
+}

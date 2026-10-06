@@ -6,6 +6,13 @@
 #include <core/features/features.hpp>
 #include <protection/game_addresses.hpp>
 
+
+#ifdef _DEBUG
+	#define EXTRAP_DEBUG_LOG(...) logging::console::print( __VA_ARGS__ )
+#else
+	#define EXTRAP_DEBUG_LOG(...) ( ( void )0 )
+#endif
+
 namespace features::combat {
 
 	void shared::lagcomp::predict_movement( extrapolation_data& data, std::uintptr_t skip_entity ) const
@@ -15,11 +22,56 @@ namespace features::combat {
 			return;
 		}
 
-		const auto sv_gravity = CONVAR ("sv_gravity")->get<float>( );
+		const auto sv_gravity = data.sv_gravity;
+		const auto sv_friction = data.sv_friction;
+		const auto sv_stopspeed = data.sv_stopspeed;
 
 		if ( data.flags & cstypes::entity_flags::on_ground )
 		{
 			data.velocity.z = 0.0f;
+
+
+			const auto speed_2d = std::sqrtf( data.velocity.x * data.velocity.x + data.velocity.y * data.velocity.y );
+			if ( speed_2d > 0.0f )
+			{
+				const auto control = std::max( speed_2d, sv_stopspeed );
+				const auto drop = control * sv_friction * data.surface_friction * cstypes::tick_interval;
+				const auto new_speed = std::max( speed_2d - drop, 0.0f );
+
+				if ( new_speed > 0.0f )
+				{
+					const auto scale = new_speed / speed_2d;
+					data.velocity.x *= scale;
+					data.velocity.y *= scale;
+				}
+				else
+				{
+					data.velocity.x = 0.0f;
+					data.velocity.y = 0.0f;
+				}
+			}
+
+
+
+
+			{
+				const auto speed_after = std::sqrtf( data.velocity.x * data.velocity.x + data.velocity.y * data.velocity.y );
+				if ( speed_after > 1.0f )
+				{
+					auto wish_speed = std::clamp( speed_after, 50.0f, 260.0f );
+					if ( speed_after < wish_speed )
+					{
+						const auto sv_accelerate = CONVAR( "sv_accelerate" )->get<float>( );
+						const auto add_speed = wish_speed - speed_after;
+						auto accel_speed = sv_accelerate * wish_speed * data.surface_friction * cstypes::tick_interval;
+						accel_speed = std::min( accel_speed, add_speed );
+						const auto dir_x = data.velocity.x / speed_after;
+						const auto dir_y = data.velocity.y / speed_after;
+						data.velocity.x += dir_x * accel_speed;
+						data.velocity.y += dir_y * accel_speed;
+					}
+				}
+			}
 		}
 		else
 		{
@@ -36,38 +88,39 @@ namespace features::combat {
 
 		if ( trace_result.fraction != 1.0f )
 		{
-			logging::console::print( xs( "[extrap] predict_movement: wall hit (frac {:.2f}, normal {:.2f} {:.2f} {:.2f})\n" ),
+			EXTRAP_DEBUG_LOG( xs( "[extrap] predict_movement: wall hit (frac {:.2f}, normal {:.2f} {:.2f} {:.2f})\n" ),
 				trace_result.fraction, trace_result.normal.x, trace_result.normal.y, trace_result.normal.z );
 
-			for ( auto i = 0; i < 2; ++i )
+
+			auto time_left = cstypes::tick_interval;
+
+			for ( auto bump = 0; bump < 4; ++bump )
 			{
+				if ( time_left <= 0.0f )
+					break;
+
+				if ( trace_result.fraction > 0.0f )
+					data.origin = trace_result.end_pos;
+
+				if ( trace_result.fraction == 1.0f )
+					break;
+
+				time_left *= ( 1.0f - trace_result.fraction );
+
 				const auto dot = data.velocity.dot( trace_result.normal );
-				data.velocity -= trace_result.normal * dot;
+				if ( dot < 0.0f )
+					data.velocity -= trace_result.normal * dot;
 
-				const auto adjust = data.velocity.dot( trace_result.normal );
-				if ( adjust < 0.0f )
-				{
-					data.velocity -= trace_result.normal * adjust;
-				}
-
-				const auto remaining_fraction = 1.0f - trace_result.fraction;
-				const auto clip_end = trace_result.end_pos + data.velocity * ( cstypes::tick_interval * remaining_fraction );
+				const auto clip_end = data.origin + data.velocity * time_left;
 
 				trace_result = systems::g_tracing.trace_hull(
-					trace_result.end_pos, clip_end,
+					data.origin, clip_end,
 					data.obb_mins, data.obb_maxs,
 					skip_entity, 0x1c3003, 4
 				);
-
-				if ( trace_result.fraction == 1.0f )
-				{
-					break;
-				}
 			}
 		}
 
-		// The final trace may start at a collision point. Its end position is the
-		// clipped destination even when that follow-up trace completes fully.
 		data.origin = trace_result.end_pos;
 
 		const auto ground_end = math::vector3{ data.origin.x, data.origin.y, data.origin.z - 2.0f };
@@ -97,16 +150,25 @@ namespace features::combat {
 			return std::nullopt;
 		}
 
-		std::shared_lock records_lock( this->m_records_mtx );
 
-		auto it = this->m_records.find( pawn );
-		if ( it == this->m_records.end( ) || it->second.empty( ) )
+
+		record latest_copy{};
+		std::optional<record> prev_copy{};
 		{
-			return std::nullopt;
+			std::shared_lock records_lock( this->m_records_mtx );
+
+			auto it = this->m_records.find( pawn );
+			if ( it == this->m_records.end( ) || it->second.empty( ) )
+			{
+				return std::nullopt;
+			}
+
+			latest_copy = it->second.front( );
+			if ( it->second.size( ) > 1 && it->second[ 1 ].valid )
+				prev_copy = it->second[ 1 ];
 		}
 
-		const auto& latest = it->second.front( );
-		if ( !latest.is_valid( ) )
+		if ( !latest_copy.is_valid( ) )
 		{
 			return std::nullopt;
 		}
@@ -127,50 +189,58 @@ namespace features::combat {
 			}
 
 			const auto server_tick = memory::read<int>( tick_state + 892 );
-			const auto delta_ticks = server_tick - latest.tick;
+			const auto delta_ticks = server_tick - latest_copy.tick;
 
 			if ( delta_ticks <= 0 )
 			{
 				return std::nullopt;
 			}
 
-			const auto max_extrap = settings::g_combat.m_lagcomp.max_extrapolate_ticks.value;
-			if ( delta_ticks > max_extrap )
+
+
+
+			const auto max_physics_steps = std::clamp(
+				settings::g_combat.m_lagcomp.max_extrapolate_ticks.value, 1, 8 );
+
+			float maxunlag = 0.2f;
+			if ( auto* cvar = CONVAR( "sv_maxunlag" ) )
+			{
+				maxunlag = cvar->get<float>( );
+			}
+			const auto lag_budget = std::clamp(
+				static_cast< int >( std::round( maxunlag / cstypes::tick_interval ) ),
+				1, 64 );
+
+			if ( delta_ticks > lag_budget )
 			{
 				return std::nullopt;
 			}
 
-			ticks_to_extrapolate = delta_ticks;
+			ticks_to_extrapolate = std::min( delta_ticks, max_physics_steps );
 		}
 
-		// Скорость - из истории рекордов, НЕ лайв. Сим стартует от позы
-		// latest.origin (прошлое), а лайв-скорость уже новая: после
-		// контр-стрейфа/остановки/прыжка она смотрит в другую сторону и сим
-		// уезжает мимо цели - бот "не трекает" и мажет вдогонку. Скорость
-		// тренда (latest - prev) согласована с точкой старта по времени.
+
+
 		math::vector3 velocity{};
-		const shared::lagcomp::record* prev_rec{ nullptr };
-		float history_dt{ 0.0f };
 
-		if ( it->second.size( ) > 1 && it->second[ 1 ].valid )
+		if ( prev_copy.has_value( ) )
 		{
-			prev_rec = &it->second[ 1 ];
-			history_dt = latest.simulation_time - prev_rec->simulation_time;
+			const auto dt = latest_copy.simulation_time - prev_copy->simulation_time;
 
-			if ( history_dt > 0.0f )
+			if ( dt > 0.0f && dt <= cstypes::tick_interval * 3.0f )
 			{
-				const auto origin_delta = latest.origin - prev_rec->origin;
-				velocity = {
-					origin_delta.x / history_dt,
-					origin_delta.y / history_dt,
-					origin_delta.z / history_dt
-				};
+				velocity = ( latest_copy.origin - prev_copy->origin ) / dt;
+
+				const auto client_vel = memory::read<math::vector3>( pawn + SCHEMA( "C_BaseEntity", "m_vecVelocity"_hash ) );
+				if ( ( velocity - client_vel ).length( ) > 500.0f )
+				{
+					EXTRAP_DEBUG_LOG( xs( "[extrap] {:x} | warn: velocity discrepancy {:.1f} u/s (record vs client)\n" ), pawn, ( velocity - client_vel ).length( ) );
+				}
 			}
 		}
 
-		if ( history_dt <= 0.0f )
+		if ( velocity.length_sqr( ) < 0.01f )
 		{
-			// Один рекорд в истории - тренда нет, откат к лайв-скорости.
 			velocity = memory::read<math::vector3>( pawn + SCHEMA( "C_BaseEntity", "m_vecVelocity"_hash ) );
 		}
 
@@ -178,11 +248,14 @@ namespace features::combat {
 
 		if ( speed < 0.1f )
 		{
-			if ( !quiet )
-			{
-				logging::console::print( xs( "[extrap] {:x} | skip: player stationary (speed {:.2f})\n" ), pawn, speed );
-			}
-			return std::nullopt;
+
+
+			auto stationary = latest_copy;
+			stationary.extrapolated = true;
+			stationary.simulation_time += static_cast< float >( ticks_to_extrapolate ) * cstypes::tick_interval;
+			stationary.tick = latest_copy.tick + ticks_to_extrapolate;
+
+			return stationary;
 		}
 
 		float direction = 0.0f;
@@ -193,45 +266,37 @@ namespace features::combat {
 
 		float direction_change = 0.0f;
 
-		// Джиттер-гейт в одном временном домене: сравниваем соседние сегменты
-		// истории (v1 = latest-prev, v0 = prev-older). Раньше сравнивались
-		// лайв-скорость (настоящее) и смещение рекордов (прошлое) - при любом
-		// контр-стрейфе угол улетал за 35° и экстраполяция отказывала ровно
-		// тогда, когда была нужнее всего.
-		if ( prev_rec && it->second.size( ) > 2 )
+		if ( prev_copy.has_value( ) )
 		{
-			const auto& older = it->second[ 2 ];
-			if ( older.valid )
+			const auto dt = latest_copy.simulation_time - prev_copy->simulation_time;
+			if ( dt > 0.0f )
 			{
-				const auto dt0 = prev_rec->simulation_time - older.simulation_time;
-				if ( dt0 > 0.0f )
+				const auto origin_delta = latest_copy.origin - prev_copy->origin;
+				float prev_dir = 0.0f;
+
+				if ( origin_delta.x != 0.0f || origin_delta.y != 0.0f )
 				{
-					const auto displacement = prev_rec->origin - older.origin;
-					float prev_dir = direction;
+					prev_dir = std::atan2f( origin_delta.y, origin_delta.x ) * ( 180.0f / 3.14159265f );
+				}
 
-					if ( displacement.x != 0.0f || displacement.y != 0.0f )
-					{
-						prev_dir = std::atan2f( displacement.y, displacement.x ) * ( 180.0f / 3.14159265f );
-					}
+				auto angle_diff = direction - prev_dir;
+				while ( angle_diff > 180.0f ) angle_diff -= 360.0f;
+				while ( angle_diff < -180.0f ) angle_diff += 360.0f;
 
-					auto angle_diff = direction - prev_dir;
-					while ( angle_diff > 180.0f ) angle_diff -= 360.0f;
-					while ( angle_diff < -180.0f ) angle_diff += 360.0f;
+				if ( std::fabsf( angle_diff ) > 90.0f )
+				{
+					EXTRAP_DEBUG_LOG( xs( "[extrap] {:x} | skip: direction change too large ({:.1f} deg)\n" ), pawn, angle_diff );
+					return std::nullopt;
+				}
 
-					if ( std::fabsf( angle_diff ) > 35.0f )
-					{
-						if ( !quiet )
-						{
-							logging::console::print( xs( "[extrap] {:x} | skip: direction change too large ({:.1f} deg)\n" ), pawn, angle_diff );
-						}
-						return std::nullopt;
-					}
-
-					const auto total_dt = latest.simulation_time - older.simulation_time;
-					if ( total_dt > 0.0f )
-					{
-						direction_change = ( angle_diff / total_dt ) * cstypes::tick_interval;
-					}
+				if ( std::fabsf( angle_diff ) > 35.0f )
+				{
+					EXTRAP_DEBUG_LOG( xs( "[extrap] {:x} | warn: large direction change ({:.1f} deg), using linear\n" ), pawn, angle_diff );
+					direction_change = 0.0f;
+				}
+				else
+				{
+					direction_change = ( angle_diff / dt ) * cstypes::tick_interval;
 				}
 			}
 		}
@@ -261,68 +326,106 @@ namespace features::combat {
 			obb_maxs = { 16.0f, 16.0f, 72.0f };
 		}
 
-		const auto flags = memory::read<std::uint32_t>( pawn + SCHEMA( "C_BaseEntity", "m_fFlags"_hash ) );
+
+
+		if ( ( latest_copy.flags & cstypes::entity_flags::ducking ) != 0 )
+		{
+			const auto duck_amount = std::clamp(
+				memory::read<float>( pawn + SCHEMA( "C_CSPlayerPawn", "m_flDuckAmount"_hash ) ), 0.0f, 1.0f );
+
+			obb_maxs.z = 72.0f - ( 72.0f - 54.0f ) * duck_amount;
+		}
 
 		extrapolation_data data{};
-		data.origin = latest.origin;
+		data.origin = latest_copy.origin;
 		data.velocity = velocity;
 		data.obb_mins = obb_mins;
 		data.obb_maxs = obb_maxs;
-		data.flags = flags;
-		data.sim_time = latest.simulation_time;
+		data.flags = latest_copy.flags;
+		data.sim_time = latest_copy.simulation_time;
 		data.direction = direction;
 
+		data.sv_gravity = CONVAR( "sv_gravity" )->get<float>( );
+		data.sv_friction = CONVAR( "sv_friction" )->get<float>( );
+		data.sv_stopspeed = CONVAR( "sv_stopspeed" )->get<float>( );
+
+		data.surface_friction = memory::read<float>( pawn + SCHEMA( "C_BaseEntity", "m_flFriction"_hash ) );
+		if ( data.surface_friction <= 0.0f )
+			data.surface_friction = 1.0f;
+
+		float accumulated_yaw = 0.0f;
 		for ( auto i = 0; i < ticks_to_extrapolate; ++i )
 		{
-			data.direction += direction_change;
+			const auto tick_dir_change = direction_change * std::powf( 0.8f, static_cast< float >( i ) );
+			data.direction += tick_dir_change;
+			accumulated_yaw += tick_dir_change;
+
 			while ( data.direction > 180.0f ) data.direction -= 360.0f;
 			while ( data.direction < -180.0f ) data.direction += 360.0f;
 
 			const auto rad = data.direction * ( 3.14159265f / 180.0f );
 			const auto current_speed = std::sqrtf( data.velocity.x * data.velocity.x + data.velocity.y * data.velocity.y );
-			data.velocity.x = std::cosf( rad ) * current_speed;
-			data.velocity.y = std::sinf( rad ) * current_speed;
+			const auto clamped_speed = std::min( current_speed, 3500.0f );
+			data.velocity.x = std::cosf( rad ) * clamped_speed;
+			data.velocity.y = std::sinf( rad ) * clamped_speed;
 
 			data.sim_time += cstypes::tick_interval;
 
 			this->predict_movement( data, pawn );
 		}
 
-		const auto origin_delta = data.origin - latest.origin;
+		const auto origin_delta = data.origin - latest_copy.origin;
 
 		if ( origin_delta.length_sqr( ) < 0.01f )
 		{
-			if ( !quiet )
-			{
-				logging::console::print( xs( "[extrap] {:x} | skip: predicted origin unchanged after {} ticks\n" ), pawn, ticks_to_extrapolate );
-			}
+			EXTRAP_DEBUG_LOG( xs( "[extrap] {:x} | skip: predicted origin unchanged after {} ticks\n" ), pawn, ticks_to_extrapolate );
 			return std::nullopt;
 		}
 
-		record extrap_record = latest;
+		record extrap_record = latest_copy;
 		extrap_record.origin = data.origin;
 		extrap_record.simulation_time = data.sim_time;
 		extrap_record.tick = cstypes::time_to_ticks( data.sim_time );
 		extrap_record.extrapolated = true;
 
+
+
+		const bool needs_rotation = std::fabsf( accumulated_yaw ) > 0.5f;
+		const auto yaw_rad = accumulated_yaw * ( 3.14159265f / 180.0f );
+		const auto cos_yaw = std::cosf( yaw_rad );
+		const auto sin_yaw = std::sinf( yaw_rad );
+
 		for ( auto i = 0; i < extrap_record.bone_count && i < 128; ++i )
 		{
-			extrap_record.bones[ i ].position.x += origin_delta.x;
-			extrap_record.bones[ i ].position.y += origin_delta.y;
-			extrap_record.bones[ i ].position.z += origin_delta.z;
+			if ( needs_rotation )
+			{
+				const auto local_x = extrap_record.bones[ i ].position.x - latest_copy.origin.x;
+				const auto local_y = extrap_record.bones[ i ].position.y - latest_copy.origin.y;
+
+				extrap_record.bones[ i ].position.x = data.origin.x + local_x * cos_yaw - local_y * sin_yaw;
+				extrap_record.bones[ i ].position.y = data.origin.y + local_x * sin_yaw + local_y * cos_yaw;
+				extrap_record.bones[ i ].position.z += origin_delta.z;
+			}
+			else
+			{
+				extrap_record.bones[ i ].position.x += origin_delta.x;
+				extrap_record.bones[ i ].position.y += origin_delta.y;
+				extrap_record.bones[ i ].position.z += origin_delta.z;
+			}
 		}
 
-		if ( !quiet )
 		{
 			const auto dist = std::sqrtf( origin_delta.x * origin_delta.x + origin_delta.y * origin_delta.y + origin_delta.z * origin_delta.z );
-			logging::console::print(
+			EXTRAP_DEBUG_LOG(
 				xs( "[extrap] {:x} | ok: {} ticks | delta {:.2f} u | origin ({:.1f}, {:.1f}, {:.1f})\n" ),
 				pawn, ticks_to_extrapolate, dist,
 				data.origin.x, data.origin.y, data.origin.z
 			);
 		}
 
+		( void )quiet;
+
 		return extrap_record;
 	}
 
-} // namespace features::combat
+}

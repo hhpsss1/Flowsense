@@ -4,7 +4,7 @@ libdir=${prefix}/lib
 includedir=${prefix}/../include
 
 Name: FreeType 2
-URL: https://freetype.org
+URL: https:
 Description: A free, high-quality, and portable font engine.
 Version: 26.6.20
 

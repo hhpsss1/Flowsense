@@ -40,7 +40,6 @@ namespace features::world {
 		static_assert (skybox_names.size () == skybox_paths.size ());
 
 		namespace shader_hash {
-			// Source 2's case-insensitive Murmur2 shader parameter hashes.
 			constexpr std::uint32_t wind_direction{ 0x2A416C12 };
 			constexpr std::uint32_t wind_strength_frequency{ 0xEB0D997E };
 			constexpr std::uint32_t rain_exposure_to_sky{ 0x374C1B3C };
@@ -130,7 +129,7 @@ namespace features::world {
 			});
 		}
 
-	} // namespace
+	}
 
 	void scene::discover_skyboxes () {
 		this->m_skyboxes.clear ();
@@ -229,8 +228,6 @@ namespace features::world {
 			return;
 		}
 
-		// Current scenesystem sky records use a 0x70-byte stride; the final
-		// record stores its descriptor pointer at -0x58.
 		const auto skybox_object = memory::safe_read<std::uintptr_t> (
 			mesh_array + (static_cast<std::size_t>(mesh_count) * 0x70) - 0x58);
 		if (!skybox_object || !*skybox_object) {
@@ -295,10 +292,7 @@ namespace features::world {
 			return;
 		}
 
-		//auto rotation = settings::g_world.m_scene.lighting_rotation;
-		//rotation.normalize( );
 
-		//memory::write<math::vector3>( object + 0x184, rotation );
 	}
 
 	void scene::on_draw_scene_object_array (std::uintptr_t object_array) const {
@@ -372,7 +366,6 @@ namespace features::world {
 		};
 
 		for (auto i = 0; i < batch_count; ++i) {
-			// Current scenesystem.dll mesh primitives are 0x70 bytes.
 			const auto mesh = batch + (static_cast<std::size_t> (i) * 0x70);
 			const auto material = memory::safe_read<std::uintptr_t> (mesh + 0x20);
 
@@ -459,7 +452,6 @@ namespace features::world {
 				0.0f, 0.0f, std::sin (direction), std::cos (direction));
 			value = reinterpret_cast<__m128i*> (&wind_direction_val);
 		} else if (weather.wind.value && hash == shader_hash::wind_strength_frequency) {
-			// Foliage shaders pack the low/high sway strength and frequency into one vector.
 			wind_strength_frequency_val = _mm_set_ps (
 				weather.wind_turbulence.value,
 				weather.wind_strength.value,
@@ -568,7 +560,7 @@ namespace features::world {
 }}
 )VMAT", path, path);
 		const auto material_name = std::format (
-			"nexoria_skybox_{:08x}", fnv1a::runtime_hash (path));
+			"aetheris_skybox_{:08x}", fnv1a::runtime_hash (path));
 		const auto material = systems::materials::load (material_source.c_str (), material_name.c_str ());
 		if (!material) {
 			logging::console::print (xs ("failed to create skybox material."));
@@ -579,4 +571,4 @@ namespace features::world {
 		this->m_custom_sky_material = material;
 	}
 
-} // namespace features::world
+}

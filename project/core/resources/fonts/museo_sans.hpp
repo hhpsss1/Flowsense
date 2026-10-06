@@ -5215,4 +5215,4 @@ namespace resources::fonts::museo_sans {
 		0x01, 0x01, 0x00, 0x00, 0x01, 0xAF, 0x00, 0x46
 	};
 
-} // namespace resources::fonts::museo_sans
+}

@@ -68,25 +68,18 @@ namespace features::changer {
 			return result;
 		}
 
-		// Tracks the last applied cosmetic state together with the entity handle
-		// so fresh weapon entities (new round) always get their attributes re-written.
 		struct cosmetic_state
 		{
 			std::uint32_t handle {};
 			cosmetic_config config {};
 		};
 
-		// Implemented in impl/stickers.cpp
 		void apply_sticker_keychain_attributes (std::uintptr_t item_view, const settings::changer::applied_skin& skin);
 		void clear_sticker_keychain_attributes (std::uintptr_t item_view);
 		void apply_stattrak_attributes (std::uintptr_t item_view, bool enabled, int value = 0);
 		void add_nametag_entity (std::uintptr_t weapon, std::uintptr_t item_view);
 		void add_stattrak_entity (std::uintptr_t weapon, std::uintptr_t item_view);
 
-		// Idempotent keycharm sync for one weapon entity. Handles the game's
-		// deferred spawn/removal internally: never double-queues a module while
-		// the previous spawn is still materializing, and respawns only when the
-		// live module is missing or the requested config changed.
 		void sync_keychain (std::uint32_t weapon_handle, std::uintptr_t weapon, std::uintptr_t item_view, const settings::changer::keychain_slot& kc);
 
 		void update_composite_material (std::uintptr_t weapon);
@@ -219,10 +212,6 @@ namespace features::changer {
 
 		inline static std::uintptr_t regenerate_weapon_skin_fn ()
 		{
-			// The per-weapon skin regen (C_CSWeaponBase::RegenerateWeaponSkin) is
-			// found by tracing the per-item call inside RegenerateWeaponSkins:
-			//   +0x75: 33 D2 48 8B CB E8 <rel32>  -> regen(weapon, false)
-			// This survives builds where the standalone signature is missing.
 			static const auto result = [] () -> std::uintptr_t
 			{
 				const auto plural = PATTERN (patterns::regenerate_weapon_skins);
@@ -310,7 +299,7 @@ namespace features::changer {
 			return 0;
 		}
 
-	} // namespace detail
+	}
 
 	class econ_item_system {
 	public:
@@ -510,9 +499,6 @@ namespace features::changer {
 		int m_tracked_team {};
 	};
 
-	// Keeps the local player controller's music kit id in sync with the menu
-	// selection (client-side only, same approach as Vantix: writes the
-	// CCSPlayerController::m_unMusicID netvar whenever it drifts).
 	class musickits {
 	public:
 		void on_frame_stage_notify ();
@@ -605,4 +591,4 @@ namespace features::changer {
 		detail::cosmetic_state m_last_cosmetic {};
 	};
 
-} // namespace features::changer
+}

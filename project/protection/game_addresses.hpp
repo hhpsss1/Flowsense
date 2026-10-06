@@ -140,4 +140,4 @@ namespace protection::addresses {
 
 #include <protection/patterns.hpp>
 
-#endif // !GAME_ADDRESSES_HPP
+#endif

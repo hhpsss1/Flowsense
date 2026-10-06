@@ -20,18 +20,19 @@ namespace settings {
 			{
 				xui::setting silent{ true, {}, "silent", "ragebot" };
 				xui::setting no_spread{ false, {}, "no spread", "ragebot" };
-				xui::setting doubletap{ false, {}, "doubletap", "ragebot" };
 				xui::setting body_aim{ false, {}, "force b-aim", "ragebot" };
 				xui::setting force_shot_air{ false, {}, "force shot in air", "ragebot" };
 				xui::setting force_shot{ false, {}, "force shot on ground", "ragebot" };
+				xui::setting autostop{ true, {}, "autostop", "ragebot" };
 				xui::setting autostop_inair{ true, {}, "autostop inair", "ragebot" };
+				xui::setting auto_scope{ true, {}, "auto scope", "ragebot" };
+				xui::setting double_tap{ false, {}, "double tap", "ragebot" };
+				config::val<int> burst_delay{ 0, "ragebot", "burst delay" };
 
 				config::val<float> max_fov{ 180.0f };
 
 				config::val<int> hitchance{ 80 };
-				config::val<int> min_damage{ 25 };
-
-				xui::setting min_damage_hp_plus_one{ false, {}, "min damage hp+1", "ragebot" };
+				config::val<int> min_damage{ 101 };
 
 				config::val<int> min_damage_override_value{ 11 };
 				xui::setting min_damage_override{ false, {}, "min damage override", "ragebot" };
@@ -41,63 +42,64 @@ namespace settings {
 
 			config::val<float> pointscale{ 85.0f };
 			xui::setting dynamic_pointscale{ true, {}, "dynamic point scale", "ragebot" };
-			xui::setting visualize_aimbot{ false, {}, "visualize aimbot", "ragebot" };
+			xui::setting debug_multipoints{ false, {}, "debug multipoints", "ragebot" };
 
 			config::bools<6> hitboxes{ { true, true, true, true, true, true } };
 
-			xui::setting shot_timing{ true, {}, "shot timing", "ragebot" };
-			config::val<int> shot_timing_lookahead{ 8, "ragebot", "shot timing lookahead" };
-			config::val<int> shot_timing_max_hold{ 15, "ragebot", "shot timing max hold" };
-
+			xui::setting autowall{ true, {}, "autowall", "ragebot" };
+			config::bools<6> multipoint{ { true, true, true, true, true, true } };
+			config::val<int> prefer{ 0, "ragebot", "prefer" };
+			xui::setting prefer_head{ false, {}, "prefer head", "ragebot" };
+			config::val<int> refine_shot{ 0, "ragebot", "refine shot" };
 			xui::setting adaptive_hitchance{ true, {}, "adaptive hitchance", "ragebot" };
 			config::val<int> adaptive_hitchance_misses{ 3, "ragebot", "adaptive hitchance misses" };
 			config::val<float> adaptive_hitchance_boost{ 0.07f, "ragebot", "adaptive hitchance boost" };
-
+			xui::setting shot_timing{ true, {}, "shot timing", "ragebot" };
+			config::val<int> shot_timing_lookahead{ 8, "ragebot", "shot timing lookahead" };
+			config::val<int> shot_timing_max_hold{ 15, "ragebot", "shot timing max hold" };
+			xui::setting safe_line_check{ true, {}, "safe line check", "ragebot" };
 			xui::setting baim_if_head_low_hc{ true, {}, "baim if head hc low", "ragebot" };
 			config::val<float> baim_head_hc_threshold{ 0.40f, "ragebot", "baim head hc threshold" };
-
-			xui::setting safe_line_check{ true, {}, "safe line check", "ragebot" };
-			xui::setting adaptive_min_damage{ true, {}, "adaptive min damage", "ragebot" };
-			xui::setting target_priority{ true, {}, "target priority", "ragebot" };
-			xui::setting resolver_enabled{ true, {}, "resolver", "ragebot" };
-			xui::setting rapid_fire{ false, {}, "rapid fire", "ragebot" };
 
 			void init( std::string_view cat )
 			{
 				const auto s = std::string( cat );
 
-				this->silent.category = s;
-				this->no_spread.category = s;
-				this->doubletap.category = s;
-				this->body_aim.category = s;
+					this->silent.category = s;
+					this->no_spread.category = s;
+					this->body_aim.category = s;
 				this->force_shot_air.category = s;
 				this->force_shot.category = s;
+				this->autostop.category = s;
 				this->autostop_inair.category = s;
+				this->auto_scope.category = s;
+				this->double_tap.category = s;
 				this->min_damage_override.category = s;
 				this->hitchance_override.category = s;
 				this->dynamic_pointscale.category = s;
-				this->visualize_aimbot.category = s;
-				this->min_damage_hp_plus_one.category = s;
+				this->debug_multipoints.category = s;
+				this->autowall.category = s;
+				this->prefer_head.category = s;
 				this->shot_timing.category = s;
-				this->adaptive_hitchance.category = s;
-				this->baim_if_head_low_hc.category = s;
 				this->safe_line_check.category = s;
-				this->adaptive_min_damage.category = s;
-				this->target_priority.category = s;
-				this->resolver_enabled.category = s;
-				this->rapid_fire.category = s;
+				this->baim_if_head_low_hc.category = s;
+				this->adaptive_hitchance.category = s;
 
 				this->max_fov.reg( s, "max fov" );
 				this->hitchance.reg( s, "hit chance" );
 				this->min_damage.reg( s, "min damage" );
 				this->min_damage_override_value.reg( s, "min damage override value" );
 				this->hitchance_override_value.reg( s, "hit chance override value" );
+				this->burst_delay.reg( s, "burst delay" );
 				this->pointscale.reg( s, "point scale" );
 				this->hitboxes.reg( s, "hitboxes" );
-				this->shot_timing_lookahead.reg( s, "shot timing lookahead" );
-				this->shot_timing_max_hold.reg( s, "shot timing max hold" );
+				this->multipoint.reg( s, "multipoint" );
+				this->prefer.reg( s, "prefer" );
+				this->refine_shot.reg( s, "refine shot" );
 				this->adaptive_hitchance_misses.reg( s, "adaptive hitchance misses" );
 				this->adaptive_hitchance_boost.reg( s, "adaptive hitchance boost" );
+				this->shot_timing_lookahead.reg( s, "shot timing lookahead" );
+				this->shot_timing_max_hold.reg( s, "shot timing max hold" );
 				this->baim_head_hc_threshold.reg( s, "baim head hc threshold" );
 			}
 
@@ -126,10 +128,9 @@ namespace settings {
 
 			weapon_group& get_group( std::uint32_t weapon_type )
 			{
-				// Prevent underflow: only valid for weapon_type >= pistol (1)
 				if ( weapon_type < cstypes::weapon_type::pistol || weapon_type >= cstypes::weapon_type::pistol + k_group_count )
 				{
-					return this->groups[ 2 ]; // Default to rifle group
+					return this->groups[ 2 ];
 				}
 				const auto idx = weapon_type - cstypes::weapon_type::pistol;
 				return this->groups[ idx ];
@@ -137,169 +138,34 @@ namespace settings {
 
 			const weapon_group& get_group( std::uint32_t weapon_type ) const
 			{
-				// Prevent underflow: only valid for weapon_type >= pistol (1)
 				if ( weapon_type < cstypes::weapon_type::pistol || weapon_type >= cstypes::weapon_type::pistol + k_group_count )
 				{
-					return this->groups[ 2 ]; // Default to rifle group
+					return this->groups[ 2 ];
 				}
 				const auto idx = weapon_type - cstypes::weapon_type::pistol;
 				return this->groups[ idx ];
 			}
 		} m_ragebot{};
 
-		struct legitbot
-		{
-			static constexpr auto k_group_count{ 6u };
-
-			struct weapon_group
-			{
-				xui::setting aimbot{ false, { VK_XBUTTON2, xui::bind_mode::hold }, "aimbot", "legitbot" };
-				config::val<float> fov{ 5.0f };
-				config::val<int> smooth{ 5 };
-				config::val<float> aim_speed{ 10.0f };
-				config::val<float> aim_speed_attack{ 15.0f };
-				config::val<float> speed_scale_fov{ 1.0f };
-				config::val<float> reaction_time{ 0.0f };
-				config::val<float> max_lock_on{ 0.0f };
-				config::bools<5> hitboxes{ { true, false, false, false, false } };
-
-				xui::setting rcs{ true, {}, "recoil control", "legitbot" };
-				config::val<int> rcs_min{ 95 };
-				config::val<int> rcs_max{ 105 };
-
-				xui::setting standalone_rcs{ false, {}, "standalone rcs", "legitbot" };
-				config::val<int> standalone_rcs_strength{ 100 };
-				config::val<int> standalone_rcs_min{ 95 };
-				config::val<int> standalone_rcs_max{ 105 };
-
-				xui::setting triggerbot{ false, { VK_XBUTTON1, xui::bind_mode::hold }, "triggerbot", "legitbot" };
-				config::val<int> trigger_delay{ 5 };
-				config::val<int> trigger_hitchance{ 80 };
-				config::val<int> trigger_min_damage{ 1 };
-				xui::setting trigger_always_on{ false, {}, "trigger always on", "legitbot" };
-				xui::setting trigger_autostop{ false, {}, "trigger autostop", "legitbot" };
-				xui::setting trigger_nospread{ false, {}, "trigger nospread", "legitbot" };
-				xui::setting manual_nospread{ false, {}, "manual nospread", "legitbot" };
-
-				xui::setting autowall{ true, {}, "autowall", "legitbot" };
-				config::val<int> min_damage{ 101 };
-
-				xui::setting visible_check{ true, {}, "visible check", "legitbot" };
-				config::val<float> switch_target_delay{ 0.0f };
-				xui::setting aim_through_smoke{ false, {}, "aim through smoke", "legitbot" };
-				xui::setting aim_while_flashed{ false, {}, "aim while flashed", "legitbot" };
-				xui::setting autoscope{ false, {}, "autoscope", "legitbot" };
-				xui::setting silent_aim{ false, {}, "silent aim", "legitbot" };
-				// 0 = always on, 1 = after 1st shot, 2 = after 2nd shot
-				config::val<int> aimbot_enable_after{ 0 };
-
-				xui::setting visualize_fov{ true, {}, "visualize fov", "legitbot" };
-				config::col fov_color{ { 255, 255, 255, 150 } };
-
-				void init( std::string_view cat )
-				{
-					const auto s = std::string( cat );
-
-					this->aimbot.category = s;
-					this->rcs.category = s;
-					this->standalone_rcs.category = s;
-					this->triggerbot.category = s;
-					this->trigger_always_on.category = s;
-					this->trigger_autostop.category = s;
-					this->autowall.category = s;
-					this->visualize_fov.category = s;
-					this->visible_check.category = s;
-					this->aim_through_smoke.category = s;
-					this->aim_while_flashed.category = s;
-					this->autoscope.category = s;
-					this->silent_aim.category = s;
-					this->trigger_nospread.category = s;
-					this->manual_nospread.category = s;
-
-					this->fov.reg( s, "fov" );
-					this->smooth.reg( s, "smooth" );
-					this->aim_speed.reg( s, "aim speed" );
-					this->aim_speed_attack.reg( s, "aim speed attack" );
-					this->speed_scale_fov.reg( s, "speed scale fov" );
-					this->reaction_time.reg( s, "reaction time" );
-					this->max_lock_on.reg( s, "max lock on" );
-					this->hitboxes.reg( s, "hitboxes" );
-					this->rcs_min.reg( s, "rcs min" );
-					this->rcs_max.reg( s, "rcs max" );
-					this->standalone_rcs_strength.reg( s, "standalone rcs strength" );
-					this->standalone_rcs_min.reg( s, "standalone rcs min" );
-					this->standalone_rcs_max.reg( s, "standalone rcs max" );
-					this->trigger_delay.reg( s, "trigger delay" );
-					this->trigger_hitchance.reg( s, "trigger hitchance" );
-					this->trigger_min_damage.reg( s, "trigger min damage" );
-					this->min_damage.reg( s, "min damage" );
-					this->switch_target_delay.reg( s, "switch target delay" );
-					this->aimbot_enable_after.reg( s, "aimbot enable after" );
-					this->fov_color.reg( s, "fov color" );
-				}
-			};
-
-			xui::setting enabled{ false, {}, "enabled", "legitbot" };
-			std::array<weapon_group, k_group_count> groups{};
-
-			legitbot( )
-			{
-				constexpr const char* weapon_names[ ]{ "pistol", "smg", "rifle", "shotgun", "sniper", "lmg" };
-
-				for ( auto i = 0u; i < k_group_count; ++i )
-				{
-					this->groups[ i ].init( std::string( "legitbot - " ) + weapon_names[ i ] );
-				}
-			}
-
-			weapon_group& get_group( std::uint32_t weapon_type )
-			{
-				// Prevent underflow: only valid for weapon_type >= pistol (1)
-				if ( weapon_type < cstypes::weapon_type::pistol || weapon_type >= cstypes::weapon_type::pistol + k_group_count )
-				{
-					return this->groups[ 2 ]; // Default to rifle group
-				}
-				const auto idx = weapon_type - cstypes::weapon_type::pistol;
-				return this->groups[ idx ];
-			}
-
-			const weapon_group& get_group( std::uint32_t weapon_type ) const
-			{
-				// Prevent underflow: only valid for weapon_type >= pistol (1)
-				if ( weapon_type < cstypes::weapon_type::pistol || weapon_type >= cstypes::weapon_type::pistol + k_group_count )
-				{
-					return this->groups[ 2 ]; // Default to rifle group
-				}
-				const auto idx = weapon_type - cstypes::weapon_type::pistol;
-				return this->groups[ idx ];
-			}
-		} m_legitbot{};
-
-			struct antiaim
+		struct antiaim
 			{
 				enum class pitch_mode : std::uint8_t
 				{
 					none,
 					down,
-					up
+					up,
+					zero
 				};
 
 				enum class yaw_mode : std::uint8_t
 				{
-					none,
-					spin,
-					jitter,
-					jitter_spin
+					fixed
 				};
 
 				xui::setting enabled{ true, {}, "anti aim", "anti aim" };
 				config::enm<pitch_mode> pitch{ pitch_mode::down, "anti aim", "pitch" };
-				config::enm<yaw_mode> yaw{ yaw_mode::none, "anti aim", "yaw mode" };
-				config::val<float> spin_speed{ 15.0f, "anti aim", "spin speed" };
-				config::val<float> jitter_range{ 60.0f, "anti aim", "jitter range" };
-				config::val<float> jitter_speed{ 5.0f, "anti aim", "jitter speed" };
-				xui::setting auto_yaw_adjust{true, {}, "hide head", "anti aim"};
-				xui::setting manual_left{ false, { 'Z', xui::bind_mode::toggle }, "left", "anti aim" };
+				config::enm<yaw_mode> yaw_mode{ yaw_mode::fixed, "anti aim", "yaw mode" };
+			xui::setting manual_left{ false, { 'Z', xui::bind_mode::toggle }, "left", "anti aim" };
 				xui::setting manual_right{ false, { 'C', xui::bind_mode::toggle }, "right", "anti aim" };
 				xui::setting hide_shots{ true, {}, "hide onshot", "anti aim" };
 				xui::setting avoid_backstab{ true, {}, "avoid backstab", "anti aim" };
@@ -331,6 +197,7 @@ namespace settings {
 		struct lagcomp_settings
 		{
 			config::val<int> max_backtrack_ticks{ 12, "ragebot", "max backtrack ticks" };
+			xui::setting backtrack{ true, {}, "backtrack", "ragebot" };
 			xui::setting extrapolation{ true, {}, "extrapolation", "ragebot" };
 			config::val<int> max_extrapolate_ticks{ 8, "ragebot", "max extrapolate ticks" };
 		} m_lagcomp{};
@@ -345,6 +212,7 @@ namespace settings {
 		struct autos
 		{
 			xui::setting revolver{ true, {}, "auto revolver", "autos" };
+			xui::setting revolver_quick{ false, {}, "revolver quick", "autos" };
 			xui::setting scope{ true, {}, "auto scope", "autos" };
 		} m_autos{};
 
@@ -1209,11 +1077,6 @@ namespace settings {
 			}
 		};
 
-		// A nametag whose {_Myptr,_Mysize} members were stomped by a stray
-		// 16-byte write is not safe to read through .c_str(). This only reads
-		// the size/capacity members (no pointer dereference), so it is safe
-		// even on a corrupted object. It must hold before any strncmp/strcpy_s
-		// on the nametag and before the nametag is copied out of a live node.
 		[[nodiscard]] static bool valid_nametag( const std::string& nametag ) noexcept
 		{
 			const auto size = nametag.size( );
@@ -1225,8 +1088,6 @@ namespace settings {
 
 			if ( size > 15 )
 			{
-				// Heap-backed: the pointer must be a canonical user-mode
-				// address, not the float garbage left by the stomp.
 				const auto ptr = reinterpret_cast< std::uintptr_t >( nametag.c_str( ) );
 				if ( ptr < 0x10000ull || ( ptr & 0xFFFF000000000000ull ) != 0 )
 				{
@@ -1237,10 +1098,6 @@ namespace settings {
 			return true;
 		}
 
-		// Copies a possibly-corrupted live node into a pristine local
-		// applied_skin, skipping the nametag when it fails valid_nametag().
-		// Use this instead of copy assignment when snapshotting, so the
-		// std::string copy constructor never dereferences a stomped pointer.
 		[[nodiscard]] static applied_skin snapshot_skin( const applied_skin& src ) noexcept
 		{
 			applied_skin out;
@@ -1272,9 +1129,6 @@ namespace settings {
 		{
 			std::unordered_map<std::int16_t, applied_skin> data{};
 
-			// The menu thread mutates `data` (apply, previews, per-frame color
-			// picker writes) while game-thread hooks read it. Guard every access
-			// so iterators can never dangle under a concurrent write.
 			mutable std::recursive_mutex mx{};
 
 			nlohmann::json serialize( ) const override
@@ -1491,13 +1345,16 @@ namespace settings {
 			enum class bullet_impact_type : int { overlay, sparks, both };
 			enum class death_effect_type : int {
 				fade,
-				stars
+				killstars,
+				sparks,
+				explosion,
+				c4_explosion,
+				smoke
 			};
 
 			xui::setting hit_log{ true, {}, "hit logs", "impacts" };
 			config::val<float> hit_log_duration{ 3.5f, "impacts", "hit log duration" };
 			xui::setting console_log{ true, {}, "console logs", "impacts" };
-			xui::setting clean_console{ true, {}, "clean console", "impacts" };
 
 			xui::setting miss_log{ true, {}, "miss logs", "impacts" };
 			config::val<float> miss_log_duration{ 4.5f, "impacts", "miss log duration" };
@@ -1586,7 +1443,6 @@ namespace settings {
 		{
 			xui::setting enabled{ false, {}, "viewmodel fov", "viewmodel" };
 			xui::setting position_enabled{ false, {}, "viewmodel position", "viewmodel" };
-			xui::setting no_hand_movement{ false, {}, "no hand movement", "viewmodel" };
 			config::val<float> offset_x{ 0.0f, "viewmodel", "offset x" };
 			config::val<float> offset_y{ 0.0f, "viewmodel", "offset y" };
 			config::val<float> offset_z{ 0.0f, "viewmodel", "offset z" };
@@ -1619,8 +1475,6 @@ namespace settings {
 			} m_scope{};
 		} m_hud{};
 
-		// Sniper crosshair: patches the game's scoped-weapon crosshair-hide
-		// check so the engine crosshair is drawn even while scoped in.
 		xui::setting sniper_crosshair{ false, {}, "sniper crosshair", "sniper crosshair" };
 
 		struct post_process
@@ -1654,38 +1508,38 @@ namespace settings {
 		xui::setting preserve_killfeed{ true, {}, "preserve killfeed", "misc" };
 		xui::setting reveal_radar{ true, {}, "reveal radar", "misc" };
 		xui::setting disable_game_logs{ true, {}, "disable game logs", "misc" };
-		xui::setting autoaccept{ false, {}, "auto accept", "misc" };
 		config::val<int> menu_key{ VK_INSERT, "misc", "menu key" };
-		xui::setting safe_mode{ false, {}, "safe mode", "misc" };
-		xui::setting anti_afk{ false, {}, "anti afk", "misc" };
-		xui::setting quickswitch{ false, {}, "quickswitch", "misc" };
-		xui::setting quick_plant{ false, {}, "quick plant", "misc" };
-		xui::setting no_land_inaccuracy{ false, {}, "no land inaccuracy", "misc" };
+		config::val<int> unload_key{ VK_END, "misc", "unload key" };
 		xui::setting thirdperson_grenade{ false, {}, "thirdperson on grenade", "misc" };
 		config::val<float> menu_dpi_scale{ 1.0f, "misc", "menu dpi scale" };
 
-		enum class menu_theme : int { lime, white };
-		config::enm<menu_theme> theme{ menu_theme::lime, "misc", "menu theme" };
-
-		// Watermark: a small always-on HUD panel drawn in the same flat style as
-		// the menu shell. Anchor is a corner plus a margin, not free coordinates,
-		// so it stays glued to the screen edge on resolution changes.
-		enum class watermark_anchor : int { top_left, top_right, bottom_left, bottom_right, top_center, bottom_center };
+		struct lua
+		{
+			xui::setting enabled{ true, {}, "lua scripts", "lua" };
+		} m_lua{};
 
 		struct watermark_cfg
 		{
-			xui::setting enabled{ false, {}, "watermark", "misc" };
-			config::enm<watermark_anchor> anchor{ watermark_anchor::top_left, "misc", "watermark anchor" };
-			config::val<float> margin{ 10.0f, "misc", "watermark margin" };
-			config::val<float> scale{ 1.0f, "misc", "watermark scale" };
-			xui::setting show_fps{ true, {}, "watermark fps", "misc" };
-			xui::setting show_ping{ true, {}, "watermark ping", "misc" };
-			xui::setting show_time{ true, {}, "watermark time", "misc" };
-			xui::setting show_name{ true, {}, "watermark name", "misc" };
-			xui::setting show_specs{ true, {}, "watermark specs", "misc" };
-			xui::setting show_ping_warning{ true, {}, "watermark ping warning", "misc" };
-			config::val<int> ping_warning{ 80, "misc", "watermark ping warning threshold" };
+			xui::setting enabled{ true, {}, "watermark", "watermark" };
+			xui::setting show_fps{ true, {}, "show fps", "watermark" };
+			xui::setting show_ping{ true, {}, "show ping", "watermark" };
+			xui::setting show_time{ false, {}, "show time", "watermark" };
+			xui::setting show_user{ false, {}, "show user", "watermark" };
+			xui::setting show_map{ false, {}, "show map", "watermark" };
 		} m_watermark{};
+
+		struct indicators_cfg
+		{
+			xui::setting enabled{ true, {}, "indicators", "indicators" };
+			xui::setting show_body_aim{ true, {}, "show body aim", "indicators" };
+			xui::setting show_min_damage{ true, {}, "show min damage", "indicators" };
+			xui::setting show_hitchance{ true, {}, "show hit chance", "indicators" };
+			xui::setting show_nospread{ true, {}, "show no spread", "indicators" };
+			xui::setting show_jumpbug{ true, {}, "show jumpbug", "indicators" };
+			xui::setting show_edgebug{ true, {}, "show edgebug", "indicators" };
+			xui::setting show_slowwalk{ true, {}, "show slowwalk", "indicators" };
+			xui::setting show_manual_aa{ true, {}, "show manual aa", "indicators" };
+		} m_indicators{};
 
 		struct widgets_cfg
 		{
@@ -1696,8 +1550,11 @@ namespace settings {
 			config::val<float> keybinds_x{ -1.0f, "widgets", "keybinds x" };
 			config::val<float> keybinds_y{ -1.0f, "widgets", "keybinds y" };
 
-			config::val<float> doubletap_x{ -1.0f, "widgets", "doubletap x" };
-			config::val<float> doubletap_y{ -1.0f, "widgets", "doubletap y" };
+			config::val<float> watermark_x{ -1.0f, "widgets", "watermark x" };
+			config::val<float> watermark_y{ -1.0f, "widgets", "watermark y" };
+
+			config::val<float> indicators_x{ -1.0f, "widgets", "indicators x" };
+			config::val<float> indicators_y{ -1.0f, "widgets", "indicators y" };
 
 			struct glass_cfg
 			{
@@ -1736,11 +1593,8 @@ namespace settings {
 		xui::setting edgejump{ false, { 'E', xui::bind_mode::hold}, "edgejump", "movement" };
 		xui::setting edgestop{ false, { 'N', xui::bind_mode::hold}, "edgestop", "movement" };
 		xui::setting edgebug{ false, {}, "edgebug", "movement" };
-		/// 0..4 — matches jmp table order around \c loc_C80A3A in dump (mode dword selects case before the active path).
 		config::val<int> edgebug_mode{ 1, "movement", "edgebug mode" };
-		/// Analog of \c xmmword_E22CA4+0xC — extra subtick duck cycles (each cycle = press+release pair).
 		config::val<int> edgebug_passes{ 1, "movement", "edgebug passes" };
-		/// Adds jump up/down subticks like jumpbug after duck sequence (not in every dump path; optional).
 		xui::setting edgebug_include_jump_steps{ false, {}, "edgebug jump steps", "movement" };
 		xui::setting slowwalk{ false, { 'P', xui::bind_mode::hold}, "slowwalk", "movement" };
 		config::val<float> slowwalk_speed{ 33.0f, "movement", "slowwalk speed" };
@@ -1748,6 +1602,8 @@ namespace settings {
 		struct test_strafer
 		{
 			xui::setting enabled{ false, {}, "subtick strafer", "movement" };
+			config::val<int> max_subticks{ 12, "movement", "subtick strafer max subticks" };
+			xui::setting adaptive_subticks{ true, {}, "subtick strafer adaptive subticks", "movement" };
 		} m_test_strafer{};
 	};
 
@@ -1839,4 +1695,4 @@ namespace settings {
 		}
 	}
 
-} // namespace settings
+}

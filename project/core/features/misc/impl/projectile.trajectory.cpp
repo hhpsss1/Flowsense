@@ -14,10 +14,8 @@ namespace features::misc {
 
 	namespace {
 
-		// Hull sim mask used before, merged with solids mask from visibility traces so thin breakables (e.g. glass) collide.
 		constexpr std::uint32_t grenade_collision_mask_v = static_cast<std::uint32_t>( 0x2000c3001u | 0x001c3003u );
 
-		// Penetration fudge after a pawn hit so the next trace does not re-penetrate the same hull.
 		constexpr float k_pass_player_nudge{ 3.5f };
 
 		[[nodiscard]] bool grenade_passes_through_hit_entity( std::uintptr_t entity )
@@ -33,7 +31,6 @@ namespace features::misc {
 				return false;
 			}
 
-			// CS grenade simulation does not collide with player pawns; traces that stop on them fake bounces.
 			return fnv1a::runtime_hash( name ) == "C_CSPlayerPawn"_hash;
 		}
 
@@ -43,7 +40,6 @@ namespace features::misc {
 			return systems::g_tracing.make_filter( skip_thrower ? thrower_pawn : 0, grenade_collision_mask_v, 4 );
 		}
 
-		// Segment trace: advance through player hulls to match in-game grenades, stop on world/geo.
 		[[nodiscard]] std::pair<math::vector3, std::optional<systems::tracing::result>> grenade_trace_hull_segment(
 			const math::vector3& from,
 			const math::vector3& to,
@@ -85,7 +81,7 @@ namespace features::misc {
 			return { cursor, std::nullopt };
 		}
 
-	} // namespace
+	}
 
 	void projectile_trajectory::on_render( xdraw::draw_list& draw_list )
 	{
@@ -1207,10 +1203,13 @@ namespace features::misc {
 		seg_points.reserve( count * 2 );
 		seg_colors.reserve( count );
 
+		const auto [traj_viewport_w, traj_viewport_h] = xdraw::viewport_size( );
+		const auto traj_matrix = systems::g_view.matrix( );
+
 		for ( auto i = 0ull; i < count; ++i )
 		{
-			const auto screen = systems::g_view.project( points[ i ] );
-			if ( !systems::g_view.projection_valid( screen ) )
+			const auto proj = systems::view::project_fast( points[ i ], traj_matrix, traj_viewport_w, traj_viewport_h );
+			if ( proj.w <= 0.001f || !systems::g_view.projection_valid( proj.screen ) )
 			{
 				seg_points.push_back( std::numeric_limits<float>::quiet_NaN( ) );
 				seg_points.push_back( std::numeric_limits<float>::quiet_NaN( ) );
@@ -1222,8 +1221,8 @@ namespace features::misc {
 			const auto fade = alpha * ( 1.0f - t * 0.6f );
 			const auto a = static_cast< std::uint8_t >( static_cast< float >( color.value.a ) * fade );
 
-			seg_points.push_back( screen.x );
-			seg_points.push_back( screen.y );
+			seg_points.push_back( proj.screen.x );
+			seg_points.push_back( proj.screen.y );
 			seg_colors.push_back( { color.value.r, color.value.g, color.value.b, a } );
 		}
 
@@ -1282,16 +1281,16 @@ namespace features::misc {
 
 		if ( traj.end_tick >= 0 )
 		{
-			const auto screen = systems::g_view.project( traj.end_pos );
-			if ( systems::g_view.projection_valid( screen ) )
+			const auto end_proj = systems::view::project_fast( traj.end_pos, traj_matrix, traj_viewport_w, traj_viewport_h );
+			if ( end_proj.w > 0.001f && systems::g_view.projection_valid( end_proj.screen ) )
 			{
 				const auto det_a = static_cast< std::uint8_t >( static_cast< float >( color.value.a ) * alpha );
 				const auto outline_a = static_cast< std::uint8_t >( 200.0f * alpha );
 
-				draw_list.circle_filled( screen.x, screen.y, 3.5f, { 0, 0, 0, outline_a }, 16 );
-				draw_list.circle_filled( screen.x, screen.y, 2.5f, { color.value.r, color.value.g, color.value.b, det_a }, 16 );
+				draw_list.circle_filled( end_proj.screen.x, end_proj.screen.y, 3.5f, { 0, 0, 0, outline_a }, 16 );
+				draw_list.circle_filled( end_proj.screen.x, end_proj.screen.y, 2.5f, { color.value.r, color.value.g, color.value.b, det_a }, 16 );
 			}
 		}
 	}
 
-} // namespace features::misc
+}

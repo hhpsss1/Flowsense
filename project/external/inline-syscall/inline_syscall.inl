@@ -25,13 +25,11 @@
 #define JM_INLINE_SYSCALL_FORCEINLINE __attribute__((always_inline))
 #endif
 
-// helper macro to reduce the typing a bit
 #define JM_INLINE_SYSCALL_STUB(...) \
     JM_INLINE_SYSCALL_FORCEINLINE std::int32_t syscall(__VA_ARGS__) noexcept
 
 namespace jm {
 
-    // hash used for the syscall names
     inline constexpr std::uint32_t hash(const char* str) noexcept
     {
         std::uint32_t value = 2166136261;
@@ -47,7 +45,6 @@ namespace jm {
     }
 
     namespace detail {
-        // disables register keyword deprecation warnings
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
 
@@ -244,7 +241,6 @@ namespace jm {
             return status;
         }
 
-        // clang-format off
     
         template<class T1, class T2, class T3, class T4, class T5, class T6, class T7>
         JM_INLINE_SYSCALL_STUB(std::uint32_t id, T1 _1, T2 _2, T3 _3, T4 _4, T5 _5, T6 _6, T7 _7)
@@ -542,11 +538,10 @@ namespace jm {
             return status;
         }
 
-        // clang-format on
 
 #pragma GCC diagnostic pop
 
-    } // namespace detail
+    }
 
     template<class R, class... Args>
     inline R syscall_function<R(Args...)>::operator()(Args... args) const noexcept
@@ -554,6 +549,6 @@ namespace jm {
         return detail::syscall(_id, args...);
     }
 
-} // namespace jm
+}
 
-#endif // JM_INLINE_SYSCALL_INL
+#endif

@@ -17,7 +17,7 @@ namespace features::misc {
 
 		constexpr std::uint32_t invalid_particle_effect{ static_cast<std::uint32_t>( -1 ) };
 
-	} // namespace detail
+	}
 
 	void impacts::on_render_early( xdraw::draw_list& draw_list )
 	{
@@ -30,12 +30,8 @@ namespace features::misc {
 
 	void impacts::on_frame_stage_notify( )
 	{
-		// Синк флага чистой консоли каждый кадр (logging-слой настроек не видит).
-		logging::console::set_clean_console( settings::g_misc.m_impacts.clean_console.value );
-
 		this->tick_pending_particle_destroys( );
 
-		// Frame-stage updates can overlap Present, which renders the same impact vectors.
 		std::unique_lock lock( this->m_mtx );
 
 		if ( this->m_buffered_impact_time > 0.0f )
@@ -126,9 +122,6 @@ namespace features::misc {
 			auto position = math::vector3{};
 			auto has_position{ false };
 
-			// Report-hit contains the most accurate contact point, but it is not
-			// guaranteed to arrive before player_hurt. Use it when available and
-			// fall back to the confirmed shot impact or the victim's position.
 			const auto game_scene_node = memory::read<std::uintptr_t>( data.victim_pawn + SCHEMA( "C_BaseEntity", "m_pGameSceneNode"_hash ) );
 			if ( game_scene_node )
 			{
@@ -239,9 +232,6 @@ namespace features::misc {
 			shot_record* matched_shot{};
 			auto best_score{ -FLT_MAX };
 
-			// Server shot callbacks and bullet-impact events preserve command order.
-			// Match the oldest shot that does not have an impact before considering
-			// extra impacts from an already matched shot.
 			for ( auto& shot : this->m_pending_shots )
 			{
 				if ( shot.resolved || shot.impact_confirmed )
@@ -500,9 +490,6 @@ namespace features::misc {
 		const auto ideal_ray_dist = this->ray_distance_to_nearest_hitbox( shot, ideal_forward );
 		const auto target_dist = ( shot.skeleton[ 0 ].position - shoot_position ).length( );
 
-		// The scalar cone is only an estimate of the server's shot state. Reserve
-		// this label for an impact that clearly belongs to another direction;
-		// smaller deviations are classified from their hitbox geometry below.
 		if ( angular_deviation > impact_mismatch_angle )
 		{
 			return "impact";
@@ -513,9 +500,6 @@ namespace features::misc {
 			return "autowall 2";
 		}
 
-		// If the server impact ray misses the saved hitboxes, weapon spread is
-		// already sufficient to explain the miss. Do not blame lag compensation
-		// merely because it passed within several units of the target.
 		if ( ray_dist > 1.0f )
 		{
 			return "spread";
@@ -908,7 +892,7 @@ namespace features::misc {
 
 			if ( cfg.console_log.value )
 			{
-				logging::console::print_hitlog( xs( "{}" ), plain_msg );
+				logging::console::print( xs( "{}" ), plain_msg );
 			}
 
 			if ( chat_cfg.enabled.value && chat_cfg.hit.value )
@@ -965,7 +949,7 @@ namespace features::misc {
 
 			if ( cfg.console_log.value )
 			{
-				logging::console::print_hitlog( xs( "{}" ), plain_msg );
+				logging::console::print( xs( "{}" ), plain_msg );
 			}
 
 			if ( chat_cfg.enabled.value && chat_cfg.miss.value )
@@ -1039,9 +1023,6 @@ namespace features::misc {
 
 			if ( is_stale || is_expired )
 			{
-				// A predicted trigger command is not necessarily a shot (notably
-				// while cocking the R8). Discard it unless the server fire path or
-				// a bullet impact confirms that a round was emitted.
 				if ( !it->server_confirmed && !it->impact_confirmed )
 				{
 					it = this->m_pending_shots.erase( it );
@@ -1096,6 +1077,12 @@ namespace features::misc {
 			}
 
 			const auto screen = systems::g_view.project( it->position );
+			if ( !systems::g_view.projection_valid( screen ) )
+			{
+				++it;
+				continue;
+			}
+
 			const auto progress = elapsed / duration;
 
 			const auto ease_out = 1.0f - ( progress * progress );
@@ -1220,32 +1207,14 @@ namespace features::misc {
 			xdraw::push_font( rendering::g_fonts.nunito_regular[ rendering::fonts::size::normal ] );
 
 		constexpr auto fade_ratio{ 0.8f };
-		constexpr auto entry_spacing{ 3.0f };
+		constexpr auto entry_spacing{ 4.0f };
 		constexpr auto margin{ 10.0f };
-		const auto [screen_w, screen_h] = xdraw::viewport_size( );
-		(void) screen_h;
+		constexpr auto base_x{ margin };
 
-	constexpr auto h{ 20.0f };
-	constexpr auto r{ 0.0f };
-	constexpr auto inner_r{ 0.0f };
-	constexpr auto inner_pad{ 1.0f };
-	constexpr auto text_pad_x{ 8.0f };
-	constexpr auto text_nudge{ 0.5f };
-	constexpr auto icon_size{ 18.0f };
-	constexpr auto icon_inner_pad{ 0.0f };
+		static const auto hit_col = xdraw::color{ 191, 184, 184, 255 };
+		static const auto miss_col = xdraw::color{ 232, 67, 67, 255 };
 
-		static const auto miss_accent = xdraw::color{ 255, 100, 100, 255 };
-		static const auto miss_dim = xdraw::color{ 255, 100, 100, 82 };
-
-		static auto hit_icon_w = 0, hit_icon_h = 0;
-		static const auto hit_icon = xdraw::load_svg( R"(<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 6C1.5 6.59095 1.6164 7.17611 1.84254 7.72208C2.06869 8.26804 2.40016 8.76412 2.81802 9.18198C3.23588 9.59984 3.73196 9.93131 4.27792 10.1575C4.82389 10.3836 5.40905 10.5 6 10.5C6.59095 10.5 7.17611 10.3836 7.72208 10.1575C8.26804 9.93131 8.76412 9.59984 9.18198 9.18198C9.59984 8.76412 9.93131 8.26804 10.1575 7.72208C10.3836 7.17611 10.5 6.59095 10.5 6C10.5 4.80653 10.0259 3.66193 9.18198 2.81802C8.33807 1.97411 7.19347 1.5 6 1.5C4.80653 1.5 3.66193 1.97411 2.81802 2.81802C1.97411 3.66193 1.5 4.80653 1.5 6Z" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 7H7.5C7.5 7.39782 7.34196 7.77936 7.06066 8.06066C6.77936 8.34196 6.39782 8.5 6 8.5C5.60218 8.5 5.22064 8.34196 4.93934 8.06066C4.65804 7.77936 4.5 7.39782 4.5 7Z" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 4L7.5 5.5" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 5.5L7.5 4" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/></svg>)", 1.0f, &hit_icon_w, &hit_icon_h );
-
-		static auto miss_icon_w = 0, miss_icon_h = 0;
-		static const auto miss_icon = xdraw::load_svg( R"(<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 6C1.5 6.59095 1.6164 7.17611 1.84254 7.72208C2.06869 8.26804 2.40016 8.76412 2.81802 9.18198C3.23588 9.59984 3.73196 9.93131 4.27792 10.1575C4.82389 10.3836 5.40905 10.5 6 10.5C6.59095 10.5 7.17611 10.3836 7.72208 10.1575C8.26804 9.93131 8.76412 9.59984 9.18198 9.18198C9.59984 8.76412 9.93131 8.26804 10.1575 7.72208C10.3836 7.17611 10.5 6.59095 10.5 6C10.5 5.40905 10.3836 4.82389 10.1575 4.27792C9.93131 3.73196 9.59984 3.23588 9.18198 2.81802C8.76412 2.40016 8.26804 2.06869 7.72208 1.84254C7.17611 1.6164 6.59095 1.5 6 1.5C5.40905 1.5 4.82389 1.6164 4.27792 1.84254C3.73196 2.06869 3.23588 2.40016 2.81802 2.81802C2.40016 3.23588 2.06869 3.73196 1.84254 4.27792C1.6164 4.82389 1.5 5.40905 1.5 6Z" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.25 8.02525C7.08706 7.85896 6.89258 7.72684 6.67794 7.63665C6.4633 7.54646 6.23282 7.5 6 7.5C5.76718 7.5 5.5367 7.54646 5.32206 7.63665C5.10742 7.72684 4.91294 7.85896 4.75 8.02525" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 4.625C4.75 5.125 3.75 5.125 3.5 4.625" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 4.625C8.25 5.125 7.25 5.125 7 4.625" stroke="#111111" stroke-linecap="round" stroke-linejoin="round"/></svg>)", 1.0f, &miss_icon_w, &miss_icon_h );
-
-		const auto inner_h = h - inner_pad * 2.0f;
-		// Единая стопка хит/мисс логов в верхнем правом углу, новые сверху.
-		auto y_offset{ 0.0f };
+		auto log_y_offset{ 0.0f };
 
 		for ( auto it = this->m_logs.begin( ); it != this->m_logs.end( ); )
 		{
@@ -1279,11 +1248,6 @@ namespace features::misc {
 			if ( alpha > 0.01f )
 			{
 				const auto scale_alpha = [ & ]( xdraw::color c ) -> xdraw::color { return c.alpha( static_cast< std::uint8_t >( ( c.a / 255.0f ) * alpha * 255.0f ) ); };
-				const auto& icon_color = it->is_miss ? miss_accent : s.accent;
-				const auto& accent_base = it->is_miss ? miss_accent : s.accent;
-				const auto& dim_base = it->is_miss ? miss_dim : s.text_dim;
-				const auto accent_col = scale_alpha( accent_base );
-				const auto dim_col = scale_alpha( dim_base );
 
 				struct text_span
 				{
@@ -1307,7 +1271,7 @@ namespace features::misc {
 						const auto [e_w, e_h] = xdraw::measure_text( " due to " );
 						const auto [f_w, f_h] = xdraw::measure_text( "network" );
 
-						spans.push_back( { "missed ", false, a_w, a_h } );
+						spans.push_back( { "Missed ", false, a_w, a_h } );
 						spans.push_back( { weapon_name, true, b_w, b_h } );
 						spans.push_back( { " on ", false, c_w, c_h } );
 						spans.push_back( { it->name, true, d_w, d_h } );
@@ -1321,7 +1285,7 @@ namespace features::misc {
 						const auto [c_w, c_h] = xdraw::measure_text( " due to " );
 						const auto [d_w, d_h] = xdraw::measure_text( it->reason );
 
-						spans.push_back( { "missed ", false, a_w, a_h } );
+						spans.push_back( { "Missed ", false, a_w, a_h } );
 						spans.push_back( { "shot", true, b_w, b_h } );
 						spans.push_back( { " due to ", false, c_w, c_h } );
 						spans.push_back( { it->reason, true, d_w, d_h } );
@@ -1347,12 +1311,12 @@ namespace features::misc {
 						const auto [c_w, c_h] = xdraw::measure_text( " for " );
 						const auto [d_w, d_h] = xdraw::measure_text( damage_text );
 
-						spans.push_back( { "knifed ", false, a_w, a_h } );
+						spans.push_back( { "Knifed ", false, a_w, a_h } );
 						spans.push_back( { it->name, true, b_w, b_h } );
 						spans.push_back( { " for ", false, c_w, c_h } );
 						spans.push_back( { damage_text, true, d_w, d_h } );
 
-						const auto remaining_text = std::format( " ({} remaining)", it->health );
+						const auto remaining_text = std::format( " ({}hp remaining)", it->health );
 						const auto [e_w, e_h] = xdraw::measure_text( remaining_text );
 						spans.push_back( { remaining_text, false, e_w, e_h } );
 					}
@@ -1361,7 +1325,7 @@ namespace features::misc {
 						const auto [a_w, a_h] = xdraw::measure_text( "hit " );
 						const auto [b_w, b_h] = xdraw::measure_text( it->name );
 
-						spans.push_back( { "hit ", false, a_w, a_h } );
+						spans.push_back( { "Hit ", false, a_w, a_h } );
 						spans.push_back( { it->name, true, b_w, b_h } );
 					}
 					else
@@ -1375,12 +1339,16 @@ namespace features::misc {
 						const auto [e_w, e_h] = xdraw::measure_text( " in " );
 						const auto [f_w, f_h] = xdraw::measure_text( it->hitgroup );
 
-						spans.push_back( { "hit ", false, a_w, a_h } );
+						spans.push_back( { "Hit ", false, a_w, a_h } );
 						spans.push_back( { it->name, true, b_w, b_h } );
 						spans.push_back( { " for ", false, c_w, c_h } );
 						spans.push_back( { damage_text, true, d_w, d_h } );
 						spans.push_back( { " in ", false, e_w, e_h } );
 						spans.push_back( { it->hitgroup, true, f_w, f_h } );
+
+						const auto rem_text = std::format( " ({}hp remaining)", it->health );
+						const auto [rem_w, rem_h] = xdraw::measure_text( rem_text );
+						spans.push_back( { rem_text, false, rem_w, rem_h } );
 
 						if ( !it->reason.empty( ) )
 						{
@@ -1393,47 +1361,28 @@ namespace features::misc {
 					}
 				}
 
-				auto text_total_w{ 0.0f };
-				auto text_h{ 0.0f };
 
+				auto text_h{ 0.0f };
 				for ( const auto& span : spans )
 				{
-					text_total_w += span.w;
 					text_h = std::max( text_h, span.h );
 				}
 
-				const auto text_pill_w = text_total_w + text_pad_x * 2.0f;
-				const auto total_w = inner_pad + icon_size + inner_pad + text_pill_w + inner_pad;
+				const auto line_col = scale_alpha( it->is_miss ? miss_col : hit_col );
+				const auto line_shadow = scale_alpha( xdraw::color{ 0, 0, 0, 200 } );
 
-				const auto x = static_cast< float >( screen_w ) - margin - total_w - slide_x;
-				const auto y = margin + y_offset;
-
-				draw_list.rect_filled( x, y, total_w, h, scale_alpha( s.window_bg ), xdraw::corner_radius{ r } );
-				draw_list.rect( x, y, total_w, h, scale_alpha( tokens::col_border ), xdraw::corner_radius{ r }, 1.0f );
-				draw_list.rect_filled( x + inner_pad, y + inner_pad, icon_size, inner_h, scale_alpha( icon_color ), xdraw::corner_radius{ inner_r } );
-
-				const auto& icon = it->is_miss ? miss_icon : hit_icon;
-				if ( icon )
-				{
-					const auto icon_draw = icon_size - icon_inner_pad * 2.0f;
-					const auto ix = std::floor( x + inner_pad + icon_inner_pad );
-					const auto iy = std::floor( y + inner_pad + ( inner_h - icon_draw ) * 0.5f );
-					draw_list.image( ix, iy, icon_draw, icon_draw, icon.Get( ), scale_alpha( s.checkbox_mark_icon ) );
-				}
-
-				const auto tp_x = x + inner_pad + icon_size + inner_pad;
-				draw_list.rect_filled( tp_x, y + inner_pad, text_pill_w, inner_h, scale_alpha( s.child_bg ), xdraw::corner_radius{ inner_r } );
-
-				auto tx = tp_x + text_pad_x;
-				const auto ty = y + ( h - text_h ) * 0.5f + text_nudge;
+				auto tx = base_x + slide_x;
+				const auto ty = margin + log_y_offset;
 
 				for ( const auto& span : spans )
 				{
-					draw_list.text( tx, ty, span.text, span.accent ? accent_col : dim_col );
+					(void)span.accent;
+					draw_list.text( tx + 1.0f, ty + 1.0f, span.text, line_shadow );
+					draw_list.text( tx, ty, span.text, line_col );
 					tx += span.w;
 				}
 
-				y_offset += h + entry_spacing;
+				log_y_offset += text_h + entry_spacing;
 			}
 
 				++it;
@@ -1474,7 +1423,7 @@ namespace features::misc {
 		const auto g = cfg.hit_effect_color.value.g;
 		const auto b = cfg.hit_effect_color.value.b;
 
-		constexpr auto band_count{ 32 };
+		constexpr auto band_count{ 16 };
 
 		for ( auto i = 0; i < band_count; ++i )
 		{
@@ -1659,7 +1608,7 @@ namespace features::misc {
 				return {};
 			}
 
-			const auto root = std::wstring( app_data ) + L"\\velocity";
+			const auto root = std::wstring( app_data ) + L"\\aetheris";
 			const auto sounds = root + L"\\sounds";
 
 			CreateDirectoryW( root.c_str( ), nullptr );
@@ -1739,10 +1688,9 @@ void play_engine_path( const char* sound_path, float volume )
 			{
 				const auto level = static_cast<WORD>( std::clamp( volume / 100.0f, 0.0f, 1.0f ) * 0xFFFFu );
 				const DWORD vol = static_cast<DWORD>( level ) | ( static_cast<DWORD>( level ) << 16 );
-				set_vol_fn( static_cast<UINT_PTR>( static_cast<UINT>( -1 ) ), vol ); // WAVE_MAPPER
+				set_vol_fn( static_cast<UINT_PTR>( static_cast<UINT>( -1 ) ), vol );
 			}
 
-			// SND_FILENAME(0x20000) | SND_ASYNC(0x1) | SND_NODEFAULT(0x2)
 			play_fn( path.c_str( ), nullptr, 0x00020003u );
 		}
 
@@ -1772,7 +1720,7 @@ void play_engine_path( const char* sound_path, float volume )
 		}
 
 
-} // namespace custom_sound_detail
+}
 
 	std::string impacts::custom_sounds_directory_narrow( )
 	{
@@ -1970,6 +1918,27 @@ void play_engine_path( const char* sound_path, float volume )
 			}
 			return memory::read<math::vector3>( scene + SCHEMA( "CGameSceneNode", "m_vecAbsOrigin"_hash ) );
 		}
+
+		[[nodiscard]] math::vector3 pawn_center( std::uintptr_t pawn )
+		{
+			const auto origin = pawn_origin( pawn );
+			if ( !pawn )
+			{
+				return origin;
+			}
+			const auto view_offset = memory::read<math::vector3>( pawn + SCHEMA( "C_BaseModelEntity", "m_vecViewOffset"_hash ) );
+			return math::vector3{ origin.x, origin.y, origin.z + view_offset.z * 0.5f };
+		}
+
+		void set_effect_origin( std::uint32_t effect, const math::vector3& origin )
+		{
+			const auto particle_manager = memory::read<std::uintptr_t>( addresses::globals::particle_manager );
+			if ( !particle_manager || effect == detail::invalid_particle_effect )
+			{
+				return;
+			}
+			memory::call<bool>( PATTERN( patterns::particle_set_control_point ), particle_manager, effect, 0, &origin, 0 );
+		}
 	}
 
 	void impacts::play_death_effect_fade( std::uintptr_t victim_pawn )
@@ -1981,10 +1950,6 @@ void play_engine_path( const char* sound_path, float volume )
 
 	void impacts::play_death_effect_stars( std::uintptr_t victim_pawn )
 	{
-		// Stars: the underlying vpcf is authored for weather (continuous emission
-		// over a wide area). To make it read as a subtle "death sparkle" instead
-		// of a rainstorm, we spawn it high but tightly above the pawn and then
-		// schedule an early destroy so the emission window is short.
 		const auto particle_manager = memory::read<std::uintptr_t>( addresses::globals::particle_manager );
 		const auto effect = this->spawn_death_particle(
 			"particles/embedded/stars.vpcf", 0 /* no entity binding - we drive CP0 manually */, death_color( ),
@@ -1995,10 +1960,9 @@ void play_engine_path( const char* sound_path, float volume )
 		}
 
 		auto origin = pawn_origin( victim_pawn );
-		origin.z += 48.0f; // Lower than the old shower height so fewer stars are on screen.
+		origin.z += 48.0f;
 		memory::call<bool>( PATTERN( patterns::particle_set_control_point ), particle_manager, effect, 0, &origin, 0 );
 
-		// Auto-destroy after a short window so the weather particle doesn't linger.
 		const auto global_vars = memory::read<std::uintptr_t>( addresses::globals::global_vars );
 		if ( global_vars )
 		{
@@ -2006,6 +1970,38 @@ void play_engine_path( const char* sound_path, float volume )
 			std::unique_lock lock( this->m_mtx );
 			this->m_pending_particle_destroys.push_back( { effect, now + 0.6f } );
 		}
+	}
+
+	void impacts::play_death_effect_killstars( std::uintptr_t victim_pawn )
+	{
+		const auto effect = this->spawn_death_particle(
+			"particles/embedded/killstars.vpcf", 0, death_color( ),
+			2, -1, -1, this->m_death_killstars_loaded );
+		set_effect_origin( effect, pawn_center( victim_pawn ) );
+	}
+
+	void impacts::play_death_effect_sparks( std::uintptr_t victim_pawn )
+	{
+		const auto effect = this->spawn_death_particle(
+			"particles/embedded/sparks.vpcf", 0, death_color( ),
+			1, -1, -1, this->m_death_sparks_loaded );
+		set_effect_origin( effect, pawn_center( victim_pawn ) );
+	}
+
+	void impacts::play_death_effect_explosion( std::uintptr_t victim_pawn, const char* particle_path, bool& loaded_flag )
+	{
+		const auto effect = this->spawn_death_particle(
+			particle_path, 0, death_color( ),
+			-1, -1, -1, loaded_flag );
+		set_effect_origin( effect, pawn_origin( victim_pawn ) );
+	}
+
+	void impacts::play_death_effect_smoke( std::uintptr_t victim_pawn )
+	{
+		const auto effect = this->spawn_death_particle(
+			"particles/explosions_fx/explosion_smokegrenade.vpcf", 0, death_color( ),
+			-1, -1, -1, this->m_death_smoke_loaded );
+		set_effect_origin( effect, pawn_center( victim_pawn ) );
 	}
 
 	void impacts::tick_pending_particle_destroys( )
@@ -2042,9 +2038,13 @@ void play_engine_path( const char* sound_path, float volume )
 
 		switch ( settings::g_misc.m_impacts.death_effect_type_sel.value )
 		{
-		case type::fade:   this->play_death_effect_fade( victim_pawn );  break;
-		case type::stars:  this->play_death_effect_stars( victim_pawn ); break;
-		default:           this->play_death_effect_fade( victim_pawn );  break;
+		case type::fade:          this->play_death_effect_fade( victim_pawn );  break;
+		case type::killstars:     this->play_death_effect_killstars( victim_pawn );  break;
+		case type::sparks:        this->play_death_effect_sparks( victim_pawn );  break;
+		case type::explosion:     this->play_death_effect_explosion( victim_pawn, "particles/explosions_fx/explosion_hegrenade_dirt.vpcf", this->m_death_explosion_loaded );  break;
+		case type::c4_explosion:  this->play_death_effect_explosion( victim_pawn, "particles/explosions_fx/explosion_c4_500.vpcf", this->m_death_c4_loaded );  break;
+		case type::smoke:         this->play_death_effect_smoke( victim_pawn );  break;
+		default:                  this->play_death_effect_fade( victim_pawn );  break;
 		}
 	}
 
@@ -2202,4 +2202,4 @@ void play_engine_path( const char* sound_path, float volume )
 		}
 	}
 
-} // namespace features::misc
+}

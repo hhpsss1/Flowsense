@@ -7,9 +7,6 @@
 #ifndef _NTDBG_H
 #define _NTDBG_H
 
-//
-// Debugging
-//
 
 /**
  * Causes a user-mode breakpoint to occur.
@@ -189,9 +186,6 @@ DbgPrompt(
     _In_ ULONG Length
     );
 
-//
-// Definitions
-//
 
 /**
  * The DBGKM_EXCEPTION structure contains exception information for a debug event.
@@ -332,13 +326,10 @@ typedef struct _DBGUI_WAIT_STATE_CHANGE
 typedef enum _DEBUGOBJECTINFOCLASS
 {
     DebugObjectUnusedInformation,
-    DebugObjectKillProcessOnExitInformation, // s: ULONG
+    DebugObjectKillProcessOnExitInformation,
     MaxDebugObjectInfoClass
 } DEBUGOBJECTINFOCLASS, *PDEBUGOBJECTINFOCLASS;
 
-//
-// System calls
-//
 
 /**
  * Creates a debug object.
@@ -446,9 +437,6 @@ NtWaitForDebugEvent(
     _Out_ PDBGUI_WAIT_STATE_CHANGE WaitStateChange
     );
 
-//
-// Debugging UI
-//
 
 /**
  * Connects the current thread to the debugger.
@@ -635,4 +623,4 @@ EtwEventRegister(
     _Out_ PREGHANDLE RegHandle
     );
 
-#endif // _NTDBG_H
+#endif

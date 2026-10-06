@@ -35,7 +35,7 @@ namespace cstypes {
 		constexpr auto right_knee{ 21u };
 		constexpr auto right_foot{ 22u };
 
-	} // namespace bone_ids
+	}
 
 	namespace hit_groups {
 
@@ -50,7 +50,7 @@ namespace cstypes {
 		constexpr auto neck{ 8u };
 		constexpr auto gear{ 10u };
 
-	} // namespace hit_groups
+	}
 
 	namespace weapon_type {
 
@@ -67,7 +67,7 @@ namespace cstypes {
 		constexpr auto equipment{ 10u };
 		constexpr auto healthshot{ 11u };
 
-	} // namespace weapon_type
+	}
 
 	namespace command_buttons {
 
@@ -89,7 +89,7 @@ namespace cstypes {
 		constexpr auto in_zoom{ 1ull << 34 };
 		constexpr auto in_lookatweapon{ 1ull << 35 };
 
-	} // namespace command_buttons
+	}
 
 	namespace move_type {
 
@@ -106,7 +106,7 @@ namespace cstypes {
 		constexpr std::uint8_t custom{ 10 };
 		constexpr std::uint8_t last{ 11 };
 
-	} // namespace move_type
+	}
 
 	namespace entity_flags {
 
@@ -122,7 +122,7 @@ namespace cstypes {
 		constexpr auto in_water{ 1u << 10 };
 		constexpr auto hide_hud_scope{ 1u << 11 };
 
-	} // namespace entity_flags
+	}
 
 	namespace item_definition_index {
 
@@ -218,7 +218,7 @@ namespace cstypes {
 		constexpr std::uint16_t weapon_talon_knife{ 523 };
 		constexpr std::uint16_t weapon_skeleton_knife{ 525 };
 
-	} // namespace item_definition_index
+	}
 
 	struct tick_fraction
 	{
@@ -376,4 +376,4 @@ namespace cstypes {
 		const char* str;
 	};
 
-} // namespace cstypes
+}

@@ -9,12 +9,9 @@ namespace features::esp::item {
 
 	namespace detail {
 
-		// Offsets verified in pastehook (verified_features.hpp / client_dll.hpp):
-		// CEntityInstance::m_pEntity = 0x10, CEntityIdentity::m_designerName = 0x20.
 		constexpr auto k_identity_offset = 0x10;
 		constexpr auto k_designer_name_offset = 0x20;
 
-		// pastehook: CEntityIdentity::m_designerName, e.g. "weapon_ak47".
 		[[nodiscard]] std::string get_designer_name( std::uintptr_t entity )
 		{
 			const auto identity = memory::safe_read<std::uintptr_t>( entity + k_identity_offset ).value_or( 0 );
@@ -32,7 +29,6 @@ namespace features::esp::item {
 			return memory::read_string( name_ptr, 64 );
 		}
 
-		// pastehook's normalize_weapon_name: lowercase and strip weapon_/item_/c_.
 		[[nodiscard]] std::string normalize_weapon_name( std::string name )
 		{
 			if ( name.empty( ) )
@@ -59,8 +55,6 @@ namespace features::esp::item {
 			return name;
 		}
 
-		// pastehook's is_grenade_weapon_entity: keyword match on the designer name,
-		// excluding anything that is an actual projectile entity.
 		[[nodiscard]] bool is_grenade_weapon_name( const std::string& designer )
 		{
 			if ( designer.find( "projectile" ) != std::string::npos )
@@ -79,7 +73,6 @@ namespace features::esp::item {
 			return false;
 		}
 
-		// pastehook: whether the entity at all looks like a weapon drop.
 		[[nodiscard]] bool is_weapon_entity( const std::string& designer )
 		{
 			if ( designer.empty( ) )
@@ -95,7 +88,6 @@ namespace features::esp::item {
 			return is_grenade_weapon_name( designer );
 		}
 
-		// pastehook's weapon category groups (0-5, mirroring the settings layout).
 		[[nodiscard]] std::uint32_t group_from_key( const std::string& key )
 		{
 			const auto find_case = []( std::string_view haystack, std::string_view needle )
@@ -166,14 +158,10 @@ namespace features::esp::item {
 				return 5;
 
 			default:
-				// Anything still recognizable as a weapon falls back to utility so a
-				// label is always produced instead of silently skipping (pastehook
-				// has no per-group filtering and never refuses to draw).
 				return 5;
 			}
 		}
 
-		// pastehook's weapon_icons::display_table, used for the text label.
 		[[nodiscard]] std::string display_name( const std::string& key )
 		{
 			if ( key.empty( ) )
@@ -254,8 +242,6 @@ namespace features::esp::item {
 			return key;
 		}
 
-		// Mirrors pastehook's is_weapon_in_player_inventory: a weapon is considered
-		// held when it appears in a player's m_hMyWeapons list or is the active weapon.
 		[[nodiscard]] bool weapon_in_services( std::uintptr_t weapon, std::uintptr_t pawn )
 		{
 			if ( !weapon || !pawn )
@@ -294,8 +280,6 @@ namespace features::esp::item {
 			return false;
 		}
 
-		// pastehook's is_dropped_weapon (negated): a weapon is held when any player
-		// carries it in inventory or it exposes a valid owner handle.
 		[[nodiscard]] bool is_held( std::uintptr_t weapon )
 		{
 			if ( !weapon )
@@ -332,7 +316,7 @@ namespace features::esp::item {
 			return false;
 		}
 
-	} // namespace detail
+	}
 
 	void overlay::on_render( xdraw::draw_list& draw_list )
 	{
@@ -342,8 +326,6 @@ namespace features::esp::item {
 			return;
 		}
 
-		// Scan the raw entity list exactly like pastehook's weapon drop loop, and
-		// additionally fall back to cached items in case the list stride changed.
 		std::unordered_set<std::uintptr_t> seen{};
 
 		std::uint32_t stat_entities{ 0 };
@@ -376,6 +358,26 @@ namespace features::esp::item {
 
 			const auto group_id = group_hint == UINT8_MAX ? detail::group_from_key( key ) : static_cast< std::uint32_t >( group_hint );
 
+
+
+
+			if ( !overlay_cfg.is_active( group_id ) )
+			{
+				return;
+			}
+
+			{
+				const auto pre_node = memory::safe_read<std::uintptr_t>( ptr + SCHEMA( "C_BaseEntity", "m_pGameSceneNode"_hash ) ).value_or( 0 );
+				if ( pre_node )
+				{
+					const auto pre_origin = memory::safe_read<math::vector3>( pre_node + SCHEMA( "CGameSceneNode", "m_vecAbsOrigin"_hash ) ).value_or( math::vector3{} );
+					if ( systems::g_view.origin( ).distance( pre_origin ) * 0.01905f > overlay_cfg.get_group( group_id ).max_distance )
+					{
+						return;
+					}
+				}
+			}
+
 			const systems::entities::cached entity{ ptr, fnv1a::runtime_hash( designer.c_str( ) ), static_cast< std::int16_t >( -1 ), systems::entities::type::item };
 
 			const auto info = this->get_info( entity, key );
@@ -391,7 +393,7 @@ namespace features::esp::item {
 
 			++stat_dropped;
 
-			if ( !overlay_cfg.is_active( group_id ) || info.distance > overlay_cfg.get_group( group_id ).max_distance )
+			if ( info.distance > overlay_cfg.get_group( group_id ).max_distance )
 			{
 				return;
 			}
@@ -399,6 +401,12 @@ namespace features::esp::item {
 			this->add_label( draw_list, info, overlay_cfg.get_group( group_id ) );
 			++stat_drawn;
 		};
+
+		if ( !overlay_cfg.pistol.value && !overlay_cfg.smg.value && !overlay_cfg.rifle.value
+			&& !overlay_cfg.shotgun.value && !overlay_cfg.sniper.value && !overlay_cfg.utility.value )
+		{
+			return;
+		}
 
 		for ( auto i = 0; i < 2048; ++i )
 		{
@@ -410,8 +418,6 @@ namespace features::esp::item {
 			process( cached.ptr, UINT8_MAX );
 		}
 
-		// Diagnostics: printed once every few seconds so a non-drawing setup can be
-		// traced through every filter stage via the diagnostics file.
 		static auto last_log{ std::chrono::steady_clock::now( ) };
 		const auto now = std::chrono::steady_clock::now( );
 		if ( now - last_log > std::chrono::seconds( 3 ) )
@@ -438,8 +444,6 @@ namespace features::esp::item {
 		const auto ico = wants_icon ? systems::g_icons.get( info.name, 0.35f ) : nullptr;
 		const auto icon_ok = ico && ico->texture;
 
-		// Fall back to text whenever an icon was requested but is unavailable, so an
-		// icon-only display never silently renders nothing.
 		const auto show_icon = icon_ok;
 		const auto show_text = wants_text || ( wants_icon && !icon_ok );
 		auto y = screen.y;
@@ -451,7 +455,6 @@ namespace features::esp::item {
 			const auto ix = std::floorf( screen.x - iw * 0.5f );
 			const auto iy = std::floorf( y );
 
-			// All icons render as solid white, no border/outline.
 			constexpr auto white{ xdraw::color{ 255, 255, 255, 255 } };
 			draw_list.image( ix, iy, iw, ih, ico->texture.Get( ), white );
 
@@ -560,4 +563,4 @@ namespace features::esp::item {
 		}
 	}
 
-} // namespace features::esp::item
+}

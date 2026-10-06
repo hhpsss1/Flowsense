@@ -1,0 +1,9 @@
+{
+  "revision": 0,
+  "rules": [
+    {
+      "primary-output": "CMakeFiles\\aetheris.dir\\project\\core\\features\\movement\\impl\\edgestop.cpp.obj"
+    }
+  ],
+  "version": 1
+}

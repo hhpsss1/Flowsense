@@ -7,9 +7,7 @@
 #ifndef _NTSMSS_H
 #define _NTSMSS_H
 
-// SmApiPort
 
-// private
 typedef enum _SMAPINUMBER
 {
     SmNotImplementedApi = 0,
@@ -23,28 +21,24 @@ typedef enum _SMAPINUMBER
     SmMaxApiNumber = 8,
 } SMAPINUMBER, *PSMAPINUMBER;
 
-// private
 typedef struct _SMSESSIONCOMPLETE
 {
     _In_ ULONG SessionId;
     _In_ NTSTATUS CompletionStatus;
 } SMSESSIONCOMPLETE, *PSMSESSIONCOMPLETE;
 
-// private
 typedef struct _SMEXECPGM
 {
     _In_ RTL_USER_PROCESS_INFORMATION ProcessInformation;
     _In_ BOOLEAN DebugFlag;
 } SMEXECPGM, *PSMEXECPGM;
 
-// private
 typedef struct _SMLOADDEFERED
 {
     _In_ ULONG SubsystemNameLength;
     _In_ _Field_size_bytes_(SubsystemNameLength) WCHAR SubsystemName[32];
 } SMLOADDEFERED, *PSMLOADDEFERED;
 
-// private
 typedef struct _SMSTARTCSR
 {
     _Inout_ ULONG MuSessionId;
@@ -54,20 +48,17 @@ typedef struct _SMSTARTCSR
     _Out_ HANDLE WindowsSubSysProcessId;
 } SMSTARTCSR, *PSMSTARTCSR;
 
-// private
 typedef struct _SMSTOPCSR
 {
     _In_ ULONG MuSessionId;
 } SMSTOPCSR, *PSMSTOPCSR;
 
-// private
 typedef struct _SMSTARTSERVERSILO
 {
     _In_ HANDLE JobHandle;
     _In_ BOOLEAN CreateSuspended;
 } SMSTARTSERVERSILO, *PSMSTARTSERVERSILO;
 
-// private
 typedef struct _SMAPIMSG
 {
     PORT_MESSAGE h;
@@ -87,9 +78,7 @@ typedef struct _SMAPIMSG
     } u;
 } SMAPIMSG, *PSMAPIMSG;
 
-// SbApiPort
 
-// private
 typedef enum _SBAPINUMBER
 {
     SbCreateSessionApi = 0,
@@ -99,14 +88,12 @@ typedef enum _SBAPINUMBER
     SbMaxApiNumber = 4,
 } SBAPINUMBER, *PSBAPINUMBER;
 
-// private
 typedef struct _SBCONNECTINFO
 {
     _In_ ULONG SubsystemImageType;
     _In_ WCHAR EmulationSubSystemPortName[120];
 } SBCONNECTINFO, *PSBCONNECTINFO;
 
-// private
 typedef struct _SBCREATESESSION
 {
     _In_ ULONG SessionId;
@@ -116,37 +103,32 @@ typedef struct _SBCREATESESSION
     _In_ CLIENT_ID DebugUiClientId;
 } SBCREATESESSION, *PSBCREATESESSION;
 
-// private
 typedef struct _SBTERMINATESESSION
 {
     _In_ ULONG SessionId;
     _In_ NTSTATUS TerminationStatus;
 } SBTERMINATESESSION, *PSBTERMINATESESSION;
 
-// private
 typedef struct _SBFOREIGNSESSIONCOMPLETE
 {
     _In_ ULONG SessionId;
     _In_ NTSTATUS TerminationStatus;
 } SBFOREIGNSESSIONCOMPLETE, *PSBFOREIGNSESSIONCOMPLETE;
 
-// dbg/rev
 #define SMP_DEBUG_FLAG 0x00000001
 #define SMP_ASYNC_FLAG 0x00000002
 #define SMP_DONT_START 0x00000004
 
-// private
 typedef struct _SBCREATEPROCESSIN
 {
     _In_ PCUNICODE_STRING ImageFileName;
     _In_ PCUNICODE_STRING CurrentDirectory;
     _In_ PCUNICODE_STRING CommandLine;
     _In_opt_ PCUNICODE_STRING DefaultLibPath;
-    _In_ ULONG Flags; // SMP_*
+    _In_ ULONG Flags;
     _In_ ULONG DefaultDebugFlags;
 } SBCREATEPROCESSIN, *PSBCREATEPROCESSIN;
 
-// private
 typedef struct _SBCREATEPROCESSOUT
 {
     _Out_ HANDLE Process;
@@ -155,7 +137,6 @@ typedef struct _SBCREATEPROCESSOUT
     _Out_ CLIENT_ID ClientId;
 } SBCREATEPROCESSOUT, *PSBCREATEPROCESSOUT;
 
-// private
 typedef struct _SBCREATEPROCESS
 {
     union
@@ -165,7 +146,6 @@ typedef struct _SBCREATEPROCESS
     };
 } SBCREATEPROCESS, *PSBCREATEPROCESS;
 
-// private
 typedef struct _SBAPIMSG
 {
     PORT_MESSAGE h;
@@ -187,7 +167,6 @@ typedef struct _SBAPIMSG
     } u;
 } SBAPIMSG, *PSBAPIMSG;
 
-// functions
 
 NTSYSAPI
 NTSTATUS

@@ -26,6 +26,11 @@ namespace features::movement {
 		}
 
 		const auto base = cmd->csgo_user_cmd.mutable_base( );
+		if ( !base )
+		{
+			return;
+		}
+
 		const auto forward_move = base->forwardmove( );
 		const auto side_move = base->leftmove( );
 
@@ -48,4 +53,4 @@ namespace features::movement {
 		base->set_leftmove( ( side_move / move_length ) * scaled );
 	}
 
-} // namespace features::movement
+}

@@ -49,7 +49,6 @@ namespace hooking {
 			return 14;
 		}
 
-		// Shared with other hook impls (not static so it can be linked).
 		bool build_trampoline( void* target, void* trampoline, std::size_t* out_original_len, std::size_t* out_trampoline_len )
 		{
 			auto src = static_cast< std::uint8_t* >( target );
@@ -144,7 +143,7 @@ namespace hooking {
 			return reinterpret_cast<LONG (__stdcall*)(HANDLE, PVOID, int, PVOID, SIZE_T, PSIZE_T)>(MODULE_EXPORT ("ntdll.dll:NtQueryVirtualMemory"))( process, address, info_class, buffer, length, return_length );
 		}
 
-	} // namespace detail
+	}
 
 	bool jmp::create( void* target, void* hook_function )
 	{
@@ -331,4 +330,4 @@ namespace hooking {
 		std::memset( this->m_hook_bytes, 0, sizeof( this->m_hook_bytes ) );
 	}
 
-} // namespace hooking
+}

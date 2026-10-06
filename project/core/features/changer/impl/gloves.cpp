@@ -18,7 +18,6 @@ namespace features::changer {
 			"set item texture wear"
 		};
 
-		// Current C_EconItemView local-attribute vector layout, mirrored from Artisan.
 		constexpr std::ptrdiff_t item_view_attribute_count_offset {0x210};
 		constexpr std::ptrdiff_t item_view_attribute_data_offset {0x218};
 		constexpr std::ptrdiff_t item_attribute_stride {0x48};
@@ -35,7 +34,7 @@ namespace features::changer {
 			return result;
 		}
 
-	} // namespace detail
+	}
 
 	void gloves::on_frame_stage_notify () {
 		const auto local = systems::g_local.get ();
@@ -95,12 +94,6 @@ namespace features::changer {
 		const auto current_id = memory::read<std::uint64_t> (item_view + SCHEMA ("C_EconItemView", "m_iItemID"_hash));
 		const auto needs_reapply = memory::read<bool> (local.pawn + SCHEMA ("C_CSPlayerPawn", "m_bNeedToReApplyGloves"_hash));
 
-		// Switching teams recreates the HUD arms model without necessarily
-		// resetting the glove item view state; force a refresh so the new model
-		// picks the glove up again instead of silently showing default arms.
-		//
-		// The tracked team is updated every frame below after a successful apply,
-		// non-zero comparison guards the very first frame when m_tracked_team is 0.
 		const auto team_changed = this->m_tracked_team != 0 && this->m_tracked_team != local.team;
 
 		if (!team_changed &&
@@ -218,7 +211,6 @@ namespace features::changer {
 		memory::write<bool> (item_view + SCHEMA ("C_EconItemView", "m_bInitialized"_hash), true);
 		memory::write<bool> (item_view + SCHEMA ("C_EconItemView", "m_bDisallowSOC"_hash), true);
 
-		// Definitions 6/7/8 are semantic floats; bit-casting the paint kit makes the composite invalid.
 		memory::call<void> (set_attribute, item_view, detail::glove_attribute_names [0], static_cast<float>(skin.paint_kit_id));
 		memory::call<void> (set_attribute, item_view, detail::glove_attribute_names [1], static_cast<float>(skin.seed));
 		memory::call<void> (set_attribute, item_view, detail::glove_attribute_names [2], skin.wear);
@@ -271,5 +263,5 @@ namespace features::changer {
 		this->m_overridden = false;
 	}
 
-} // namespace features::changer
+}
 

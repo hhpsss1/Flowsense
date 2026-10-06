@@ -16,9 +16,6 @@ namespace systems
 {
 	using namespace features::misc;
 
-	// ---------------------------------------------------------------------------
-	// SRV capture registry
-	// ---------------------------------------------------------------------------
 
 	namespace panorama
 	{
@@ -98,22 +95,8 @@ namespace systems
 			g_captures.clear();
 		}
 
-	} // namespace panorama
+	}
 
-	// ---------------------------------------------------------------------------
-	// Panorama script that builds the agent preview panel.
-	//
-	// The panel renders into a composition layer named 'malv_agent_preview' which
-	// we then capture from the GetResourceView hook and draw ourselves.
-	//
-	// Matching the loadout-preview pipeline:
-	//   - animgraphcharactermode 'main-menu' + pose_sequence so the model plays the
-	//     main menu idle animations instead of the rigid buy-menu pose.
-	//   - EquipPlayerWithItem on the current weapon defindex.
-	//   - PlaySequence fired ~0.2s after creation plus a keepAlive tick that flips
-	//     the panel opacity so Panorama keeps submitting the layer to the renderer.
-	//   - The panel stays at near-zero opacity; only the composition copy is used.
-	// ---------------------------------------------------------------------------
 
 	std::string model_preview::build_create_script( const std::string& model_path, std::int16_t def_index ) const
 	{
@@ -121,8 +104,6 @@ namespace systems
 		if ( model.empty() )
 			model = "agents/models/ctm_st6/ctm_st6_variantk.vmdl";
 
-		// Choose a main-menu idle sequence that matches the faction prefix of the
-		// resolved model (ct_* vs t_*), mirroring the loadout preview.
 		const auto is_ct = model.find( "ct_" ) != std::string::npos || model.find( "ctm_" ) != std::string::npos;
 		const auto is_knife = ( def_index == cstypes::item_definition_index::weapon_knife0 )
 			|| ( def_index == cstypes::item_definition_index::weapon_knife1 )
@@ -133,8 +114,6 @@ namespace systems
 			? ( is_ct ? "ct_main_menu_knife_idle" : "t_main_menu_knife_idle" )
 			: ( is_ct ? "ct_main_menu_rifle_awp_lookat" : "t_main_menu_rifle02_idle_awp_galil" );
 
-		// Braces must be doubled for std::format; every JS literal { / } appears
-		// as {{ / }} below.
 		return std::format(
 			"(function(){{"
 			"var old=$.GetContextPanel().FindChildInLayoutFile('{}');"
@@ -188,16 +167,12 @@ namespace systems
 			model, sequence, def_index, sequence );
 	}
 
-	// Removes the MalvAgentPreview panel from the context panel that created it.
 	static const char k_sz_destroy_script[] =
 		"(function(){"
 		"var p=$.GetContextPanel().FindChildInLayoutFile('MalvAgentPreview');"
 		"if(p){p.DeleteAsync(0);}"
 		"})();";
 
-	// ---------------------------------------------------------------------------
-	// initialize
-	// ---------------------------------------------------------------------------
 
 	bool model_preview::initialize()
 	{
@@ -211,9 +186,6 @@ namespace systems
 		return true;
 	}
 
-	// ---------------------------------------------------------------------------
-	// run_script
-	// ---------------------------------------------------------------------------
 
 	void model_preview::run_script( c_ui_panel* panel, const char* script )
 	{
@@ -221,22 +193,16 @@ namespace systems
 		if ( !panorama )
 			return;
 
-		auto* ui_engine = panorama->get_ui_engine(); // CUIEngineSource2 via vfunc 13
+		auto* ui_engine = panorama->get_ui_engine();
 		if ( !ui_engine )
 			return;
 
-		ui_engine->run_script( panel, script ); // vfunc 77
+		ui_engine->run_script( panel, script );
 	}
 
-	// ---------------------------------------------------------------------------
-	// find_script_panel
-	// ---------------------------------------------------------------------------
 
 	c_ui_panel* model_preview::find_script_panel()
 	{
-		// During a match the main-menu context idles and its 3D layers are no
-		// longer presented, which freezes the preview copy. Prefer the HUD panel
-		// (CsgoHudPanel) while in a match and the main menu otherwise.
 		const auto in_match = g_local.get().is_valid();
 
 		auto resolve_panel = [ & ]( std::uintptr_t base ) -> c_ui_panel*
@@ -259,13 +225,10 @@ namespace systems
 				return panel;
 			};
 
-		// Preference order: the context that is actually drawing right now.
 		const auto preferred = in_match ? PATTERN( patterns::csgo_hud_panel ) : PATTERN( patterns::main_menu_panel );
 		if ( auto* panel = resolve_panel( preferred ) )
 			return panel;
 
-		// Fall back to the other context when the preferred one is not alive yet
-		// (e.g. HUD not spawned during map load, or main menu hidden in-match).
 		const auto fallback = in_match ? PATTERN( patterns::main_menu_panel ) : PATTERN( patterns::csgo_hud_panel );
 		if ( auto* panel = resolve_panel( fallback ) )
 			return panel;
@@ -274,14 +237,6 @@ namespace systems
 		return nullptr;
 	}
 
-	// ---------------------------------------------------------------------------
-	// find_preview_panel
-	//
-	// Walks the children of the script panel looking for the CUIPanel backing our
-	// MapPlayerPreviewPanel. Identified by its portrait_world pointer at +0x68
-	// holding a readable world scene + the world_to_clip matrix at +0x2F8 being
-	// finite. Result is cached and revalidated.
-	// ---------------------------------------------------------------------------
 
 	c_ui_panel* model_preview::find_preview_panel()
 	{
@@ -302,7 +257,6 @@ namespace systems
 			if ( !node )
 				continue;
 
-			// CUI_Player3dPanel: CCS_PortraitWorld* at panel + 0x68.
 			const auto portrait_world = memory::safe_read<std::uintptr_t>( reinterpret_cast<std::uintptr_t>( node ) + 0x68 ).value_or( 0 );
 			if ( portrait_world )
 			{
@@ -342,16 +296,6 @@ namespace systems
 		return result;
 	}
 
-	// ---------------------------------------------------------------------------
-	// find_preview_player
-	//
-	// The C_CSGO_PreviewPlayer spawned by the MapPlayerPreviewPanel is a regular
-	// client entity (e.g. the buy-menu models), so it lives in the game's entity
-	// list. The render hook path is not guaranteed to fire for panorama 3D layers,
-	// so scan the list as a reliable source for the entity (and its bones).
-	// Throttled by the caller; cheap once cached because only a handful of chunk
-	// reads are needed to walk the whole list.
-	// ---------------------------------------------------------------------------
 
 	std::uintptr_t model_preview::find_preview_player() const
 	{
@@ -371,13 +315,9 @@ namespace systems
 		return 0;
 	}
 
-	// ---------------------------------------------------------------------------
-	// resolve_model_path
-	// ---------------------------------------------------------------------------
 
 	std::string model_preview::resolve_model_path( int team ) const
 	{
-		// Prefer the changer's configured agent for the current team.
 		const auto& agents_cfg = settings::g_changer.agents;
 		const auto selected_def = ( team == 3 ) ? agents_cfg.ct_def : ( team == 2 ) ? agents_cfg.t_def : agents_cfg.ct_def;
 
@@ -390,7 +330,6 @@ namespace systems
 			}
 		}
 
-		// Fallback: whatever the local pawn is currently wearing while in-match.
 		const auto local = g_local.get();
 		if ( local.pawn )
 		{
@@ -408,19 +347,14 @@ namespace systems
 			}
 		}
 
-		// Safety net: vanilla agent without the changers installed.
 		return team == 2
 			? "agents/models/tm_phoenix/tm_phoenix_variantg.vmdl"
 			: "agents/models/ctm_st6/ctm_st6_variantk.vmdl";
 	}
 
-	// ---------------------------------------------------------------------------
-	// resolve_def_index
-	// ---------------------------------------------------------------------------
 
 	std::int16_t model_preview::resolve_def_index() const
 	{
-		// Prefer the active weapon of the local pawn when in-match.
 		const auto local = g_local.get();
 		if ( local.pawn && local.is_alive )
 		{
@@ -462,14 +396,9 @@ namespace systems
 			}
 		}
 
-		// Menu fallback: server loadout is unavailable, use an AWP rifle so the
-		// buy-menu main-menu animation is representative.
 		return cstypes::item_definition_index::weapon_awp;
 	}
 
-	// ---------------------------------------------------------------------------
-	// inject_panel / destroy_panel
-	// ---------------------------------------------------------------------------
 
 	void model_preview::inject_panel( bool force )
 	{
@@ -477,9 +406,6 @@ namespace systems
 		if ( !script_panel )
 			return;
 
-		// Resolve the model + weapon we want to display. Re-inject whenever the
-		// identity changes (agent swap, weapon switch) or the context panel the
-		// preview lives under changed (main menu <-> match transition).
 		const auto local = g_local.get();
 		const auto team = ( local.team == 2 || local.team == 3 ) ? local.team : 3;
 		const auto model_path = this->resolve_model_path( team );
@@ -494,8 +420,6 @@ namespace systems
 
 		if ( m_script_injected )
 		{
-			// Tear down the previous instance so the new identity replaces it.
-			// Destroy on the context that owns the old panel (may differ).
 			const auto old_panel = m_script_panel ? m_script_panel : script_panel;
 			run_script( old_panel, k_sz_destroy_script );
 			m_script_injected = false;
@@ -529,15 +453,6 @@ namespace systems
 		m_preview_player.store( 0 );
 	}
 
-	// ---------------------------------------------------------------------------
-	// capture_preview_player
-	//
-	// Fast-path attempt from the GeneratePrimitives hook: when the pool pre-render
-	// submits the preview model's scene object through the same path as regular
-	// entities, this grabs the C_CSGO_PreviewPlayer immediately. When that path
-	// does not run for the panorama layer, find_preview_player() covers it from
-	// the entity list instead.
-	// ---------------------------------------------------------------------------
 
 	void model_preview::capture_preview_player( std::uintptr_t entity )
 	{
@@ -548,8 +463,6 @@ namespace systems
 		if ( !name )
 			return;
 
-		// C_CSGO_PreviewPlayer subclasses C_CSPlayerPawn; the weapon meshes that
-		// belong to the same scene object report the weapon entity instead.
 		if ( std::strstr( name, "PreviewPlayer" ) == nullptr )
 			return;
 
@@ -561,18 +474,12 @@ namespace systems
 		logging::console::print( xs( "[model_preview] preview player = {:p} ('{}')" ), reinterpret_cast<void*>( entity ), name );
 	}
 
-	// ---------------------------------------------------------------------------
-	// get_srv
-	// ---------------------------------------------------------------------------
 
 	ID3D11ShaderResourceView* model_preview::get_srv() const
 	{
 		return panorama::get_srv( m_capture_index );
 	}
 
-	// ---------------------------------------------------------------------------
-	// draw_esp_preview
-	// ---------------------------------------------------------------------------
 
 	void model_preview::draw_esp_preview( float x, float y, float w, float h, int subtab )
 	{
@@ -581,10 +488,6 @@ namespace systems
 
 		auto& dl = xui::draw::current();
 
-		// inject_panel() is cheap and self-healing: without a force flag it no-ops
-		// unless the script context changed (main menu <-> match) or the displayed
-		// model / weapon changed. Never destroy an existing panel here, otherwise
-		// the composition layer is torn down before its SRV ever binds.
 		inject_panel();
 		if ( !m_script_injected )
 			return;
@@ -611,14 +514,6 @@ namespace systems
 		this->draw_preview_esp( dl, x, y, w, h, subtab );
 	}
 
-	// ---------------------------------------------------------------------------
-	// draw_preview_esp
-	//
-	// Reads the finalized bones of the seated preview player, projects each joint
-	// through the panel's world_to_clip matrix (a UV space over the captured
-	// composition layer), maps UV back into the same ImGui rect the copy is drawn
-	// into, and paints the enabled ESP elements (box, skeleton, health, weapon).
-	// ---------------------------------------------------------------------------
 
 	void model_preview::draw_preview_esp( xdraw::draw_list& dl, float x, float y, float w, float h, int subtab )
 	{
@@ -643,9 +538,6 @@ namespace systems
 		auto preview_player = m_preview_player.load( std::memory_order_acquire );
 		if ( !preview_player )
 		{
-			// The GeneratePrimitives hook may never fire for the panorama 3D copy
-			// (this is why chams cannot tint the preview either). Fall back to the
-			// entity list so the ESP overlay still has a body to project.
 			const auto idx = ++m_preview_panel_scan_tick;
 			if ( ( idx & 7 ) == 0 )
 			{
@@ -660,7 +552,6 @@ namespace systems
 		if ( !preview_player || !m_preview_panel )
 			return;
 
-		// Keep the cached panel honest: re-resolve if the composition layer died.
 		if ( !memory::safe_read<std::uintptr_t>( reinterpret_cast<std::uintptr_t>( m_preview_panel ) ).has_value() )
 		{
 			m_preview_panel = nullptr;
@@ -671,8 +562,6 @@ namespace systems
 		if ( skeleton[ cstypes::bone_ids::head ].position.length_sqr( ) < 1.0f )
 			return;
 
-		// Client panel's world_to_clip (fallback +0x288). Output is a UV 0..1
-		// over the captured composition layer.
 		const auto panel = reinterpret_cast<std::uintptr_t>( m_preview_panel );
 		auto matrix = memory::safe_read<math::matrix4x4>( panel + 0x2f8 );
 		if ( !matrix || !std::isfinite( ( *matrix )[ 3 ][ 3 ] ) )
@@ -758,7 +647,6 @@ namespace systems
 		if ( !cfg.m_box.enabled.value && !cfg.m_health_bar.enabled.value && !cfg.m_name.enabled.value && !cfg.m_weapon.enabled.value )
 			return;
 
-		// Bounding box from the projected joints.
 		auto min = math::vector2{ std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
 		auto max = math::vector2{ std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest() };
 
@@ -789,7 +677,6 @@ namespace systems
 		if ( !( max.x > min.x ) || !( max.y > min.y ) )
 			return;
 
-		// Enlarge the head tip by a standard unit so the box clears the cap.
 		min.y -= ( max.y - min.y ) * 0.075f;
 
 		const auto corners = math::vector2{ min.x, min.y };
@@ -941,4 +828,4 @@ namespace systems
 		}
 	}
 
-} // namespace systems
+}

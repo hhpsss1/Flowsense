@@ -4,43 +4,12 @@
  * This file is part of System Informer.
  */
 
-//
-// Typed integer literal macros with MSVC compiler extensions and C99 portable fallbacks.
-//
-// MSVC:        Employs Microsoft integer literal suffixes (i8/ui8, i16/ui16, i32/ui32,
-//              i64/ui64, i128/ui128) to enforce type correctness at compile time.
-//              Example: UINT16_C(42) produces a uint16_t constant.
-//
-// Non-MSVC:    Standard typed literal syntax unavailable. Macros are pass-through for
-//              smaller types (relying on type inference) or use standard C suffixes
-//              (U, ULL, LL) for larger types. Trade-off: reduced type checking; casts
-//              may suppress compile-time diagnostics for overflow/truncation.
-//
-// Naming:      "_C" suffix conforms to C99 conventions (INT32_C, UINT64_C, etc.)
-//
-// Organization (sorted by size, then logical grouping):
-//
-// 1. Boolean type                    - (1 byte) (C89/C99)
-// 2. Character types                 - (1-2 bytes) (C89/C99)
-// 3. Short types                     - (2 bytes) (C89/C99)
-// 4. Half-pointer types              - (2-4 bytes) (Windows-specific)
-// 5. Int types                       - (4 bytes) (C89/C99)
-// 6. Long types                      - (4-8 bytes) (C89/C99)
-// 7. Floating-point types            - (4-8 bytes) (C89/C99)
-// 8. NT cardinal types               - (2-4 bytes) (Windows NT-specific)
-// 9. Pointer-sized types             - (4-8 bytes) (C99 + platform-dependent)
-// 10. Standard C99 fixed-width types - (1-8 bytes) (C99 core)
-// 11. Windows-specific types         - (1-8 bytes) (Windows API)
-// 12. 128-bit integer types          - (16 bytes) (MSVC extension)
 
 #ifndef _NTTYPESAFE_H_INCLUDED_
 #define _NTTYPESAFE_H_INCLUDED_
 
 #include <stdint.h>
 
-//
-// Boolean type - (1 byte) (C89/C99)
-//
 
 #ifndef BOOLEAN_C
 #if defined(_MSC_VER)
@@ -50,9 +19,6 @@
 #endif
 #endif
 
-//
-// Character types - (1-2 bytes) (C89/C99)
-//
 
 #ifndef CHAR_C
 #if defined(_MSC_VER)
@@ -86,9 +52,6 @@
 #endif
 #endif
 
-//
-// Short types - (2 bytes) (C89/C99)
-//
 
 #ifndef SHORT_C
 #if defined(_MSC_VER)
@@ -114,10 +77,6 @@
 #endif
 #endif
 
-//
-// Half-pointer types - (2-4 bytes) (Windows-specific)
-// 32-bit on 64-bit platforms, 16-bit on 32-bit platforms
-//
 
 #ifndef HALF_PTR_C
 #ifdef _WIN64
@@ -183,9 +142,6 @@
 #endif
 #endif
 
-//
-// Int types - (4 bytes) (C89/C99)
-//
 
 #ifndef INT_C
 #if defined(_MSC_VER)
@@ -203,9 +159,6 @@
 #endif
 #endif
 
-//
-// Long types - (4-8 bytes) (C89/C99)
-//
 
 #ifndef LONG_C
 #if defined(_MSC_VER)
@@ -271,9 +224,6 @@
 #endif
 #endif
 
-//
-// Floating-point types - (4-8 bytes) (C89/C99)
-//
 
 #ifndef FLOAT_C
 #define FLOAT_C(x)   (x##f)
@@ -287,10 +237,6 @@
 #endif
 #endif
 
-//
-// NT cardinal types - (2-4 bytes) (Windows NT-specific)
-// Counted/cardinal types from NT native subsystem with 'C' prefix
-//
 
 #ifndef CSHORT_C
 #if defined(_MSC_VER)
@@ -316,10 +262,6 @@
 #endif
 #endif
 
-//
-// Pointer-sized types - (4-8 bytes) (C99 + platform-dependent)
-// Vary between 32-bit and 64-bit platforms
-//
 
 #ifndef INT_PTR_C
 #ifdef _WIN64
@@ -433,10 +375,6 @@
 #endif
 #endif
 
-//
-// Standard C99 fixed-width integer types - (1-8 bytes) (C99 core)
-// Redefine with MSVC extensions for better type safety
-//
 
 #undef INT8_C
 #undef UINT8_C
@@ -473,9 +411,6 @@
 #define UINTMAX_C(x) (x##ULL)
 #endif
 
-//
-// Windows-specific types - (1-8 bytes) (Windows API)
-//
 
 #ifndef BYTE_C
 #if defined(_MSC_VER)
@@ -541,15 +476,11 @@
 #endif
 #endif
 
-//
-// 128-bit integer types - (16 bytes) (MSVC extension)
-//
 
 #ifndef INT128_C
 #if defined(_MSC_VER)
 #define INT128_C(x)  (x##i128)
 #else
-// 128-bit literals not supported on non-MSVC, use cast as fallback
 #define INT128_C(x)  ((__int128)(x##LL))
 #endif
 #endif
@@ -558,7 +489,6 @@
 #if defined(_MSC_VER)
 #define UINT128_C(x) (x##ui128)
 #else
-// 128-bit literals not supported on non-MSVC, use cast as fallback
 #define UINT128_C(x) ((unsigned __int128)(x##ULL))
 #endif
 #endif

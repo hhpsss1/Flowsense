@@ -224,70 +224,35 @@ namespace xdraw {
 
 	[[nodiscard]] ID3D11Device* device( );
 
-} // namespace xdraw
+}
 
 namespace tokens {
 
-	// nexoria — flat neutral charcoal surfaces with a soft periwinkle accent.
-	inline xdraw::color col_accent{ 160, 170, 220, 255 };   // #A0AADC
-	inline xdraw::color col_accent_dim{ 160, 170, 220, 60 };
-	inline xdraw::color col_dark{ 18, 18, 18, 255 };        // #121212  window background
-	inline xdraw::color col_text{ 215, 215, 215, 255 };     // #D7D7D7  primary text
-	inline xdraw::color col_text_dim{ 140, 140, 140, 255 }; // #8C8C8C  secondary text
-	inline xdraw::color col_text_faint{ 100, 100, 100, 255 };// #646464  disabled
-	inline xdraw::color col_card{ 14, 14, 14, 255 };        // #0E0E0E  group box surface
-	inline xdraw::color col_elevated{ 12, 12, 12, 255 };    // #0C0C0C  header / nested strip
-	inline xdraw::color col_surface{ 24, 24, 24, 255 };     // #181818  inputs / controls
-	inline xdraw::color col_border{ 45, 45, 45, 255 };      // #2D2D2D  window border
-	inline xdraw::color col_border_soft{ 38, 38, 38, 255 }; // #262626  group box border
-	inline xdraw::color col_hover{ 38, 38, 38, 255 };
-	inline xdraw::color col_pressed{ 22, 22, 22, 255 };
 
-	// Layout constants — flat shell with the navigation moved to the top.
-	constexpr auto window_w{ 940.0f };
-	constexpr auto window_h{ 540.0f };
-	constexpr auto header_h{ 28.0f };
-	constexpr auto subtab_bar_h{ 24.0f };
-	constexpr auto gap{ 6.0f };
-	constexpr auto pad{ 6.0f };
+	inline xdraw::color col_accent{ 84, 124, 176, 255 };
+	inline xdraw::color col_accent_dim{ 84, 124, 176, 60 };
+	inline xdraw::color col_dark{ 14, 14, 14, 255 };
+	inline xdraw::color col_text{ 178, 178, 178, 255 };
+	inline xdraw::color col_text_dim{ 112, 112, 112, 255 };
+	inline xdraw::color col_text_faint{ 85, 85, 85, 255 };
+	inline xdraw::color col_card{ 20, 20, 20, 255 };
+	inline xdraw::color col_elevated{ 30, 30, 30, 255 };
+	inline xdraw::color col_surface{ 22, 22, 22, 255 };
+	inline xdraw::color col_border{ 38, 38, 38, 255 };
+	inline xdraw::color col_button{ 28, 28, 28, 255 };
+	inline xdraw::color col_hover{ 36, 36, 36, 255 };
+	inline xdraw::color col_pressed{ 46, 46, 46, 255 };
 
-	// Everything is square: the shell reads as a set of stacked instrument panels.
-	constexpr auto card_rounding{ 0.0f };
-	constexpr auto btn_rounding{ 0.0f };
+	constexpr auto window_w{ 620.0f };
+	constexpr auto window_h{ 455.0f };
+	constexpr auto header_h{ 24.0f };
+	constexpr auto rail_w{ 190.0f };
+	constexpr auto rail_icon_size{ 18.0f };
+	constexpr auto sidebar_w{ 150.0f };
+	constexpr auto subtab_bar_h{ 20.0f };
+	constexpr auto gap{ 10.0f };
+	constexpr auto card_rounding{ 4.0f };
+	constexpr auto btn_rounding{ 3.0f };
 	constexpr auto pill_rounding{ 999.0f };
 
-	// Group box caption sitting on the top border.
-	constexpr auto group_title_h{ 17.0f };
-	constexpr auto group_title_pad{ 4.0f };
-
-	// Width of the accent hairline that fades out at both ends.
-	constexpr auto accent_line_fade{ 0.15f };
-
-} // namespace tokens
-
-// Flat panel primitives shared by every in-game indicator (keybinds, spectator
-// list, doubletap, sound esp, watermark). Kept next to tokens so any HUD code
-// can reach them without extra includes, and so all indicators stay in one
-// visual language: square corners, opaque surfaces, hairline borders, captions
-// punched into the top border and accent hairlines that fade at both ends.
-namespace hud {
-
-	constexpr auto caption_h{ 17.0f };
-	constexpr auto caption_pad{ 4.0f };
-	constexpr auto caption_gap{ 5.0f };
-
-	[[nodiscard]] constexpr std::uint8_t fade_alpha( float a ) noexcept
-	{
-		return static_cast< std::uint8_t >( 255.0f * ( a < 0.0f ? 0.0f : ( a > 1.0f ? 1.0f : a ) ) );
-	}
-
-	// Opaque surface + 1px border, optionally with a borderless variant.
-	void surface( xdraw::draw_list& dl, float x, float y, float w, float h, float alpha, bool border );
-	void caption( xdraw::draw_list& dl, float x, float y, float w, std::string_view text, float alpha );
-	void accent_line( xdraw::draw_list& dl, float x, float y, float w, float thickness, float alpha );
-
-	// Stacked list: caption strip on top, then flat rows separated by hairlines.
-	void list_frame( xdraw::draw_list& dl, float x, float y, float w, float h, std::string_view title, float alpha );
-	void list_row( xdraw::draw_list& dl, float x, float y, float w, float h, float alpha, bool selected );
-
-} // namespace hud
+}

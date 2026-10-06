@@ -53,7 +53,6 @@ namespace features::esp {
 					int bone_count {};
 				};
 
-				// Scene objects must be created from the frame-stage callback, not CreateMove.
 				std::unordered_map<std::uintptr_t, pending_entry> m_pending {};
 				std::unordered_map<std::uintptr_t, backtrack::object> m_entries {};
 			};
@@ -153,7 +152,7 @@ namespace features::esp {
 			std::unordered_map<std::uintptr_t, animation_data> m_animations{};
 		};
 
-	} // namespace player
+	}
 
 	namespace item {
 
@@ -201,7 +200,7 @@ namespace features::esp {
 			[[nodiscard]] std::uint32_t get_item_group( std::uint32_t schema_hash );
 		};
 
-	} // namespace item
+	}
 
 	namespace projectile {
 
@@ -260,7 +259,7 @@ namespace features::esp {
 
 		};
 
-	} // namespace projectile
+	}
 
 	namespace other {
 
@@ -274,6 +273,6 @@ namespace features::esp {
 			void add_spectators( xdraw::draw_list& draw_list );
 		};
 
-	} // namespace other
+	}
 
-} // namespace features::esp
+}

@@ -42,12 +42,6 @@ namespace features::changer {
 			if (this->m_overridden && !this->m_original_model.empty ()) {
 				memory::call<void> (PATTERN (patterns::set_player_model), local.pawn, this->m_original_model.c_str ());
 
-				//const auto controller = memory::read<std::uintptr_t>( local.pawn + 0x3268 );
-				//if ( controller )
-				//{
-				//    memory::call<void>( addresses::functions::pawn_graph_unbind_all, controller );
-				//    memory::call<void>( addresses::functions::pawn_graph_rebind_all, controller );
-				//}
 
 				this->cycle_weapon_owners (local.pawn);
 
@@ -87,12 +81,6 @@ namespace features::changer {
 
 		memory::call<void> (PATTERN (patterns::set_player_model), local.pawn, selected->model_player.c_str ());
 
-		//const auto controller = memory::read<std::uintptr_t>( local_pawn + 0x3268 );
-		//if ( controller )
-		//{
-		//    memory::call<void>( addresses::functions::pawn_graph_unbind_all, controller );
-		//    memory::call<void>( addresses::functions::pawn_graph_rebind_all, controller );
-		//}
 
 		const auto collision = local.pawn + SCHEMA ("C_BaseModelEntity", "m_Collision"_hash);
 		memory::write<math::vector3> (collision + SCHEMA ("CCollisionProperty", "m_vecMins"_hash), math::vector3 (-16.0f, -16.0f, 0.0f));
@@ -136,4 +124,4 @@ namespace features::changer {
 		}
 	}
 
-} // namespace features::changer
+}

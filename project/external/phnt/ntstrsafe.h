@@ -17,14 +17,14 @@
 #endif
 
 
-#include <stdio.h>          // for _vsnprintf, _vsnwprintf, getc, getwc
-#include <string.h>         // for memset
-#include <stdarg.h>         // for va_start, etc.
-#include <specstrings.h>    // for _In_, etc.
-#include <winapifamily.h>   // for WINAPI_FAMILY_PARTITION()
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#include <specstrings.h>
+#include <winapifamily.h>
 
 #ifndef NTSTRSAFE_NO_UNICODE_STRING_FUNCTIONS
-#include <ntdef.h>          // for UNICODE_STRING, etc.
+#include <ntdef.h>
 #endif
 
 #if !defined(_W64)
@@ -49,7 +49,6 @@
 #define UNALIGNED64
 #endif
 
-// typedefs
 #ifdef  _WIN64
 typedef unsigned __int64    size_t;
 #else
@@ -65,7 +64,6 @@ typedef unsigned long DWORD;
 
 
 #ifndef SORTPP_PASS
-// compiletime asserts (failure results in error C2118: negative subscript)
 #define C_ASSERT(e) typedef char __C_ASSERT__[(e)?1:-1]
 #else
 #define C_ASSERT(e)
@@ -77,14 +75,13 @@ typedef unsigned long DWORD;
 #define EXTERN_C    extern
 #endif
 
-// use the new secure crt functions if available
 #ifndef NTSTRSAFE_USE_SECURE_CRT
 #if defined(__GOT_SECURE_LIB__) && (__GOT_SECURE_LIB__ >= 200402L)
 #define NTSTRSAFE_USE_SECURE_CRT 0
 #else
 #define NTSTRSAFE_USE_SECURE_CRT 0
 #endif
-#endif  // !NTSTRSAFE_USE_SECURE_CRT
+#endif
 
 #ifdef _M_CEE_PURE
 #define NTSTRSAFEDDI      __inline NTSTATUS __clrcall
@@ -98,91 +95,63 @@ typedef unsigned long DWORD;
 #define NTSTRSAFEWORKERDDI    static NTSTRSAFEDDI
 #endif
 
-// The following steps are *REQUIRED* if ntstrsafe.h is used for drivers on:
-//     Windows 2000
-//     Windows Millennium Edition
-//     Windows 98 Second Edition
-//     Windows 98
-//
-// 1. #define NTSTRSAFE_LIB before including the ntstrsafe.h header file.
-// 2. Add ntstrsafe.lib to the TARGET_LIBS line in SOURCES
-//
-// Drivers running on XP and later can skip these steps to create a smaller
-// driver by running the functions inline.
 #if defined(NTSTRSAFE_LIB)
 #pragma comment(lib, "ntstrsafe.lib")
 #endif
 
 #pragma warning(push)
-#pragma warning(disable: 28210) // Because not all PREFast versions like _Always_ equally.
+#pragma warning(disable: 28210)
 
-// The user can request no "Cb" or no "Cch" functions, but not both
 #if defined(NTSTRSAFE_NO_CB_FUNCTIONS) && defined(NTSTRSAFE_NO_CCH_FUNCTIONS)
 #error cannot specify both NTSTRSAFE_NO_CB_FUNCTIONS and NTSTRSAFE_NO_CCH_FUNCTIONS !!
 #endif
 
-// The user may override NTSTRSAFE_MAX_CCH, but it must always be less than INT_MAX
 #ifndef NTSTRSAFE_MAX_CCH
-#define NTSTRSAFE_MAX_CCH     2147483647  // max buffer size, in characters, that we support (same as INT_MAX)
+#define NTSTRSAFE_MAX_CCH     2147483647
 #endif
 C_ASSERT(NTSTRSAFE_MAX_CCH <= 2147483647);
 C_ASSERT(NTSTRSAFE_MAX_CCH > 1);
 
-#define NTSTRSAFE_MAX_LENGTH  (NTSTRSAFE_MAX_CCH - 1)   // max buffer length, in characters, that we support
+#define NTSTRSAFE_MAX_LENGTH  (NTSTRSAFE_MAX_CCH - 1)
 
-// The user may override NTSTRSAFE_UNICODE_STRING_MAX_CCH, but it must always be less than (USHORT_MAX / sizeof(wchar_t))
 #ifndef NTSTRSAFE_UNICODE_STRING_MAX_CCH
-#define NTSTRSAFE_UNICODE_STRING_MAX_CCH    (0xffff / sizeof(wchar_t))  // max buffer size, in characters, for a UNICODE_STRING
+#define NTSTRSAFE_UNICODE_STRING_MAX_CCH    (0xffff / sizeof(wchar_t))
 #endif
 C_ASSERT(NTSTRSAFE_UNICODE_STRING_MAX_CCH <= (0xffff / sizeof(wchar_t)));
 C_ASSERT(NTSTRSAFE_UNICODE_STRING_MAX_CCH > 1);
 
 
-// Flags for controlling the Ex functions
-//
-//      STRSAFE_FILL_BYTE(0xFF)                         0x000000FF  // bottom byte specifies fill pattern
-#define STRSAFE_IGNORE_NULLS                            0x00000100  // treat null string pointers as TEXT("") -- don't fault on NULL buffers
-#define STRSAFE_FILL_BEHIND_NULL                        0x00000200  // on success, fill in extra space behind the null terminator with fill pattern
-#define STRSAFE_FILL_ON_FAILURE                         0x00000400  // on failure, overwrite pszDest with fill pattern and null terminate it
-#define STRSAFE_NULL_ON_FAILURE                         0x00000800  // on failure, set *pszDest = TEXT('\0')
-#define STRSAFE_NO_TRUNCATION                           0x00001000  // instead of returning a truncated result, copy/append nothing to pszDest and null terminate it
+#define STRSAFE_IGNORE_NULLS                            0x00000100
+#define STRSAFE_FILL_BEHIND_NULL                        0x00000200
+#define STRSAFE_FILL_ON_FAILURE                         0x00000400
+#define STRSAFE_NULL_ON_FAILURE                         0x00000800
+#define STRSAFE_NO_TRUNCATION                           0x00001000
 
-// Flags for controlling UNICODE_STRING Ex functions
-//
-//      STRSAFE_FILL_BYTE(0xFF)                         0x000000FF  // bottom byte specifies fill pattern
-//      STRSAFE_IGNORE_NULLS                            0x00000100  // don't fault on NULL UNICODE_STRING pointers, and treat null pszSrc as L""
-#define STRSAFE_FILL_BEHIND                             0x00000200  // on success, fill in extra space at the end of the UNICODE_STRING Buffer with fill pattern
-//      STRSAFE_FILL_ON_FAILURE                         0x00000400  // on failure, fill the UNICODE_STRING Buffer with fill pattern and set the Length to 0
-#define STRSAFE_ZERO_LENGTH_ON_FAILURE                  0x00000800  // on failure, set the UNICODE_STRING Length to 0
-//      STRSAFE_NO_TRUNCATION                           0x00001000  // instead of returning a truncated result, copy/append nothing to UNICODE_STRING Buffer
+#define STRSAFE_FILL_BEHIND                             0x00000200
+#define STRSAFE_ZERO_LENGTH_ON_FAILURE                  0x00000800
 
 
 #define STRSAFE_VALID_FLAGS                     (0x000000FF | STRSAFE_IGNORE_NULLS | STRSAFE_FILL_BEHIND_NULL | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE | STRSAFE_NO_TRUNCATION)
 #define STRSAFE_UNICODE_STRING_VALID_FLAGS      (0x000000FF | STRSAFE_IGNORE_NULLS | STRSAFE_FILL_BEHIND | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE | STRSAFE_NO_TRUNCATION)
 
-// helper macro to set the fill character and specify buffer filling
 #define STRSAFE_FILL_BYTE(x)                    ((DWORD)((x & 0x000000FF) | STRSAFE_FILL_BEHIND_NULL))
 #define STRSAFE_FAILURE_BYTE(x)                 ((DWORD)((x & 0x000000FF) | STRSAFE_FILL_ON_FAILURE))
 
 #define STRSAFE_GET_FILL_PATTERN(dwFlags)       ((int)(dwFlags & 0x000000FF))
 
 
-// Deprecated, use the non STRSAFE_ prefixed types instead (e.g. LPSTR or PSTR) as they are the same as these.
 typedef _Null_terminated_ char* NTSTRSAFE_PSTR;
 typedef _Null_terminated_ const char* NTSTRSAFE_PCSTR;
 typedef _Null_terminated_ wchar_t* NTSTRSAFE_PWSTR;
 typedef _Null_terminated_ const wchar_t* NTSTRSAFE_PCWSTR;
 typedef _Null_terminated_ const wchar_t UNALIGNED* NTSTRSAFE_PCUWSTR;
 
-// Deprecated, use the base types instead.
-// RtlStrings where the string is NOT guaranteed to be null terminated (does not have _Null_terminated_).
 typedef  const char* STRSAFE_PCNZCH;
 typedef  const wchar_t* STRSAFE_PCNZWCH;
 typedef  const wchar_t UNALIGNED* STRSAFE_PCUNZWCH;
 
 
 
-// prototypes for the worker functions
 
 NTSTRSAFEWORKERDDI
 RtlStringLengthWorkerA(
@@ -204,7 +173,7 @@ RtlUnalignedStringLengthWorkerW(
     _In_reads_or_z_(cchMax) STRSAFE_PCUNZWCH psz,
     _In_ _In_range_(<=, NTSTRSAFE_MAX_CCH) size_t cchMax,
     _Out_opt_ _Deref_out_range_(<, cchMax) size_t* pcchLength);
-#endif  // ALIGNMENT_MACHINE
+#endif
 
 
 
@@ -360,7 +329,7 @@ RtlStringExHandleFillBehindNullW(
 
 
 
-_Success_(1)  // always succeeds, no exit tests needed
+_Success_(1)
     NTSTRSAFEWORKERDDI
     RtlStringExHandleOtherFlagsA(
             _Out_writes_bytes_(cbDest) NTSTRSAFE_PSTR pszDest,
@@ -372,7 +341,7 @@ _Success_(1)  // always succeeds, no exit tests needed
 
 
 
-_Success_(1)  // always succeeds, no exit tests needed
+_Success_(1)
     NTSTRSAFEWORKERDDI
     RtlStringExHandleOtherFlagsW(
             _Out_writes_bytes_(cbDest) NTSTRSAFE_PWSTR pszDest,
@@ -470,11 +439,10 @@ RtlUnicodeStringExHandleOtherFlags(
         _Out_ size_t* pcchRemaining,
         _In_ DWORD dwFlags);
 
-#endif  // !NTSTRSAFE_NO_UNICODE_STRING_FUNCTIONS
+#endif
 
 
 
-// To allow this to stand alone.
 #define __WARNING_CYCLOMATIC_COMPLEXITY 28734
 #define __WARNING_USING_UNINIT_VAR 6001
 #define __WARNING_RETURN_UNINIT_VAR 6101
@@ -495,12 +463,11 @@ RtlUnicodeStringExHandleOtherFlags(
 
 #pragma warning(push)
 #if _MSC_VER <= 1400
-#pragma warning(disable: 4616)  // turn off warning out of range so prefast pragmas won't show
-// show up in build.wrn/build.err
+#pragma warning(disable: 4616)
 #endif
-#pragma warning(disable : 4996) // 'function': was declared deprecated
-#pragma warning(disable : 4995) // name was marked as #pragma deprecated
-#pragma warning(disable : 4793) // vararg causes native code generation
+#pragma warning(disable : 4996)
+#pragma warning(disable : 4995)
+#pragma warning(disable : 4793)
 #pragma warning(disable : __WARNING_CYCLOMATIC_COMPLEXITY)
 
 
@@ -631,7 +598,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
 /*++
@@ -764,7 +731,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -895,7 +862,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (*pszSrc != '\0')
                 {
                     if (pszDest == NULL)
@@ -927,10 +893,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = cchRemaining * sizeof(char);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -949,10 +913,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(char) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             cbDest = cchDest * sizeof(char);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -1017,7 +979,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (*pszSrc != L'\0')
                 {
                     if (pszDest == NULL)
@@ -1049,10 +1010,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = cchRemaining * sizeof(wchar_t);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -1071,10 +1030,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(wchar_t) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             cbDest = cchDest * sizeof(wchar_t);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -1105,7 +1062,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -1237,7 +1194,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (*pszSrc != '\0')
                 {
                     if (pszDest == NULL)
@@ -1251,7 +1207,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -1274,10 +1229,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -1294,7 +1247,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -1312,7 +1264,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                 *pcbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
             }
         }
@@ -1364,7 +1315,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (*pszSrc != L'\0')
                 {
                     if (pszDest == NULL)
@@ -1378,7 +1328,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -1399,10 +1348,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -1419,7 +1366,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -1437,7 +1383,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                 *pcbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
             }
         }
@@ -1453,7 +1398,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -1602,7 +1547,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -1754,7 +1699,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -1895,7 +1840,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if ((cchToCopy != 0) && (*pszSrc != '\0'))
                 {
                     if (pszDest == NULL)
@@ -1927,10 +1871,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = cchRemaining * sizeof(char);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -1949,10 +1891,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(char) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             cbDest = cchDest * sizeof(char);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -2018,7 +1958,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if ((cchToCopy != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -2050,10 +1989,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = cchRemaining * sizeof(wchar_t);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -2072,10 +2009,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(wchar_t) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             cbDest = cchDest * sizeof(wchar_t);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -2106,7 +2041,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -2247,7 +2182,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if ((cchToCopy != 0) && (*pszSrc != '\0'))
                 {
                     if (pszDest == NULL)
@@ -2261,7 +2195,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -2284,10 +2217,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -2304,7 +2235,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -2322,7 +2252,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                 *pcbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
             }
         }
@@ -2372,7 +2301,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if ((cchToCopy != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -2386,7 +2314,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -2407,10 +2334,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -2427,7 +2352,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -2445,7 +2369,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                 *pcbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
             }
         }
@@ -2457,7 +2380,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -2577,7 +2500,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -2699,7 +2622,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -2833,7 +2756,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if (*pszSrc != '\0')
                 {
                     if (pszDest == NULL)
@@ -2865,10 +2787,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = cchRemaining * sizeof(char);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -2880,10 +2800,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(char) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             cbDest = cchDest * sizeof(char);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     cchDestLength,
@@ -2944,7 +2862,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if (*pszSrc != L'\0')
                 {
                     if (pszDest == NULL)
@@ -2976,10 +2893,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = cchRemaining * sizeof(wchar_t);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -2991,10 +2906,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(char) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             cbDest = cchDest * sizeof(wchar_t);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     cchDestLength,
@@ -3021,7 +2934,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -3156,7 +3069,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if (*pszSrc != '\0')
                 {
                     if (pszDest == NULL)
@@ -3188,10 +3100,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -3201,7 +3111,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     cchDestLength,
@@ -3219,7 +3128,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                 *pcbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
             }
         }
@@ -3264,7 +3172,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if (*pszSrc != L'\0')
                 {
                     if (pszDest == NULL)
@@ -3294,10 +3201,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -3307,7 +3212,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     cchDestLength,
@@ -3325,7 +3229,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                 *pcbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
             }
         }
@@ -3335,7 +3238,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -3477,7 +3380,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -3625,7 +3528,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -3763,7 +3666,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if ((cchToAppend != 0) && (*pszSrc != '\0'))
                 {
                     if (pszDest == NULL)
@@ -3795,10 +3697,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = cchRemaining * sizeof(char);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -3810,10 +3710,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(char) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             cbDest = cchDest * sizeof(char);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     cchDestLength,
@@ -3875,7 +3773,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if ((cchToAppend != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -3907,10 +3804,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = cchRemaining * sizeof(wchar_t);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -3922,10 +3817,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(wchar_t) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             cbDest = cchDest * sizeof(wchar_t);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     cchDestLength,
@@ -3952,7 +3845,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -4092,7 +3985,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if ((cchToAppend != 0) && (*pszSrc != '\0'))
                 {
                     if (pszDest == NULL)
@@ -4124,10 +4016,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -4137,7 +4027,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     cchDestLength,
@@ -4155,7 +4044,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                 *pcbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
             }
         }
@@ -4205,7 +4093,6 @@ NTSTRSAFEDDI
             }
             else if (cchRemaining <= 1)
             {
-                // only fail if there was actually src data to append
                 if ((cchToAppend != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -4235,10 +4122,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -4248,7 +4133,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     cchDestLength,
@@ -4266,7 +4150,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                 *pcbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
             }
         }
@@ -4278,7 +4161,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -4414,7 +4297,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -4548,7 +4431,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef _M_CEE_PURE
@@ -4688,7 +4571,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -4834,7 +4717,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -4973,7 +4856,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != '\0')
                 {
                     if (pszDest == NULL)
@@ -5010,10 +4892,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = cchRemaining * sizeof(char);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -5032,10 +4912,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(char) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             cbDest = cchDest * sizeof(char);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -5106,7 +4984,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != L'\0')
                 {
                     if (pszDest == NULL)
@@ -5143,10 +5020,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = cchRemaining * sizeof(wchar_t);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -5165,10 +5040,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(wchar_t) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             cbDest = cchDest * sizeof(wchar_t);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -5201,7 +5074,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -5341,7 +5214,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != '\0')
                 {
                     if (pszDest == NULL)
@@ -5355,7 +5227,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -5383,10 +5254,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -5403,7 +5272,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -5421,7 +5289,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                 *pcbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
             }
         }
@@ -5477,7 +5344,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != L'\0')
                 {
                     if (pszDest == NULL)
@@ -5491,7 +5357,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -5517,10 +5382,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -5537,7 +5400,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -5555,7 +5417,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                 *pcbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
             }
         }
@@ -5571,9 +5432,9 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
-#endif  // !_M_CEE_PURE
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -5714,7 +5575,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != '\0')
                 {
                     if (pszDest == NULL)
@@ -5746,10 +5606,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = cchRemaining * sizeof(char);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -5768,10 +5626,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(char) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             cbDest = cchDest * sizeof(char);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -5843,7 +5699,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != L'\0')
                 {
                     if (pszDest == NULL)
@@ -5875,10 +5730,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = cchRemaining * sizeof(wchar_t);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -5897,10 +5750,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(wchar_t) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             cbDest = cchDest * sizeof(wchar_t);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -5933,7 +5784,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -6073,7 +5924,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != '\0')
                 {
                     if (pszDest == NULL)
@@ -6087,7 +5937,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -6110,10 +5959,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                     cbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullA(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -6130,7 +5977,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsA(pszDest,
                     cbDest,
                     0,
@@ -6148,7 +5994,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(char) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
                 *pcbRemaining = (cchRemaining * sizeof(char)) + (cbDest % sizeof(char));
             }
         }
@@ -6199,7 +6044,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != L'\0')
                 {
                     if (pszDest == NULL)
@@ -6213,7 +6057,6 @@ NTSTRSAFEDDI
                 }
                 else
                 {
-                    // for consistency with other use in this case...
                     __analysis_assume_nullterminated(pszDest);
                 }
             }
@@ -6234,10 +6077,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -6254,7 +6095,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -6272,7 +6112,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                 *pcbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
             }
         }
@@ -6284,7 +6123,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -6403,7 +6242,7 @@ NTSTRSAFEDDI
 #pragma warning(pop)
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -6481,7 +6320,6 @@ NTSTRSAFEDDI
     {
         if (NT_SUCCESS(status))
         {
-            // safe to multiply cchLength * sizeof(char) since cchLength < NTSTRSAFE_MAX_CCH and sizeof(char) is 1
             *pcbLength = cchLength * sizeof(char);
         }
         else
@@ -6519,7 +6357,6 @@ NTSTRSAFEDDI
     {
         if (NT_SUCCESS(status))
         {
-            // safe to multiply cchLength * sizeof(wchar_t) since cchLength < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             *pcbLength = cchLength * sizeof(wchar_t);
         }
         else
@@ -6532,7 +6369,7 @@ NTSTRSAFEDDI
 }
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
 /*++
@@ -6611,10 +6448,10 @@ NTSTRSAFEDDI
 
 #else
 #define RtlUnalignedStringCchLengthW   RtlStringCchLengthW
-#endif  // !ALIGNMENT_MACHINE
+#endif
 
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
 /*++
@@ -6689,7 +6526,6 @@ NTSTRSAFEDDI
     {
         if (NT_SUCCESS(status))
         {
-            // safe to multiply cchLength * sizeof(wchar_t) since cchLength < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             *pcbLength = cchLength * sizeof(wchar_t);
         }
         else
@@ -6703,10 +6539,10 @@ NTSTRSAFEDDI
 #else
 #define RtlUnalignedStringCbLengthW    RtlStringCbLengthW
 
-#endif  // !ALIGNMENT_MACHINE
+#endif
 
 
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 
@@ -7292,7 +7128,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (cchSrcLength != 0)
                 {
                     if (pszDest == NULL)
@@ -7324,10 +7159,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = cchRemaining * sizeof(wchar_t);
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -7346,10 +7179,8 @@ NTSTRSAFEDDI
         {
             size_t cbDest;
 
-            // safe to multiply cchDest * sizeof(wchar_t) since cchDest < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
             cbDest = cchDest * sizeof(wchar_t);
 
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -7511,7 +7342,6 @@ NTSTRSAFEDDI
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (cchSrcLength != 0)
                 {
                     if (pszDest == NULL)
@@ -7541,10 +7371,8 @@ NTSTRSAFEDDI
                 {
                     size_t cbRemaining;
 
-                    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                     cbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
 
-                    // handle the STRSAFE_FILL_BEHIND_NULL flag
                     RtlStringExHandleFillBehindNullW(pszDestEnd, cbRemaining, dwFlags);
                 }
             }
@@ -7561,7 +7389,6 @@ NTSTRSAFEDDI
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_NULL_ON_FAILURE)) &&
                 (cbDest != 0))
         {
-            // handle the STRSAFE_FILL_ON_FAILURE, STRSAFE_NULL_ON_FAILURE, and STRSAFE_NO_TRUNCATION flags
             RtlStringExHandleOtherFlagsW(pszDest,
                     cbDest,
                     0,
@@ -7579,7 +7406,6 @@ NTSTRSAFEDDI
 
             if (pcbRemaining)
             {
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_MAX_CCH and sizeof(wchar_t) is 2
                 *pcbRemaining = (cchRemaining * sizeof(wchar_t)) + (cbDest % sizeof(wchar_t));
             }
         }
@@ -7665,7 +7491,6 @@ RtlUnicodeStringCopyString(
                 pszSrc,
                 NTSTRSAFE_UNICODE_STRING_MAX_CCH);
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
@@ -7760,7 +7585,6 @@ RtlUnicodeStringCopy(
                     cchSrcLength);
         }
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
@@ -7882,7 +7706,6 @@ RtlUnicodeStringCopyStringEx(
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (*pszSrc != L'\0')
                 {
                     if (pszDest == NULL)
@@ -7910,7 +7733,6 @@ RtlUnicodeStringCopyStringEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -7921,7 +7743,6 @@ RtlUnicodeStringCopyStringEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -7933,7 +7754,6 @@ RtlUnicodeStringCopyStringEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -7942,7 +7762,6 @@ RtlUnicodeStringCopyStringEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -8073,7 +7892,6 @@ RtlUnicodeStringCopyEx(
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if (cchSrcLength != 0)
                 {
                     if (pszDest == NULL)
@@ -8101,7 +7919,6 @@ RtlUnicodeStringCopyEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -8111,7 +7928,6 @@ RtlUnicodeStringCopyEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -8123,7 +7939,6 @@ RtlUnicodeStringCopyEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -8132,7 +7947,6 @@ RtlUnicodeStringCopyEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -8233,13 +8047,12 @@ RtlUnicodeStringCchCopyStringN(
                     cchToCopy);
         }
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -8332,13 +8145,12 @@ RtlUnicodeStringCbCopyStringN(
                     cchToCopy);
         }
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -8446,13 +8258,12 @@ RtlUnicodeStringCchCopyN(
             }
         }
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -8563,13 +8374,12 @@ RtlUnicodeStringCbCopyN(
             }
         }
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -8690,7 +8500,6 @@ RtlUnicodeStringCchCopyStringNEx(
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if ((cchToCopy != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -8718,7 +8527,6 @@ RtlUnicodeStringCchCopyStringNEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -8728,7 +8536,6 @@ RtlUnicodeStringCchCopyStringNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -8740,7 +8547,6 @@ RtlUnicodeStringCchCopyStringNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -8749,7 +8555,6 @@ RtlUnicodeStringCchCopyStringNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -8758,7 +8563,7 @@ RtlUnicodeStringCchCopyStringNEx(
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -8881,7 +8686,6 @@ RtlUnicodeStringCbCopyStringNEx(
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually src data to copy
                 if ((cchToCopy != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -8909,7 +8713,6 @@ RtlUnicodeStringCbCopyStringNEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -8919,7 +8722,6 @@ RtlUnicodeStringCbCopyStringNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -8931,7 +8733,6 @@ RtlUnicodeStringCbCopyStringNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -8940,7 +8741,6 @@ RtlUnicodeStringCbCopyStringNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -8949,7 +8749,7 @@ RtlUnicodeStringCbCopyStringNEx(
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -9086,7 +8886,6 @@ RtlUnicodeStringCchCopyNEx(
                 }
                 else if (cchDest == 0)
                 {
-                    // only fail if there was actually src data to copy
                     if (cchToCopy != 0)
                     {
                         if (pszDest == NULL)
@@ -9114,7 +8913,6 @@ RtlUnicodeStringCchCopyNEx(
                             (dwFlags & STRSAFE_FILL_BEHIND) &&
                             (cchRemaining != 0))
                     {
-                        // handle the STRSAFE_FILL_BEHIND flag
                         RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                     }
                 }
@@ -9125,7 +8923,6 @@ RtlUnicodeStringCchCopyNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -9137,7 +8934,6 @@ RtlUnicodeStringCchCopyNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -9146,7 +8942,6 @@ RtlUnicodeStringCchCopyNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -9155,7 +8950,7 @@ RtlUnicodeStringCchCopyNEx(
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -9295,7 +9090,6 @@ RtlUnicodeStringCbCopyNEx(
                 }
                 else if (cchDest == 0)
                 {
-                    // only fail if there was actually src data to copy
                     if (cchToCopy != 0)
                     {
                         if (pszDest == NULL)
@@ -9323,7 +9117,6 @@ RtlUnicodeStringCbCopyNEx(
                             (dwFlags & STRSAFE_FILL_BEHIND) &&
                             (cchRemaining != 0))
                     {
-                        // handle the STRSAFE_FILL_BEHIND flag
                         RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                     }
                 }
@@ -9334,7 +9127,6 @@ RtlUnicodeStringCbCopyNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -9346,7 +9138,6 @@ RtlUnicodeStringCbCopyNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -9355,7 +9146,6 @@ RtlUnicodeStringCbCopyNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -9364,7 +9154,7 @@ RtlUnicodeStringCbCopyNEx(
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 /*++
@@ -9444,7 +9234,6 @@ RtlUnicodeStringCatString(
                 pszSrc,
                 NTSTRSAFE_UNICODE_STRING_MAX_CCH);
 
-        // safe to multiply (cchDestLength + cchCopied) * sizeof(wchar_t) since (cchDestLength + cchCopied) < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)((cchDestLength + cchCopied) * sizeof(wchar_t));
     }
 
@@ -9540,7 +9329,6 @@ RtlUnicodeStringCat(
                     pszSrc,
                     cchSrcLength);
 
-            // safe to multiply (cchDestLength + cchCopied) * sizeof(wchar_t) since (cchDestLength + cchCopied) < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)((cchDestLength + cchCopied) * sizeof(wchar_t));
         }
     }
@@ -9667,7 +9455,6 @@ RtlUnicodeStringCatStringEx(
             }
             else if (cchRemaining == 0)
             {
-                // only fail if there was actually src data to append
                 if (*pszSrc != L'\0')
                 {
                     if (pszDest == NULL)
@@ -9699,7 +9486,6 @@ RtlUnicodeStringCatStringEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -9709,7 +9495,6 @@ RtlUnicodeStringCatStringEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     cchDestLength,
@@ -9721,7 +9506,6 @@ RtlUnicodeStringCatStringEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -9730,7 +9514,6 @@ RtlUnicodeStringCatStringEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -9865,7 +9648,6 @@ RtlUnicodeStringCatEx(
             }
             else if (cchRemaining == 0)
             {
-                // only fail if there was actually src data to append
                 if (cchSrcLength != 0)
                 {
                     if (pszDest == NULL)
@@ -9897,7 +9679,6 @@ RtlUnicodeStringCatEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -9907,7 +9688,6 @@ RtlUnicodeStringCatEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     cchDestLength,
@@ -9919,7 +9699,6 @@ RtlUnicodeStringCatEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -9928,7 +9707,6 @@ RtlUnicodeStringCatEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -10030,14 +9808,13 @@ RtlUnicodeStringCchCatStringN(
                     pszSrc,
                     cchToAppend);
 
-            // safe to multiply (cchDestLength + cchCopied) * sizeof(wchar_t) since (cchDestLength + cchCopied) < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)((cchDestLength + cchCopied) * sizeof(wchar_t));
         }
     }
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -10132,14 +9909,13 @@ RtlUnicodeStringCbCatStringN(
                     pszSrc,
                     cchToAppend);
 
-            // safe to multiply (cchDestLength + cchCopied) * sizeof(wchar_t) since (cchDestLength + cchCopied) < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)((cchDestLength + cchCopied) * sizeof(wchar_t));
         }
     }
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -10248,7 +10024,6 @@ RtlUnicodeStringCchCatN(
                         pszSrc,
                         cchToAppend);
 
-                // safe to multiply (cchDestLength + cchCopied) * sizeof(wchar_t) since (cchDestLength + cchCopied) < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 DestinationString->Length = (USHORT)((cchDestLength + cchCopied) * sizeof(wchar_t));
             }
         }
@@ -10256,7 +10031,7 @@ RtlUnicodeStringCchCatN(
 
     return status;
 }
-#endif // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -10367,7 +10142,6 @@ RtlUnicodeStringCbCatN(
                         pszSrc,
                         cchToAppend);
 
-                // safe to multiply (cchDestLength + cchCopied) * sizeof(wchar_t) since (cchDestLength + cchCopied) < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 DestinationString->Length = (USHORT)((cchDestLength + cchCopied) * sizeof(wchar_t));
             }
         }
@@ -10375,7 +10149,7 @@ RtlUnicodeStringCbCatN(
 
     return status;
 }
-#endif // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -10501,7 +10275,6 @@ RtlUnicodeStringCchCatStringNEx(
             }
             else if (cchRemaining == 0)
             {
-                // only fail if there was actually src data to append
                 if ((cchToAppend != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -10533,7 +10306,6 @@ RtlUnicodeStringCchCatStringNEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -10543,7 +10315,6 @@ RtlUnicodeStringCchCatStringNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     cchDestLength,
@@ -10555,7 +10326,6 @@ RtlUnicodeStringCchCatStringNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -10564,7 +10334,6 @@ RtlUnicodeStringCchCatStringNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -10573,7 +10342,7 @@ RtlUnicodeStringCchCatStringNEx(
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -10700,7 +10469,6 @@ RtlUnicodeStringCbCatStringNEx(
             }
             else if (cchRemaining == 0)
             {
-                // only fail if there was actually src data to append
                 if ((cchToAppend != 0) && (*pszSrc != L'\0'))
                 {
                     if (pszDest == NULL)
@@ -10732,7 +10500,6 @@ RtlUnicodeStringCbCatStringNEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -10742,7 +10509,6 @@ RtlUnicodeStringCbCatStringNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     cchDestLength,
@@ -10754,7 +10520,6 @@ RtlUnicodeStringCbCatStringNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -10763,7 +10528,6 @@ RtlUnicodeStringCbCatStringNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -10772,7 +10536,7 @@ RtlUnicodeStringCbCatStringNEx(
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CCH_FUNCTIONS
@@ -10919,7 +10683,6 @@ RtlUnicodeStringCchCatNEx(
                 }
                 else if (cchRemaining == 0)
                 {
-                    // only fail if there was actually src data to append
                     if (cchToAppend != 0)
                     {
                         if (pszDest == NULL)
@@ -10951,7 +10714,6 @@ RtlUnicodeStringCchCatNEx(
                             (dwFlags & STRSAFE_FILL_BEHIND) &&
                             (cchRemaining != 0))
                     {
-                        // handle the STRSAFE_FILL_BEHIND flag
                         RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                     }
                 }
@@ -10962,7 +10724,6 @@ RtlUnicodeStringCchCatNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     cchDestLength,
@@ -10974,7 +10735,6 @@ RtlUnicodeStringCchCatNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -10983,7 +10743,6 @@ RtlUnicodeStringCchCatNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -10995,7 +10754,7 @@ RtlUnicodeStringCchCatNEx(
 
 #pragma warning(pop)
 
-#endif  // !NTSTRSAFE_NO_CCH_FUNCTIONS
+#endif
 
 
 #ifndef NTSTRSAFE_NO_CB_FUNCTIONS
@@ -11140,7 +10899,6 @@ RtlUnicodeStringCbCatNEx(
                 }
                 else if (cchRemaining == 0)
                 {
-                    // only fail if there was actually src data to append
                     if (cchToAppend != 0)
                     {
                         if (pszDest == NULL)
@@ -11172,7 +10930,6 @@ RtlUnicodeStringCbCatNEx(
                             (dwFlags & STRSAFE_FILL_BEHIND) &&
                             (cchRemaining != 0))
                     {
-                        // handle the STRSAFE_FILL_BEHIND flag
                         RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                     }
                 }
@@ -11183,7 +10940,6 @@ RtlUnicodeStringCbCatNEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     cchDestLength,
@@ -11195,7 +10951,6 @@ RtlUnicodeStringCbCatNEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -11204,7 +10959,6 @@ RtlUnicodeStringCbCatNEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -11213,7 +10967,7 @@ RtlUnicodeStringCbCatNEx(
 
     return status;
 }
-#endif  // !NTSTRSAFE_NO_CB_FUNCTIONS
+#endif
 
 
 /*++
@@ -11299,7 +11053,6 @@ RtlUnicodeStringVPrintf(
                 pszFormat,
                 argList);
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
@@ -11426,7 +11179,6 @@ RtlUnicodeStringVPrintfEx(
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != L'\0')
                 {
                     if (pszDest == NULL)
@@ -11454,7 +11206,6 @@ RtlUnicodeStringVPrintfEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -11464,7 +11215,6 @@ RtlUnicodeStringVPrintfEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -11476,7 +11226,6 @@ RtlUnicodeStringVPrintfEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -11485,7 +11234,6 @@ RtlUnicodeStringVPrintfEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -11586,7 +11334,6 @@ RtlUnicodeStringPrintf(
 
         va_end(argList);
 
-        // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
     }
 
@@ -11714,7 +11461,6 @@ RtlUnicodeStringPrintfEx(
             }
             else if (cchDest == 0)
             {
-                // only fail if there was actually a non-empty format string
                 if (*pszFormat != L'\0')
                 {
                     if (pszDest == NULL)
@@ -11748,7 +11494,6 @@ RtlUnicodeStringPrintfEx(
                         (dwFlags & STRSAFE_FILL_BEHIND) &&
                         (cchRemaining != 0))
                 {
-                    // handle the STRSAFE_FILL_BEHIND flag
                     RtlUnicodeStringExHandleFill(pszDestEnd, cchRemaining, dwFlags);
                 }
             }
@@ -11758,7 +11503,6 @@ RtlUnicodeStringPrintfEx(
                 (dwFlags & (STRSAFE_NO_TRUNCATION | STRSAFE_FILL_ON_FAILURE | STRSAFE_ZERO_LENGTH_ON_FAILURE))  &&
                 (cchDest != 0))
         {
-            // handle the STRSAFE_NO_TRUNCATION, STRSAFE_FILL_ON_FAILURE, and STRSAFE_ZERO_LENGTH_ON_FAILURE flags
             RtlUnicodeStringExHandleOtherFlags(pszDest,
                     cchDest,
                     0,
@@ -11770,7 +11514,6 @@ RtlUnicodeStringPrintfEx(
 
         if (DestinationString)
         {
-            // safe to multiply cchNewDestLength * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
             DestinationString->Length = (USHORT)(cchNewDestLength * sizeof(wchar_t));
         }
 
@@ -11779,7 +11522,6 @@ RtlUnicodeStringPrintfEx(
             if (RemainingString)
             {
                 RemainingString->Length = 0;
-                // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 RemainingString->MaximumLength = (USHORT)(cchRemaining * sizeof(wchar_t));
                 RemainingString->Buffer = pszDestEnd;
             }
@@ -11789,17 +11531,16 @@ RtlUnicodeStringPrintfEx(
     return status;
 }
 
-#endif  // !_M_CEE_PURE
+#endif
 
 #pragma warning(pop)
 
-#endif  // !NTSTRSAFE_NO_UNICODE_STRING_FUNCTIONS
+#endif
 
 
 
-#endif  // !NTSTRSAFE_LIB_IMPL
+#endif
 
-// Below here are the worker functions that actually do the work
 
 #if defined(NTSTRSAFE_LIB_IMPL) || !defined(NTSTRSAFE_LIB)
 
@@ -11824,7 +11565,6 @@ NTSTRSAFEWORKERDDI
 
     if (cchMax == 0)
     {
-        // the string is longer than cchMax
         status = STATUS_INVALID_PARAMETER;
     }
 
@@ -11862,7 +11602,6 @@ NTSTRSAFEWORKERDDI
 
     if (cchMax == 0)
     {
-        // the string is longer than cchMax
         status = STATUS_INVALID_PARAMETER;
     }
 
@@ -11899,7 +11638,6 @@ NTSTRSAFEWORKERDDI
 
     if (cchMax == 0)
     {
-        // the string is longer than cchMax
         status = STATUS_INVALID_PARAMETER;
     }
 
@@ -11917,12 +11655,11 @@ NTSTRSAFEWORKERDDI
 
     return status;
 }
-#endif  // ALIGNMENT_MACHINE
+#endif
 
 
 #pragma warning(pop)
 
-// Intentionally allow null deref when STRSAFE_IGNORE_NULLS is not present.
 #pragma warning(push)
 #pragma warning(disable : __WARNING_DEREF_NULL_PTR)
 #pragma warning(disable : __WARNING_INVALID_PARAM_VALUE_1)
@@ -11994,11 +11731,11 @@ _When_(_Old_(*ppszSrc) == NULL, _At_(*ppszSrc, _Post_z_))
 }
 
 
-#pragma warning(pop)    // allow null deref
+#pragma warning(pop)
 
 
 #pragma warning(push)
-#pragma warning(disable : 4100) // Unused parameter (pszDest)
+#pragma warning(disable : 4100)
 _Post_satisfies_(cchDest > 0 && cchDest <= cchMax)
     NTSTRSAFEWORKERDDI
     RtlStringValidateDestA(
@@ -12017,7 +11754,6 @@ _Post_satisfies_(cchDest > 0 && cchDest <= cchMax)
 }
 #pragma warning(pop)
 
-// Intentionally allow null deref when STRSAFE_IGNORE_NULLS is not present.
 #pragma warning(push)
 #pragma warning(disable : __WARNING_DEREF_NULL_PTR)
 #pragma warning(disable : __WARNING_INVALID_PARAM_VALUE_1)
@@ -12046,13 +11782,12 @@ _Post_satisfies_(cchDest > 0 && cchDest <= cchMax)
 
     return status;
 }
-// End intentionally allow null deref.
 #pragma warning(pop)
 
 
 
 #pragma warning(push)
-#pragma warning(disable : 4100) // Unused parameter (pszDest)
+#pragma warning(disable : 4100)
 _Post_satisfies_(cchDest > 0 && cchDest <= cchMax)
     NTSTRSAFEWORKERDDI
     RtlStringValidateDestW(
@@ -12071,7 +11806,6 @@ _Post_satisfies_(cchDest > 0 && cchDest <= cchMax)
 }
 #pragma warning(pop)
 
-// Intentionally allow null deref when STRSAFE_IGNORE_NULLS is not present.
 #pragma warning(push)
 #pragma warning(disable : __WARNING_DEREF_NULL_PTR)
 #pragma warning(disable : __WARNING_INVALID_PARAM_VALUE_1)
@@ -12100,7 +11834,6 @@ _Post_satisfies_(cchDest > 0 && cchDest <= cchMax)
 
     return status;
 }
-// End intentionally allow null deref.
 #pragma warning(pop)
 
 
@@ -12130,7 +11863,6 @@ NTSTRSAFEWORKERDDI
     return status;
 }
 
-// Intentionally allow null deref when STRSAFE_IGNORE_NULLS is not present.
 #pragma warning(push)
 #pragma warning(disable : __WARNING_DEREF_NULL_PTR)
 #pragma warning(disable : __WARNING_INVALID_PARAM_VALUE_1)
@@ -12167,7 +11899,6 @@ NTSTRSAFEWORKERDDI
 
     return status;
 }
-// End intentionally allow null deref.
 #pragma warning(pop)
 
 
@@ -12197,7 +11928,6 @@ NTSTRSAFEWORKERDDI
     return status;
 }
 
-// Intentionally allow null deref when STRSAFE_IGNORE_NULLS is not present.
 #pragma warning(push)
 #pragma warning(disable : __WARNING_DEREF_NULL_PTR)
 #pragma warning(disable : __WARNING_INVALID_PARAM_VALUE_1)
@@ -12234,7 +11964,6 @@ NTSTRSAFEWORKERDDI
 
     return status;
 }
-// End intentionally allow null deref.
 #pragma warning(pop)
 
 
@@ -12253,7 +11982,6 @@ NTSTRSAFEWORKERDDI
     NTSTATUS status = STATUS_SUCCESS;
     size_t cchNewDestLength = 0;
 
-    // ASSERT(cchDest != 0);
 
     while (cchDest && cchToCopy && (*pszSrc != '\0'))
     {
@@ -12266,7 +11994,6 @@ NTSTRSAFEWORKERDDI
 
     if (cchDest == 0)
     {
-        // we are going to truncate pszDest
         pszDest--;
         cchNewDestLength--;
 
@@ -12296,7 +12023,6 @@ NTSTRSAFEWORKERDDI
     NTSTATUS status = STATUS_SUCCESS;
     size_t cchNewDestLength = 0;
 
-    // ASSERT(cchDest != 0);
 
     while (cchDest && cchToCopy && (*pszSrc != L'\0'))
     {
@@ -12309,7 +12035,6 @@ NTSTRSAFEWORKERDDI
 
     if (cchDest == 0)
     {
-        // we are going to truncate pszDest
         pszDest--;
         cchNewDestLength--;
 
@@ -12343,33 +12068,28 @@ NTSTRSAFEWORKERDDI
     size_t cchMax;
     size_t cchNewDestLength = 0;
 
-    // leave the last space for the null terminator
     cchMax = cchDest - 1;
 
 #if (NTSTRSAFE_USE_SECURE_CRT == 1) && !defined(NTSTRSAFE_LIB_IMPL)
     iRet = _vsnprintf_s(pszDest, cchDest, cchMax, pszFormat, argList);
 #else
 #pragma warning(push)
-#pragma warning(disable: __WARNING_BANNED_API_USAGE)// "STRSAFE not included"
+#pragma warning(disable: __WARNING_BANNED_API_USAGE)
     iRet = _vsnprintf(pszDest, cchMax, pszFormat, argList);
 #pragma warning(pop)
 #endif
-    // ASSERT((iRet < 0) || (((size_t)iRet) <= cchMax));
 
     if ((iRet < 0) || (((size_t)iRet) > cchMax))
     {
-        // need to null terminate the string
         pszDest += cchMax;
         *pszDest = '\0';
 
         cchNewDestLength = cchMax;
 
-        // we have truncated pszDest
         status = STATUS_BUFFER_OVERFLOW;
     }
     else if (((size_t)iRet) == cchMax)
     {
-        // need to null terminate the string
         pszDest += cchMax;
         *pszDest = '\0';
 
@@ -12404,33 +12124,28 @@ NTSTRSAFEWORKERDDI
     size_t cchMax;
     size_t cchNewDestLength = 0;
 
-    // leave the last space for the null terminator
     cchMax = cchDest - 1;
 
 #if (NTSTRSAFE_USE_SECURE_CRT == 1) && !defined(NTSTRSAFE_LIB_IMPL)
     iRet = _vsnwprintf_s(pszDest, cchDest, cchMax, pszFormat, argList);
 #else
 #pragma warning(push)
-#pragma warning(disable: __WARNING_BANNED_API_USAGE)// "STRSAFE not included"
+#pragma warning(disable: __WARNING_BANNED_API_USAGE)
     iRet = _vsnwprintf(pszDest, cchMax, pszFormat, argList);
 #pragma warning(pop)
 #endif
-    // ASSERT((iRet < 0) || (((size_t)iRet) <= cchMax));
 
     if ((iRet < 0) || (((size_t)iRet) > cchMax))
     {
-        // need to null terminate the string
         pszDest += cchMax;
         *pszDest = L'\0';
 
         cchNewDestLength = cchMax;
 
-        // we have truncated pszDest
         status = STATUS_BUFFER_OVERFLOW;
     }
     else if (((size_t)iRet) == cchMax)
     {
-        // need to null terminate the string
         pszDest += cchMax;
         *pszDest = L'\0';
 
@@ -12483,7 +12198,6 @@ NTSTRSAFEWORKERDDI
 }
 
 
-// ignore false positives due to complexity of bitflag usage
 #pragma warning(push)
 #pragma warning(disable : __WARNING_USING_UNINIT_VAR)
 #pragma warning(disable : __WARNING_RETURN_UNINIT_VAR)
@@ -12492,7 +12206,7 @@ NTSTRSAFEWORKERDDI
 #pragma warning(disable:__WARNING_POTENTIAL_RANGE_POSTCONDITION_VIOLATION)
 
 
-_Success_(1)  // always succeeds, no exit tests needed
+_Success_(1)
     NTSTRSAFEWORKERDDI
     RtlStringExHandleOtherFlagsA(
             _Out_writes_bytes_(cbDest) NTSTRSAFE_PSTR pszDest,
@@ -12515,7 +12229,6 @@ _Success_(1)  // always succeeds, no exit tests needed
         *ppszDestEnd = pszOriginalDestEnd;
         *pcchRemaining = cchDest - cchOriginalDestLength;
 
-        // null terminate the end of the original string
         *pszOriginalDestEnd = '\0';
     }
 
@@ -12538,7 +12251,6 @@ _Success_(1)  // always succeeds, no exit tests needed
             *ppszDestEnd = pszDestEnd;
             *pcchRemaining = 1;
 
-            // null terminate the end of the string
             *pszDestEnd = L'\0';
         }
     }
@@ -12548,7 +12260,6 @@ _Success_(1)  // always succeeds, no exit tests needed
         *ppszDestEnd = pszDest;
         *pcchRemaining = cchDest;
 
-        // null terminate the beginning of the string
         *pszDest = '\0';
     }
 
@@ -12557,7 +12268,7 @@ _Success_(1)  // always succeeds, no exit tests needed
 
 
 
-_Success_(1)  // always succeeds, no exit tests needed
+_Success_(1)
     NTSTRSAFEWORKERDDI
     RtlStringExHandleOtherFlagsW(
             _Out_writes_bytes_(cbDest) NTSTRSAFE_PWSTR pszDest,
@@ -12580,7 +12291,6 @@ _Success_(1)  // always succeeds, no exit tests needed
         *ppszDestEnd = pszOriginalDestEnd;
         *pcchRemaining = cchDest - cchOriginalDestLength;
 
-        // null terminate the end of the original string
         *pszOriginalDestEnd = L'\0';
     }
 
@@ -12603,7 +12313,6 @@ _Success_(1)  // always succeeds, no exit tests needed
             *ppszDestEnd = pszDestEnd;
             *pcchRemaining = 1;
 
-            // null terminate the end of the string
             *pszDestEnd = L'\0';
         }
     }
@@ -12613,7 +12322,6 @@ _Success_(1)  // always succeeds, no exit tests needed
         *ppszDestEnd = pszDest;
         *pcchRemaining = cchDest;
 
-        // null terminate the beginning of the string
         *pszDest = L'\0';
     }
 
@@ -12621,7 +12329,7 @@ _Success_(1)  // always succeeds, no exit tests needed
 }
 
 
-#pragma warning(pop)   // ignore false positives due to complexity of bitflag usage
+#pragma warning(pop)
 
 
 #ifndef NTSTRSAFE_NO_UNICODE_STRING_FUNCTIONS
@@ -12657,11 +12365,9 @@ RtlUnicodeStringInitWorker(
             {
                 size_t cbLength;
 
-                // safe to multiply cchSrcLength * sizeof(wchar_t) since cchSrcLength < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
                 cbLength = cchSrcLength * sizeof(wchar_t);
 
                 DestinationString->Length = (USHORT)cbLength;
-                // safe to add cbLength + sizeof(wchar_t) since cchSrcLength < NTSTRSAFE_UNICODE_STRING_MAX_CCH
                 DestinationString->MaximumLength = (USHORT)(cbLength + sizeof(wchar_t));
                 DestinationString->Buffer = (PWSTR)pszSrc;
             }
@@ -12675,7 +12381,6 @@ RtlUnicodeStringInitWorker(
     return status;
 }
 
-// Intentionally allow null deref in error cases.
 #pragma warning(push)
 #pragma warning(disable : __WARNING_DEREF_NULL_PTR)
 #pragma warning(disable : __WARNING_INVALID_PARAM_VALUE_1)
@@ -12745,7 +12450,6 @@ _Post_satisfies_(*pcchSrcLength*sizeof(wchar_t) == SourceString->MaximumLength)
 }
 
 #pragma warning(pop)
-// End intentionally allow null deref.
 #pragma warning(pop)
 
 #pragma warning(push)
@@ -12800,7 +12504,6 @@ NTSTRSAFEWORKERDDI
     NTSTATUS status = STATUS_SUCCESS;
     size_t cchNewDestLength = 0;
 
-    // ASSERT(cchDest != 0);
 
     while (cchDest && cchSrcLength)
     {
@@ -12813,7 +12516,6 @@ NTSTRSAFEWORKERDDI
 
     if (cchDest == 0)
     {
-        // we are going to truncate pszDest
         pszDest--;
         cchNewDestLength--;
 
@@ -12852,7 +12554,6 @@ NTSTRSAFEWORKERDDI
 
     if ((cchDest == 0) && (cchToCopy != 0) && (*pszSrc != L'\0'))
     {
-        // we are going to truncate pszDest
         status = STATUS_BUFFER_OVERFLOW;
     }
 
@@ -12883,7 +12584,6 @@ NTSTRSAFEWORKERDDI
 
     if ((cchDest == 0) && (cchSrcLength != 0))
     {
-        // we are going to truncate pszDest
         status = STATUS_BUFFER_OVERFLOW;
     }
 
@@ -12904,16 +12604,14 @@ NTSTRSAFEWORKERDDI
     int iRet;
 
 #pragma warning(push)
-#pragma warning(disable: __WARNING_BANNED_API_USAGE)// "STRSAFE not included"
+#pragma warning(disable: __WARNING_BANNED_API_USAGE)
     iRet = _vsnwprintf(pszDest, cchDest, pszFormat, argList);
 #pragma warning(pop)
-    // ASSERT((iRet < 0) || (((size_t)iRet) <= cchMax));
 
     if ((iRet < 0) || (((size_t)iRet) > cchDest))
     {
         *pcchNewDestLength = cchDest;
 
-        // we have truncated pszDest
         status = STATUS_BUFFER_OVERFLOW;
     }
     else
@@ -12932,7 +12630,6 @@ NTSTRSAFEWORKERDDI
 {
     size_t cbRemaining;
 
-    // safe to multiply cchRemaining * sizeof(wchar_t) since cchRemaining < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
     cbRemaining = cchRemaining * sizeof(wchar_t);
 
     memset(pszDestEnd, STRSAFE_GET_FILL_PATTERN(dwFlags), cbRemaining);
@@ -12940,7 +12637,6 @@ NTSTRSAFEWORKERDDI
     return STATUS_SUCCESS;
 }
 
-// ignore false positives due to complexity of bitflag usage
 #pragma warning(push)
 #pragma warning(disable : __WARNING_USING_UNINIT_VAR)
 #pragma warning(disable : __WARNING_RETURN_UNINIT_VAR)
@@ -12967,7 +12663,6 @@ NTSTRSAFEWORKERDDI
     {
         size_t cbDest;
 
-        // safe to multiply cchDest * sizeof(wchar_t) since cchDest < NTSTRSAFE_UNICODE_STRING_MAX_CCH and sizeof(wchar_t) is 2
         cbDest = cchDest * sizeof(wchar_t);
 
         memset(pszDest, STRSAFE_GET_FILL_PATTERN(dwFlags), cbDest);
@@ -12993,13 +12688,12 @@ NTSTRSAFEWORKERDDI
 
 #pragma warning(pop)
 
-#endif  // !NTSTRSAFE_NO_UNICODE_STRING_FUNCTIONS
+#endif
 
 
-#endif  // defined(NTSTRSAFE_LIB_IMPL) || !defined(NTSTRSAFE_LIB)
+#endif
 
 
-// Do not call these functions, they are worker functions for internal use within this file
 #ifdef DEPRECATE_SUPPORTED
 #pragma deprecated(RtlStringLengthWorkerA)
 #pragma deprecated(RtlStringLengthWorkerW)
@@ -13064,10 +12758,10 @@ NTSTRSAFEWORKERDDI
 #define RtlWideCharArrayVPrintfWorker       RtlWideCharArrayVPrintfWorker_instead_use_RtlUnicodeStringVPrintf_or_RtlUnicodeStringPrintf
 #define RtlUnicodeStringExHandleFill        RtlUnicodeStringExHandleFill_do_not_call_this_function
 #define RtlUnicodeStringExHandleOtherFlags  RtlUnicodeStringExHandleOtherFlags_do_not_call_this_function
-#endif // !DEPRECATE_SUPPORTED
+#endif
 
 
 #pragma warning(pop)
 #pragma warning(pop)
 
-#endif  // _NTSTRSAFE_H_INCLUDED_
+#endif

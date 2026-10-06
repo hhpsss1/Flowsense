@@ -1,7 +1,6 @@
 #ifndef _NTZWAPI_H
 #define _NTZWAPI_H
 
-// This file was automatically generated. Do not edit.
 
 NTSYSCALLAPI
 NTSTATUS
@@ -170,7 +169,7 @@ NTAPI
 ZwAcquireProcessActivityReference(
     _Out_ PHANDLE ActivityReferenceHandle,
     _In_ HANDLE ParentProcessHandle,
-    _In_ ULONG ProcessActivityType // PROCESS_ACTIVITY_TYPE
+    _In_ ULONG ProcessActivityType
     );
 
 NTSYSCALLAPI
@@ -619,7 +618,7 @@ NTSTATUS
 NTAPI
 ZwApphelpCacheControl(
     _In_ AHC_SERVICE_CLASS ServiceClass,
-    _Inout_opt_ PVOID ServiceContext // AHC_SERVICE_DATA
+    _Inout_opt_ PVOID ServiceContext
     );
 
 NTSYSCALLAPI
@@ -666,9 +665,9 @@ NTSTATUS
 NTAPI
 ZwCallEnclave(
     _In_ PENCLAVE_ROUTINE Routine,
-    _In_ PVOID Reserved,              // SelectVsmEnclaveByNumber > 0 // reserved for dispatch (RtlEnclaveCallDispatch)
-    _In_ ULONG Flags,                 // ENCLAVE_CALL_FLAG_*
-    _Inout_ PVOID* RoutineParamReturn // input routine parameter, output routine return value
+    _In_ PVOID Reserved,
+    _In_ ULONG Flags,
+    _Inout_ PVOID* RoutineParamReturn
     );
 
 NTSYSCALLAPI
@@ -874,7 +873,7 @@ NTSTATUS
 NTAPI
 ZwContinueEx(
     _In_ PCONTEXT ContextRecord,
-    _In_ PVOID ContinueArgument // PKCONTINUE_ARGUMENT and BOOLEAN are valid
+    _In_ PVOID ContinueArgument
     );
 
 NTSYSCALLAPI
@@ -1239,11 +1238,11 @@ ZwCreateProcessEx(
     _In_ ACCESS_MASK DesiredAccess,
     _In_opt_ PCOBJECT_ATTRIBUTES ObjectAttributes,
     _In_ HANDLE ParentProcess,
-    _In_ ULONG Flags, // PROCESS_CREATE_FLAGS_*
+    _In_ ULONG Flags,
     _In_opt_ HANDLE SectionHandle,
     _In_opt_ HANDLE DebugPort,
     _In_opt_ HANDLE TokenHandle,
-    _Reserved_ ULONG Reserved // JobMemberLevel
+    _Reserved_ ULONG Reserved
     );
 
 NTSYSCALLAPI
@@ -1384,7 +1383,7 @@ ZwCreateThreadEx(
     _In_ HANDLE ProcessHandle,
     _In_ PUSER_THREAD_START_ROUTINE StartRoutine,
     _In_opt_ PVOID Argument,
-    _In_ ULONG CreateFlags, // THREAD_CREATE_FLAGS_*
+    _In_ ULONG CreateFlags,
     _In_ SIZE_T ZeroBits,
     _In_ SIZE_T StackSize,
     _In_ SIZE_T MaximumStackSize,
@@ -1503,8 +1502,8 @@ ZwCreateUserProcess(
     _In_ ACCESS_MASK ThreadDesiredAccess,
     _In_opt_ PCOBJECT_ATTRIBUTES ProcessObjectAttributes,
     _In_opt_ PCOBJECT_ATTRIBUTES ThreadObjectAttributes,
-    _In_ ULONG ProcessFlags, // PROCESS_CREATE_FLAGS_*
-    _In_ ULONG ThreadFlags, // THREAD_CREATE_FLAGS_*
+    _In_ ULONG ProcessFlags,
+    _In_ ULONG ThreadFlags,
     _In_opt_ PRTL_USER_PROCESS_PARAMETERS ProcessParameters,
     _Inout_ PPS_CREATE_INFO CreateInfo,
     _In_opt_ PPS_ATTRIBUTE_LIST AttributeList
@@ -1770,7 +1769,7 @@ NTSYSCALLAPI
 NTSTATUS
 NTAPI
 ZwEnumerateSystemEnvironmentValuesEx(
-    _In_ ULONG InformationClass, // SYSTEM_ENVIRONMENT_INFORMATION_CLASS
+    _In_ ULONG InformationClass,
     _Out_ PVOID Buffer,
     _Inout_ PULONG BufferLength
     );
@@ -2166,7 +2165,7 @@ NTAPI
 ZwInitiatePowerAction(
     _In_ POWER_ACTION SystemAction,
     _In_ SYSTEM_POWER_STATE LightestSystemState,
-    _In_ ULONG Flags, // POWER_ACTION_* flags
+    _In_ ULONG Flags,
     _In_ BOOLEAN Asynchronous
     );
 
@@ -2264,7 +2263,7 @@ ZwLoadKeyEx(
     _In_opt_ HANDLE Event,
     _In_opt_ ACCESS_MASK DesiredAccess,
     _Out_opt_ PHANDLE RootHandle,
-    _Reserved_ PVOID Reserved // previously PIO_STATUS_BLOCK
+    _Reserved_ PVOID Reserved
     );
 
 NTSYSCALLAPI
@@ -2427,7 +2426,7 @@ ZwNotifyChangeDirectoryFile(
     _In_opt_ PIO_APC_ROUTINE ApcRoutine,
     _In_opt_ PVOID ApcContext,
     _Out_ PIO_STATUS_BLOCK IoStatusBlock,
-    _Out_writes_bytes_(Length) PVOID Buffer, // FILE_NOTIFY_INFORMATION
+    _Out_writes_bytes_(Length) PVOID Buffer,
     _In_ ULONG Length,
     _In_ ULONG CompletionFilter,
     _In_ BOOLEAN WatchTree
@@ -3402,7 +3401,7 @@ ZwQuerySecurityAttributesToken(
     _In_ HANDLE TokenHandle,
     _In_reads_opt_(NumberOfAttributes) PCUNICODE_STRING Attributes,
     _In_ ULONG NumberOfAttributes,
-    _Out_writes_bytes_(Length) PVOID Buffer, // PTOKEN_SECURITY_ATTRIBUTES_INFORMATION
+    _Out_writes_bytes_(Length) PVOID Buffer,
     _In_ ULONG Length,
     _Out_ PULONG ReturnLength
     );
@@ -3468,7 +3467,7 @@ ZwQuerySystemEnvironmentValueEx(
     _In_ PCGUID VendorGuid,
     _Out_writes_bytes_opt_(*BufferLength) PVOID Buffer,
     _Inout_ PULONG BufferLength,
-    _Out_opt_ PULONG Attributes // EFI_VARIABLE_*
+    _Out_opt_ PULONG Attributes
     );
 
 NTSYSCALLAPI
@@ -3583,7 +3582,7 @@ NTSTATUS
 NTAPI
 ZwQueueApcThread(
     _In_ HANDLE ThreadHandle,
-    _In_ PPS_APC_ROUTINE ApcRoutine, // RtlDispatchAPC
+    _In_ PPS_APC_ROUTINE ApcRoutine,
     _In_opt_ PVOID ApcArgument1,
     _In_opt_ PVOID ApcArgument2,
     _In_opt_ PVOID ApcArgument3
@@ -3594,8 +3593,8 @@ NTSTATUS
 NTAPI
 ZwQueueApcThreadEx(
     _In_ HANDLE ThreadHandle,
-    _In_opt_ HANDLE ReserveHandle, // NtAllocateReserveObject // QUEUE_USER_APC_SPECIAL_USER_APC
-    _In_ PPS_APC_ROUTINE ApcRoutine, // RtlDispatchAPC
+    _In_opt_ HANDLE ReserveHandle,
+    _In_ PPS_APC_ROUTINE ApcRoutine,
     _In_opt_ PVOID ApcArgument1,
     _In_opt_ PVOID ApcArgument2,
     _In_opt_ PVOID ApcArgument3
@@ -3606,9 +3605,9 @@ NTSTATUS
 NTAPI
 ZwQueueApcThreadEx2(
     _In_ HANDLE ThreadHandle,
-    _In_opt_ HANDLE ReserveHandle, // NtAllocateReserveObject
-    _In_ ULONG ApcFlags, // QUEUE_USER_APC_FLAGS
-    _In_ PPS_APC_ROUTINE ApcRoutine, // RtlDispatchAPC
+    _In_opt_ HANDLE ReserveHandle,
+    _In_ ULONG ApcFlags,
+    _In_ PPS_APC_ROUTINE ApcRoutine,
     _In_opt_ PVOID ApcArgument1,
     _In_opt_ PVOID ApcArgument2,
     _In_opt_ PVOID ApcArgument3
@@ -4460,8 +4459,8 @@ ZwSetSystemEnvironmentValueEx(
     _In_ PCUNICODE_STRING VariableName,
     _In_ PCGUID VendorGuid,
     _In_reads_bytes_opt_(BufferLength) PVOID Buffer,
-    _In_ ULONG BufferLength, // 0 = delete variable
-    _In_ ULONG Attributes // EFI_VARIABLE_*
+    _In_ ULONG BufferLength,
+    _In_ ULONG Attributes
     );
 
 NTSYSCALLAPI
@@ -4479,7 +4478,7 @@ NTAPI
 ZwSetSystemPowerState(
     _In_ POWER_ACTION SystemAction,
     _In_ SYSTEM_POWER_STATE LightestSystemState,
-    _In_ ULONG Flags // POWER_ACTION_* flags
+    _In_ ULONG Flags
     );
 
 NTSYSCALLAPI
@@ -4494,7 +4493,7 @@ NTSYSCALLAPI
 NTSTATUS
 NTAPI
 ZwSetThreadExecutionState(
-    _In_ EXECUTION_STATE NewFlags, // ES_* flags
+    _In_ EXECUTION_STATE NewFlags,
     _Out_ EXECUTION_STATE *PreviousFlags
     );
 
@@ -4676,7 +4675,7 @@ NTSTATUS
 NTAPI
 ZwTerminateEnclave(
     _In_ PVOID BaseAddress,
-    _In_ ULONG Flags // TERMINATE_ENCLAVE_FLAG_*
+    _In_ ULONG Flags
     );
 
 NTSYSCALLAPI

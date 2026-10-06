@@ -30,7 +30,6 @@ namespace features::misc {
 			other::s_display_name = display_name;
 			other::s_name_change_pending = true;
 
-			// Build the command with the actual name instead of using "x" placeholder
 			std::string cmd = xs( "setinfo name \"" );
 			cmd += display_name;
 			cmd += xs( "\"" );
@@ -39,7 +38,7 @@ namespace features::misc {
 			other::s_name_change_pending = false;
 		}
 
-	} // namespace
+	}
 
 	void other::on_round_start( )
 	{
@@ -62,15 +61,12 @@ namespace features::misc {
 		this->do_player_alpha_changing( );
 		this->do_reveal_radar( );
 		this->do_name_changing( );
-		this->do_anti_afk( );
 		this->do_sniper_crosshair_patch( );
 	}
 
 	void other::on_create_move( systems::input::usercmd* cmd )
 	{
-		this->do_quickswitch( );
-		this->do_quick_plant( );
-		this->do_no_land_inaccuracy( );
+		( void )cmd;
 	}
 
 	void other::do_reveal_radar( ) const
@@ -233,7 +229,6 @@ namespace features::misc {
 		{
 			if ( this->m_name_changer_active && local.controller && !this->m_original_name.empty( ) )
 			{
-				// Restore the original name when disabled
 				submit_name_change( this->m_original_name );
 			}
 
@@ -266,12 +261,10 @@ namespace features::misc {
 		}
 		else if ( this->m_name_changer_controller != local.controller )
 		{
-			// Keep the captured real name across map loads, where the controller may be recreated.
 			this->m_name_changer_controller = local.controller;
 			this->m_last_sent_name.clear( );
 		}
 
-		// Get base name (either custom or original)
 		const auto& configured_name = cfg.name.value;
 		const auto& base_name = cfg.override_name.value && !configured_name.empty( )
 			? configured_name
@@ -281,23 +274,24 @@ namespace features::misc {
 
 		if ( cfg.clantag.value )
 		{
-			// Animated clantag: " f", " fl", " flo", " flow", ... " flowsense"
-			constexpr std::string_view full_tag{ "Flowsense" };
-			// Derived from the tag so the type-on animation can never desync from it.
-			constexpr auto animation_frames{ full_tag.size( ) };
+			constexpr std::string_view full_tag{ "aetheris" };
+			constexpr std::size_t animation_frames{ 8 };
 
-			// Read current server time for animation timing
 			const auto global_vars = memory::safe_read<std::uintptr_t>( addresses::globals::global_vars ).value_or( 0 );
 			const auto current_time = global_vars ? memory::safe_read<float>( global_vars + 0x30 ).value_or( 0.0f ) : 0.0f;
 
-			// Change animation frame every 0.4 seconds
 			const auto frame = static_cast< std::size_t >( current_time / 0.4f ) % ( animation_frames * 2 );
 
-			// First half: build the tag up character by character.
-			// Second half: hold the full tag.
-			const auto char_count = ( frame < animation_frames ) ? frame + 1 : animation_frames;
+			std::size_t char_count;
+			if ( frame < animation_frames )
+			{
+				char_count = frame + 1;
+			}
+			else
+			{
+				char_count = animation_frames;
+			}
 
-			// Build the animated tag with leading space and PREPEND to base name
 			std::string animated_name;
 			animated_name.reserve( char_count + 2 + base_name.length( ) );
 			animated_name += ' ';
@@ -346,152 +340,6 @@ namespace features::misc {
 		}
 	}
 
-	void other::do_anti_afk( )
-	{
-		if ( !settings::g_misc.anti_afk.value )
-		{
-			this->m_next_anti_afk_time = 30.0f;
-			return;
-		}
-
-		const auto local = systems::g_local.get( );
-		if ( !local.is_alive || !local.pawn )
-		{
-			this->m_next_anti_afk_time = 30.0f;
-			return;
-		}
-
-		// Read the current server time from the global vars (interval_per_tick * tick).
-		const auto global_vars = memory::safe_read<std::uintptr_t>( addresses::globals::global_vars ).value_or( 0 );
-		if ( !global_vars )
-		{
-			return;
-		}
-
-		const auto current_time = memory::safe_read<float>( global_vars + 0x30 ).value_or( 0.0f );
-		if ( current_time >= this->m_next_anti_afk_time )
-		{
-			// Jump to reset the afk timer. Sending a "+jump" via the engine keeps
-			// it out of our usercmd pipeline and avoids fighting the bhop feature.
-			memory::call<void>( PATTERN( patterns::engine_client_cmd ), addresses::globals::source2engine_to_client, 0, xs( "+jump; -jump" ), 0x7ffef001 );
-			this->m_next_anti_afk_time = current_time + 30.0f;
-		}
-	}
-
-	void other::do_quickswitch( )
-	{
-		if ( !settings::g_misc.quickswitch.value )
-		{
-			this->m_quickswitch_swap = false;
-			return;
-		}
-
-		const auto local = systems::g_local.get( );
-		if ( !local.is_alive || !local.pawn )
-		{
-			this->m_quickswitch_swap = false;
-			return;
-		}
-
-		// When the local player fires a weapon this tick, swap to slot 3 (knife)
-		// and back to slot 1 on the following tick. This cancels the post-fire
-		// delay for weapons like the AWP/SSG and skips the bolt/reload animation.
-		if ( features::combat::g_rage.is_firing_this_tick( ) )
-		{
-			memory::call<void>( PATTERN( patterns::engine_client_cmd ), addresses::globals::source2engine_to_client, 0, xs( "slot3" ), 0x7ffef001 );
-			this->m_quickswitch_swap = true;
-		}
-		else if ( this->m_quickswitch_swap )
-		{
-			memory::call<void>( PATTERN( patterns::engine_client_cmd ), addresses::globals::source2engine_to_client, 0, xs( "slot1" ), 0x7ffef001 );
-			this->m_quickswitch_swap = false;
-		}
-	}
-
-	void other::do_quick_plant( )
-	{
-		if ( !settings::g_misc.quick_plant.value )
-		{
-			return;
-		}
-
-		const auto local = systems::g_local.get( );
-		if ( !local.is_alive || !local.pawn )
-		{
-			return;
-		}
-
-		// Quick plant: while holding a bomb and pressing use near a site, force
-		// the plant without the long deploy animation by keeping in_use asserted.
-		const auto weapon_services = memory::safe_read<std::uintptr_t>( local.pawn + SCHEMA( "C_CSPlayerPawn", "m_pWeaponServices"_hash ) ).value_or( 0 );
-		if ( !weapon_services )
-		{
-			return;
-		}
-
-		const auto active_weapon_handle = memory::safe_read<std::uint32_t>( weapon_services + SCHEMA( "C_CSPlayer_WeaponServices", "m_hActiveWeapon"_hash ) ).value_or( 0 );
-		const auto active_weapon = systems::g_entities.lookup( active_weapon_handle );
-		if ( !active_weapon )
-		{
-			return;
-		}
-
-		const auto item_def_idx = memory::safe_read<std::uint16_t>(
-			active_weapon
-			+ SCHEMA( "C_EconEntity", "m_AttributeManager"_hash )
-			+ SCHEMA( "C_AttributeContainer", "m_Item"_hash )
-			+ SCHEMA( "C_EconItemView", "m_iItemDefinitionIndex"_hash ) ).value_or( 0 );
-
-		// C4 is item def index 49.
-		if ( item_def_idx == 49 )
-		{
-			const auto cmd = systems::g_input.get( );
-			if ( cmd )
-			{
-				cmd->buttons.value |= cstypes::command_buttons::in_attack;
-				cmd->buttons.value_changed |= cstypes::command_buttons::in_attack;
-			}
-		}
-	}
-
-	void other::do_no_land_inaccuracy( )
-	{
-		if ( !settings::g_misc.no_land_inaccuracy.value )
-		{
-			this->m_was_on_ground = true;
-			return;
-		}
-
-		const auto local = systems::g_local.get( );
-		if ( !local.is_alive || !local.pawn )
-		{
-			this->m_was_on_ground = true;
-			return;
-		}
-
-		const auto flags = memory::safe_read<std::uint32_t>( local.pawn + SCHEMA( "C_BaseEntity", "m_fFlags"_hash ) ).value_or( 0 );
-		constexpr std::uint32_t on_ground{ 1u << 0 };
-		const auto is_on_ground = ( flags & on_ground ) != 0;
-
-		// The moment we transition from airborne to grounded, snap the inaccuracy
-		// penalty back to zero by resetting the relevant recoil/accuracy index.
-		if ( !this->m_was_on_ground && is_on_ground )
-		{
-			const auto weapon_services = memory::safe_read<std::uintptr_t>( local.pawn + SCHEMA( "C_CSPlayerPawn", "m_pWeaponServices"_hash ) ).value_or( 0 );
-			if ( weapon_services )
-			{
-				const auto active_weapon_handle = memory::safe_read<std::uint32_t>( weapon_services + SCHEMA( "C_CSPlayer_WeaponServices", "m_hActiveWeapon"_hash ) ).value_or( 0 );
-				const auto active_weapon = systems::g_entities.lookup( active_weapon_handle );
-				if ( active_weapon )
-				{
-					memory::write<float>( active_weapon + SCHEMA( "C_CSWeaponBase", "m_flRecoilIndex"_hash ), 0.0f );
-				}
-			}
-		}
-
-		this->m_was_on_ground = is_on_ground;
-	}
-
 	void other::do_sniper_crosshair_patch( )
 	{
 		const auto should_patch = settings::g_misc.sniper_crosshair.value;
@@ -501,33 +349,24 @@ namespace features::misc {
 			return;
 		}
 
-		// Resolve the draw_crosshair pattern once.
 		static const auto draw_crosshair_addr = memory::resolve_pattern(
-			"client.dll:48895C2408574883EC20488BD9E8????????4885C00F84????????488B05????????8078580074??B001" );
+			"client.dll:48895C24??574883EC??488BD9E8????????4885C0" );
 		if ( !draw_crosshair_addr )
 		{
 			return;
 		}
 
-		// The pattern ends at "48 85 C0" (test al, al).  The bytes are:
-		//   48 89 5C 24 XX 57 48 83 EC XX 48 8B D9 E8 ?? ?? ?? ?? 48 85 C0
-		// That's 19 bytes total.  "48 85 C0" starts at offset 19 - 3 = 16.
-		// Immediately after it there should be a conditional jump (e.g. 74 XX
-		// for a short JE, or 0F 84 XX XX XX XX for a near JE).  We NOP it
-		// so the crosshair is always drawn, even when scoped.
 		constexpr auto patch_offset = 19;
-		constexpr auto patch_len = 6; // max size for a near-JCC (6 bytes)
+		constexpr auto patch_len = 6;
 
 		if ( should_patch )
 		{
-			// Save original bytes.
 			for ( auto i = 0; i < patch_len; ++i )
 			{
 				this->m_patch_original_bytes[ i ] =
 					memory::safe_read<std::uint8_t>( draw_crosshair_addr + patch_offset + i ).value_or( 0 );
 			}
 
-			// Replace with NOPs.
 			DWORD old_protect{};
 			VirtualProtect( reinterpret_cast< void* >( draw_crosshair_addr + patch_offset ), patch_len, PAGE_EXECUTE_READWRITE, &old_protect );
 			for ( auto i = 0; i < patch_len; ++i )
@@ -540,7 +379,6 @@ namespace features::misc {
 		}
 		else
 		{
-			// Restore original bytes.
 			DWORD old_protect{};
 			VirtualProtect( reinterpret_cast< void* >( draw_crosshair_addr + patch_offset ), patch_len, PAGE_EXECUTE_READWRITE, &old_protect );
 			for ( auto i = 0; i < patch_len; ++i )
@@ -553,4 +391,4 @@ namespace features::misc {
 		}
 	}
 
-} // namespace features::misc
+}

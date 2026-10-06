@@ -1,0 +1,2 @@
+C:/Users/13/Desktop/jecug/aetheris.win/main project/vcpkg_installed/x64-windows-static/vcpkg/blds/detect_compiler/x64-windows-static-rel/CMakeFiles/edit_cache.dir
+C:/Users/13/Desktop/jecug/aetheris.win/main project/vcpkg_installed/x64-windows-static/vcpkg/blds/detect_compiler/x64-windows-static-rel/CMakeFiles/rebuild_cache.dir

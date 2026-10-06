@@ -51301,4 +51301,4 @@ namespace resources::fonts::inter_tight {
 		0x06, 0x06, 0x06, 0x25, 0x00, 0x00, 0x00, 0x00
 	};
 
-} // namespace resources::fonts::inter_tight
+}

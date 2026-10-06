@@ -45,7 +45,7 @@ NtUserFindWindowEx(
     _In_opt_ HWND hwndChild,
     _In_ PCUNICODE_STRING ClassName,
     _In_ PCUNICODE_STRING WindowName,
-    _In_ ULONG Type // FW_*
+    _In_ ULONG Type
     );
 
 NTSYSCALLAPI
@@ -66,7 +66,7 @@ NTSYSCALLAPI
 NTSTATUS
 NTAPI
 NtUserBuildNameList(
-    _In_ HWINSTA WindowStationHandle, // GetProcessWindowStation
+    _In_ HWINSTA WindowStationHandle,
     _In_ ULONG NameListInformationLength,
     _Out_writes_bytes_(NameListInformationLength) PVOID NameListInformation,
     _Out_opt_ PULONG ReturnLength
@@ -172,14 +172,14 @@ NtUserCreateWindowStation(
 
 typedef enum _CONSOLECONTROL
 {
-    ConsoleSetVDMCursorBounds = 0, // RECT
-    ConsoleNotifyConsoleApplication = 1, // CONSOLE_PROCESS_INFO
+    ConsoleSetVDMCursorBounds = 0,
+    ConsoleNotifyConsoleApplication = 1,
     ConsoleFullscreenSwitch = 2,
-    ConsoleSetCaretInfo = 3, // CONSOLE_CARET_INFO
+    ConsoleSetCaretInfo = 3,
     ConsoleSetReserveKeys = 4,
-    ConsoleSetForeground = 5, // CONSOLESETFOREGROUND
-    ConsoleSetWindowOwner = 6, // CONSOLEWINDOWOWNER
-    ConsoleEndTask = 7, // CONSOLEENDTASK
+    ConsoleSetForeground = 5,
+    ConsoleSetWindowOwner = 6,
+    ConsoleEndTask = 7,
 } CONSOLECONTROL;
 
 #define CPI_NEWPROCESSWINDOW 0x0001
@@ -439,16 +439,16 @@ NtUserOpenWindowStation(
 
 typedef enum _WINDOWINFOCLASS
 {
-    WindowProcess = 0, // q: ULONG (Process ID)
-    WindowRealProcess = 1, // q: ULONG (Process ID)
-    WindowThread = 2, // q: ULONG (Thread ID)
-    WindowActiveWindow = 3, // q: HWND
-    WindowFocusWindow = 4, // q: HWND
-    WindowIsHung = 5, // q: BOOLEAN
-    WindowClientBase = 6, // q: PVOID
-    WindowIsForegroundThread = 7, // q: BOOLEAN
-    WindowDefaultImeWindow = 8, // q: HWND
-    WindowDefaultInputContext = 9, // q: HIMC
+    WindowProcess = 0,
+    WindowRealProcess = 1,
+    WindowThread = 2,
+    WindowActiveWindow = 3,
+    WindowFocusWindow = 4,
+    WindowIsHung = 5,
+    WindowClientBase = 6,
+    WindowIsForegroundThread = 7,
+    WindowDefaultImeWindow = 8,
+    WindowDefaultInputContext = 9,
 } WINDOWINFOCLASS, *PWINDOWINFOCLASS;
 
 NTSYSCALLAPI
@@ -480,7 +480,6 @@ NtUserSetFocus(
     _In_ HWND WindowHandle
     );
 
-// User32 ordinal 2005
 NTSYSAPI
 BOOL
 NTAPI
@@ -505,11 +504,10 @@ NtUserSetProcessWindowStation(
     _In_ HWINSTA WindowStationHandle
     );
 
-// rev // Valid bit masks enforced by NtUserSetProcessWin32Capabilities
-#define PROC_CAP_FLAGS1_VALID_MASK     0x00000007u    // bits 0-2
-#define PROC_CAP_FLAGS2_VALID_MASK     0x00000007u    // bits 0-2
-#define PROC_CAP_ENABLE_VALID_MASK     0x00000001u    // bit 0
-#define PROC_CAP_DISABLE_VALID_MASK    0x00000001u    // bit 0
+#define PROC_CAP_FLAGS1_VALID_MASK     0x00000007u
+#define PROC_CAP_FLAGS2_VALID_MASK     0x00000007u
+#define PROC_CAP_ENABLE_VALID_MASK     0x00000001u
+#define PROC_CAP_DISABLE_VALID_MASK    0x00000001u
 
 #define PROC_CAP_FLAGS1_BIT0           0x00000001u
 #define PROC_CAP_FLAGS1_BIT1           0x00000002u
@@ -527,7 +525,6 @@ NtUserSetProcessWindowStation(
 #define PROC_CAP_ENABLE_INVALID(x)     (((x) & ~PROC_CAP_ENABLE_VALID_MASK) != 0)
 #define PROC_CAP_DISABLE_INVALID(x)    (((x) & ~PROC_CAP_DISABLE_VALID_MASK) != 0)
 
-// rev
 typedef struct _USER_PROCESS_CAP_ENTRY
 {
     HANDLE ProcessHandle;
@@ -537,7 +534,6 @@ typedef struct _USER_PROCESS_CAP_ENTRY
     ULONG DisableMask;
 } USER_PROCESS_CAP_ENTRY, *PUSER_PROCESS_CAP_ENTRY;
 
-// rev
 typedef struct _USER_PROCESS_CAP_INTERNAL
 {
     PVOID ProcessObject;
@@ -547,7 +543,6 @@ typedef struct _USER_PROCESS_CAP_INTERNAL
     ULONGLONG CapabilityPacked;
 } USER_PROCESS_CAP_INTERNAL, *PUSER_PROCESS_CAP_INTERNAL;
 
-// rev
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -556,7 +551,6 @@ NtUserSetProcessWin32Capabilities(
     _In_ ULONG Count
     );
 
-// rev
 /**
  * The NtUserSetProcessRestrictionExemption routine marks the current process as exempt from certain win32k/user restrictions.
  * Note: This requires a developer mode/license check.
@@ -571,7 +565,6 @@ NtUserSetProcessRestrictionExemption(
     _In_ BOOL EnableExemption
     );
 
-// rev
 /**
  * The NtUserSetProcessUIAccessZorder routine tweaks window z-order behavior for UIAccess scenarios.
  * Note: Set only when the process is not elevated.
@@ -1309,16 +1302,6 @@ NtUserBringWindowToTop(
         );
 }
 
-// Send to the window registered with NtUserRegisterCloakedNotification
-// when cloak state of the window has changed
-// wParam - if window cloak state changed contains cloaking value
-//          which can be one/all of the below
-//          DWM_CLOAKED_APP(0x0000001).The window was cloaked by its owner application.
-//          DWM_CLOAKED_SHELL(0x0000002).The window was cloaked by the Shell.
-//          0 - window is not cloaked
-//
-// lParam - 0 (unused)
-//
 #define WM_CLOAKED_STATE_CHANGED 0x0347
 
 NTSYSCALLAPI
@@ -1360,7 +1343,6 @@ NtUserSetAdditionalForegroundBoostProcesses(
     _In_ HWND WindowHandle
     );
 
-// rev
 NTSYSCALLAPI
 ULONG
 NTAPI
@@ -1481,150 +1463,144 @@ NtUserWindowFromPoint(
     _In_ POINT Point
     );
 
-// rev // valid since 20H1
-#define SFI_CREATEMENU                              0 // NtUserCallNoParam
-#define SFI_CREATEPOPUPMENU                         1 // NtUserCallNoParam
-#define SFI_ALLOWFOREGROUNDACTIVATION               2 // NtUserCallNoParam
-#define SFI_CANCELQUEUEEVENTCOMPLETIONPACKET        3 // NtUserCallNoParam
-#define SFI_CLEARWAKEMASK                           4 // NtUserCallNoParam
-#define SFI_CREATESYSTEMTHREADS                     5 // NtUserCallNoParam
-#define SFI_DESTROYCARET                            6 // NtUserCallNoParam
-#define SFI_DISABLEPROCESSWINDOWSGHOSTING           7 // NtUserCallNoParam
-#define SFI_DRAINTHREADCOREMESSAGINGCOMPLETIONS     8 // NtUserCallNoParam
-#define SFI_GETDEVICECHANGEINFO                     9 // NtUserCallNoParam
-#define SFI_GETIMESHOWSTATUS                        10 // NtUserCallNoParam
-#define SFI_GETINPUTDESKTOP                         11 // NtUserCallNoParam
-#define SFI_GETMESSAGEPOS                           12 // NtUserCallNoParam
-#define SFI_GETQUEUEIOCP                            13 // NtUserCallNoParam
-#define SFI_GETUNPREDICTEDMESSAGEPOS                14 // NtUserCallNoParam
-#define SFI_HANDLESYSTEMTHREADCREATIONFAILURE       15 // NtUserCallNoParam
-#define SFI_HIDECURSORNOCAPTURE                     16 // NtUserCallNoParam
-#define SFI_ISQUEUEATTACHED                         17 // NtUserCallNoParam
-#define SFI_LOADCURSORSANDICONS                     18 // NtUserCallNoParam
-#define SFI_LOADUSERAPIHOOK                         19 // NtUserCallNoParam
-#define SFI_PREPAREFORLOGOFF                        20 // NtUserCallNoParam
-#define SFI_REASSOCIATEQUEUEEVENTCOMPLETIONPACKET   21 // NtUserCallNoParam
-#define SFI_RELEASECAPTURE                          22 // NtUserCallNoParam
-#define SFI_REMOVEQUEUECOMPLETION                   23 // NtUserCallNoParam
-#define SFI_RESETDBLCLK                             24 // NtUserCallNoParam
-#define SFI_ZAPACTIVEANDFOCUS                       25 // NtUserCallNoParam
-#define SFI_REMOTECONSOLESHADOWSTOP                 26 // NtUserCallNoParam
-#define SFI_REMOTEDISCONNECT                        27 // NtUserCallNoParam
-#define SFI_REMOTESHADOWSETUP                       30 // NtUserCallNoParam
-#define SFI_REMOTESHADOWSTOP                        31 // NtUserCallNoParam
-#define SFI_REMOTEPASSTHRUENABLE                    32 // NtUserCallNoParam
-#define SFI_REMOTEPASSTHRUDISABLE                   33 // NtUserCallNoParam
-#define SFI_REMOTECONNECTSTATE                      34 // NtUserCallNoParam
-#define SFI_UPDATEPERUSERIMMENABLING                36 // NtUserCallNoParam
-#define SFI_USERPOWERCALLOUTWORKER                  37 // NtUserCallNoParam
-#define SFI_WAKERITFORSHUTDOWN                      38 // NtUserCallNoParam
-#define SFI_DOINITMESSAGEPUMPHOOK                   39 // NtUserCallNoParam
-#define SFI_DOUNINITMESSAGEPUMPHOOK                 40 // NtUserCallNoParam
-#define SFI_ENABLEMOUSEINPOINTERFORTHREAD           41 // NtUserCallNoParam
-#define SFI_DEFERREDDESKTOPROTATION                 42 // NtUserCallNoParam
-#define SFI_ENABLEPERMONITORMENUSCALING             43 // NtUserCallNoParam
-#define SFI_BEGINDEFERWINDOWPOS                     44 // NtUserCallOneParam
-#define SFI_GETSENDMESSAGERECEIVER                  45 // NtUserCallOneParam
-#define SFI_ALLOWSETFOREGROUNDWINDOW                46 // NtUserCallOneParam
-#define SFI_CSDDEUNINITIALIZE                       47 // NtUserCallOneParam
-#define SFI_ENUMCLIPBOARDFORMATS                    49 // NtUserCallOneParam
-#define SFI_GETINPUTEVENT                           50 // NtUserCallOneParam
-#define SFI_GETKEYBOARDTYPE                         51 // NtUserCallOneParam
-#define SFI_GETPROCESSDEFAULTLAYOUT                 52 // NtUserCallOneParam
-#define SFI_GETWINSTATIONINFO                       53 // NtUserCallOneParam
-#define SFI_LOCKSETFOREGROUNDWINDOW                 54 // NtUserCallOneParam
-#define SFI_LW_LOADFONTS                            55 // NtUserCallOneParam
-#define SFI_MAPDESKTOPOBJECT                        56 // NtUserCallOneParam
-#define SFI_MESSAGEBEEP                             57 // NtUserCallOneParam
-#define SFI_PLAYEVENTSOUND                          58 // NtUserCallOneParam
-#define SFI_POSTQUITMESSAGE                         59 // NtUserCallOneParam
-#define SFI_REALIZEPALETTE                          60 // NtUserCallOneParam
-#define SFI_REGISTERLPK                             61 // NtUserCallOneParam
-#define SFI_REGISTERSYSTEMTHREAD                    62 // NtUserCallOneParam
-#define SFI_REMOTERECONNECT                         63 // NtUserCallOneParam
-#define SFI_REMOTETHINWIRESTATS                     64 // NtUserCallOneParam
-#define SFI_REMOTENOTIFY                            65 // NtUserCallOneParam
-#define SFI_REPLYMESSAGE                            66 // NtUserCallOneParam
-#define SFI_SETCARETBLINKTIME                       67 // NtUserCallOneParam
-#define SFI_SETDOUBLECLICKTIME                      68 // NtUserCallOneParam
-#define SFI_SETMESSAGEEXTRAINFO                     69 // NtUserCallOneParam
-#define SFI_SETPROCESSDEFAULTLAYOUT                 70 // NtUserCallOneParam
-#define SFI_SETWATERMARKSTRINGS                     71 // NtUserCallOneParam
-#define SFI_SHOWSTARTGLASS                          72 // NtUserCallOneParam
-#define SFI_SWAPMOUSEBUTTON                         73 // NtUserCallOneParam
-#define SFI_WOWMODULEUNLOAD                         74 // NtUserCallOneParam
-#define SFI_DWMLOCKSCREENUPDATES                    75 // NtUserCallOneParam
-#define SFI_ENABLESESSIONFORMMCSS                   76 // NtUserCallOneParam
-#define SFI_SETWAITFORQUEUEATTACH                   77 // NtUserCallOneParam
-#define SFI_THREADMESSAGEQUEUEATTACHED              78 // NtUserCallOneParam
-#define SFI_ENSUREDPIDEPSYSMETCACHEFORPLATEAU       80 // NtUserCallOneParam
-#define SFI_FORCEENABLENUMPADTRANSLATION            81 // NtUserCallOneParam
-#define SFI_SETTSFEVENTSTATE                        82 // NtUserCallOneParam
-#define SFI_SETSHELLCHANGENOTIFYHWND                83 // NtUserCallOneParam
-#define SFI_DEREGISTERSHELLHOOKWINDOW               84 // NtUserCallHwnd
-#define SFI_DWP_GETENABLEDPOPUPOFFSET               85 // NtUserCallHwnd
-#define SFI_GETMODERNAPPWINDOW                      86 // NtUserCallHwnd
-#define SFI_GETWINDOWCONTEXTHELPID                  87 // NtUserCallHwnd
-#define SFI_REGISTERSHELLHOOKWINDOW                 88 // NtUserCallHwnd
-#define SFI_SETMSGBOX                               89 // NtUserCallHwnd
-#define SFI_INITTHREADCOREMESSAGINGIOCP             90 // NtUserCallHwnd, NtUserCallHwndSafe
-#define SFI_SCHEDULEDISPATCHNOTIFICATION            91 // NtUserCallHwnd, NtUserCallHwndSafe
-#define SFI_SETPROGMANWINDOW                        92 // NtUserCallHwndOpt
-#define SFI_SETTASKMANWINDOW                        93 // NtUserCallHwndOpt
-#define SFI_GETCLASSICOCUR                          94 // NtUserCallHwndParam
-#define SFI_CLEARWINDOWSTATE                        95 // NtUserCallHwndParam
-#define SFI_KILLSYSTEMTIMER                         96 // NtUserCallHwndParam
-#define SFI_NOTIFYOVERLAYWINDOW                     97 // NtUserCallHwndParam
-#define SFI_SETDIALOGPOINTER                        99 // NtUserCallHwndParam
-#define SFI_SETVISIBLE                              100 // NtUserCallHwndParam
-#define SFI_SETWINDOWCONTEXTHELPID                  101 // NtUserCallHwndParam
-#define SFI_SETWINDOWSTATE                          102 // NtUserCallHwndParam
-#define SFI_REGISTERWINDOWARRANGEMENTCALLOUT        103 // NtUserCallHwndParam
-#define SFI_ENABLEMODERNAPPWINDOWKEYBOARDINTERCEPT  104 // NtUserCallHwndParam
-#define SFI_ARRANGEICONICWINDOWS                    105 // NtUserCallHwndLock
-#define SFI_DRAWMENUBAR                             106 // NtUserCallHwndLock
-#define SFI_CHECKIMESHOWSTATUSINTHREAD              107 // NtUserCallHwndLock, NtUserCallHwndLockSafe
-#define SFI_GETSYSMENUOFFSET                        108 // NtUserCallHwndLock
-#define SFI_REDRAWFRAME                             109 // NtUserCallHwndLock
-#define SFI_REDRAWFRAMEANDHOOK                      110 // NtUserCallHwndLock
-#define SFI_SETDIALOGSYSTEMMENU                     111 // NtUserCallHwndLock
-#define SFI_SETFOREGROUNDWINDOW                     112 // NtUserCallHwndLock
-#define SFI_SETSYSMENU                              113 // NtUserCallHwndLock
-#define SFI_UPDATECLIENTRECT                        114 // NtUserCallHwndLock
-#define SFI_UPDATEWINDOW                            115 // NtUserCallHwndLock
-#define SFI_SETCANCELROTATIONDELAYHINTWINDOW        116 // NtUserCallHwndLock
-#define SFI_GETWINDOWTRACKINFOASYNC                 117 // NtUserCallHwndLock
-#define SFI_BROADCASTIMESHOWSTATUSCHANGE            118 // NtUserCallHwndParamLock
-#define SFI_SETMODERNAPPWINDOW                      119 // NtUserCallHwndParamLock
-#define SFI_REDRAWTITLE                             120 // NtUserCallHwndParamLock
-#define SFI_SHOWOWNEDPOPUPS                         121 // NtUserCallHwndParamLock
-#define SFI_SWITCHTOTHISWINDOW                      122 // NtUserCallHwndParamLock
-#define SFI_UPDATEWINDOWS                           123 // NtUserCallHwndParamLock
-#define SFI_VALIDATERGN                             124 // NtUserCallHwndParamLock
-#define SFI_ENABLEWINDOW                            125 // NtUserCallHwndParamLock, NtUserCallHwndParamLockSafe
-#define SFI_CHANGEWINDOWMESSAGEFILTER               126 // NtUserCallTwoParam
-#define SFI_GETCURSORPOS                            127 // NtUserCallTwoParam
-#define SFI_INITANSIOEM                             128 // NtUserCallTwoParam
-#define SFI_NLSKBDSENDIMENOTIFICATION               129 // NtUserCallTwoParam
-#define SFI_REGISTERGHOSTWINDOW                     130 // NtUserCallTwoParam
-#define SFI_REGISTERLOGONPROCESS                    131 // NtUserCallTwoParam
-#define SFI_REGISTERSIBLINGFROSTWINDOW              132 // NtUserCallTwoParam
-#define SFI_REGISTERUSERHUNGAPPHANDLERS             133 // NtUserCallTwoParam
-#define SFI_REMOTESHADOWCLEANUP                     134 // NtUserCallTwoParam
-#define SFI_REMOTESHADOWSTART                       135 // NtUserCallTwoParam
-#define SFI_SETCARETPOS                             136 // NtUserCallTwoParam
-#define SFI_SETTHREADQUEUEMERGESETTING              137 // NtUserCallTwoParam
-#define SFI_UNHOOKWINDOWSHOOK                       138 // NtUserCallTwoParam
-#define SFI_ENABLESHELLWINDOWMANAGEMENTBEHAVIOR     139 // NtUserCallTwoParam
-#define SFI_CITSETINFO                              140 // NtUserCallTwoParam
-#define SFI_SCALESYSTEMMETRICFORDPIWITHOUTCACHE     141 // NtUserCallTwoParam
+#define SFI_CREATEMENU                              0
+#define SFI_CREATEPOPUPMENU                         1
+#define SFI_ALLOWFOREGROUNDACTIVATION               2
+#define SFI_CANCELQUEUEEVENTCOMPLETIONPACKET        3
+#define SFI_CLEARWAKEMASK                           4
+#define SFI_CREATESYSTEMTHREADS                     5
+#define SFI_DESTROYCARET                            6
+#define SFI_DISABLEPROCESSWINDOWSGHOSTING           7
+#define SFI_DRAINTHREADCOREMESSAGINGCOMPLETIONS     8
+#define SFI_GETDEVICECHANGEINFO                     9
+#define SFI_GETIMESHOWSTATUS                        10
+#define SFI_GETINPUTDESKTOP                         11
+#define SFI_GETMESSAGEPOS                           12
+#define SFI_GETQUEUEIOCP                            13
+#define SFI_GETUNPREDICTEDMESSAGEPOS                14
+#define SFI_HANDLESYSTEMTHREADCREATIONFAILURE       15
+#define SFI_HIDECURSORNOCAPTURE                     16
+#define SFI_ISQUEUEATTACHED                         17
+#define SFI_LOADCURSORSANDICONS                     18
+#define SFI_LOADUSERAPIHOOK                         19
+#define SFI_PREPAREFORLOGOFF                        20
+#define SFI_REASSOCIATEQUEUEEVENTCOMPLETIONPACKET   21
+#define SFI_RELEASECAPTURE                          22
+#define SFI_REMOVEQUEUECOMPLETION                   23
+#define SFI_RESETDBLCLK                             24
+#define SFI_ZAPACTIVEANDFOCUS                       25
+#define SFI_REMOTECONSOLESHADOWSTOP                 26
+#define SFI_REMOTEDISCONNECT                        27
+#define SFI_REMOTESHADOWSETUP                       30
+#define SFI_REMOTESHADOWSTOP                        31
+#define SFI_REMOTEPASSTHRUENABLE                    32
+#define SFI_REMOTEPASSTHRUDISABLE                   33
+#define SFI_REMOTECONNECTSTATE                      34
+#define SFI_UPDATEPERUSERIMMENABLING                36
+#define SFI_USERPOWERCALLOUTWORKER                  37
+#define SFI_WAKERITFORSHUTDOWN                      38
+#define SFI_DOINITMESSAGEPUMPHOOK                   39
+#define SFI_DOUNINITMESSAGEPUMPHOOK                 40
+#define SFI_ENABLEMOUSEINPOINTERFORTHREAD           41
+#define SFI_DEFERREDDESKTOPROTATION                 42
+#define SFI_ENABLEPERMONITORMENUSCALING             43
+#define SFI_BEGINDEFERWINDOWPOS                     44
+#define SFI_GETSENDMESSAGERECEIVER                  45
+#define SFI_ALLOWSETFOREGROUNDWINDOW                46
+#define SFI_CSDDEUNINITIALIZE                       47
+#define SFI_ENUMCLIPBOARDFORMATS                    49
+#define SFI_GETINPUTEVENT                           50
+#define SFI_GETKEYBOARDTYPE                         51
+#define SFI_GETPROCESSDEFAULTLAYOUT                 52
+#define SFI_GETWINSTATIONINFO                       53
+#define SFI_LOCKSETFOREGROUNDWINDOW                 54
+#define SFI_LW_LOADFONTS                            55
+#define SFI_MAPDESKTOPOBJECT                        56
+#define SFI_MESSAGEBEEP                             57
+#define SFI_PLAYEVENTSOUND                          58
+#define SFI_POSTQUITMESSAGE                         59
+#define SFI_REALIZEPALETTE                          60
+#define SFI_REGISTERLPK                             61
+#define SFI_REGISTERSYSTEMTHREAD                    62
+#define SFI_REMOTERECONNECT                         63
+#define SFI_REMOTETHINWIRESTATS                     64
+#define SFI_REMOTENOTIFY                            65
+#define SFI_REPLYMESSAGE                            66
+#define SFI_SETCARETBLINKTIME                       67
+#define SFI_SETDOUBLECLICKTIME                      68
+#define SFI_SETMESSAGEEXTRAINFO                     69
+#define SFI_SETPROCESSDEFAULTLAYOUT                 70
+#define SFI_SETWATERMARKSTRINGS                     71
+#define SFI_SHOWSTARTGLASS                          72
+#define SFI_SWAPMOUSEBUTTON                         73
+#define SFI_WOWMODULEUNLOAD                         74
+#define SFI_DWMLOCKSCREENUPDATES                    75
+#define SFI_ENABLESESSIONFORMMCSS                   76
+#define SFI_SETWAITFORQUEUEATTACH                   77
+#define SFI_THREADMESSAGEQUEUEATTACHED              78
+#define SFI_ENSUREDPIDEPSYSMETCACHEFORPLATEAU       80
+#define SFI_FORCEENABLENUMPADTRANSLATION            81
+#define SFI_SETTSFEVENTSTATE                        82
+#define SFI_SETSHELLCHANGENOTIFYHWND                83
+#define SFI_DEREGISTERSHELLHOOKWINDOW               84
+#define SFI_DWP_GETENABLEDPOPUPOFFSET               85
+#define SFI_GETMODERNAPPWINDOW                      86
+#define SFI_GETWINDOWCONTEXTHELPID                  87
+#define SFI_REGISTERSHELLHOOKWINDOW                 88
+#define SFI_SETMSGBOX                               89
+#define SFI_INITTHREADCOREMESSAGINGIOCP             90
+#define SFI_SCHEDULEDISPATCHNOTIFICATION            91
+#define SFI_SETPROGMANWINDOW                        92
+#define SFI_SETTASKMANWINDOW                        93
+#define SFI_GETCLASSICOCUR                          94
+#define SFI_CLEARWINDOWSTATE                        95
+#define SFI_KILLSYSTEMTIMER                         96
+#define SFI_NOTIFYOVERLAYWINDOW                     97
+#define SFI_SETDIALOGPOINTER                        99
+#define SFI_SETVISIBLE                              100
+#define SFI_SETWINDOWCONTEXTHELPID                  101
+#define SFI_SETWINDOWSTATE                          102
+#define SFI_REGISTERWINDOWARRANGEMENTCALLOUT        103
+#define SFI_ENABLEMODERNAPPWINDOWKEYBOARDINTERCEPT  104
+#define SFI_ARRANGEICONICWINDOWS                    105
+#define SFI_DRAWMENUBAR                             106
+#define SFI_CHECKIMESHOWSTATUSINTHREAD              107
+#define SFI_GETSYSMENUOFFSET                        108
+#define SFI_REDRAWFRAME                             109
+#define SFI_REDRAWFRAMEANDHOOK                      110
+#define SFI_SETDIALOGSYSTEMMENU                     111
+#define SFI_SETFOREGROUNDWINDOW                     112
+#define SFI_SETSYSMENU                              113
+#define SFI_UPDATECLIENTRECT                        114
+#define SFI_UPDATEWINDOW                            115
+#define SFI_SETCANCELROTATIONDELAYHINTWINDOW        116
+#define SFI_GETWINDOWTRACKINFOASYNC                 117
+#define SFI_BROADCASTIMESHOWSTATUSCHANGE            118
+#define SFI_SETMODERNAPPWINDOW                      119
+#define SFI_REDRAWTITLE                             120
+#define SFI_SHOWOWNEDPOPUPS                         121
+#define SFI_SWITCHTOTHISWINDOW                      122
+#define SFI_UPDATEWINDOWS                           123
+#define SFI_VALIDATERGN                             124
+#define SFI_ENABLEWINDOW                            125
+#define SFI_CHANGEWINDOWMESSAGEFILTER               126
+#define SFI_GETCURSORPOS                            127
+#define SFI_INITANSIOEM                             128
+#define SFI_NLSKBDSENDIMENOTIFICATION               129
+#define SFI_REGISTERGHOSTWINDOW                     130
+#define SFI_REGISTERLOGONPROCESS                    131
+#define SFI_REGISTERSIBLINGFROSTWINDOW              132
+#define SFI_REGISTERUSERHUNGAPPHANDLERS             133
+#define SFI_REMOTESHADOWCLEANUP                     134
+#define SFI_REMOTESHADOWSTART                       135
+#define SFI_SETCARETPOS                             136
+#define SFI_SETTHREADQUEUEMERGESETTING              137
+#define SFI_UNHOOKWINDOWSHOOK                       138
+#define SFI_ENABLESHELLWINDOWMANAGEMENTBEHAVIOR     139
+#define SFI_CITSETINFO                              140
+#define SFI_SCALESYSTEMMETRICFORDPIWITHOUTCACHE     141
 
-// N.B.
-// Windows 10 uses NtUserCall* dispatch routines to invoke ~140 functions
-// by index (note that our index table is valid only since 20H1).
-// Windows 11 uses the newly introduced syscalls for each function instead.
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1632,7 +1608,6 @@ NtUserCallNoParam(
     _In_ ULONG xpfnProc
     );
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1641,7 +1616,6 @@ NtUserCallOneParam(
     _In_ ULONG xpfnProc
     );
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1650,7 +1624,6 @@ NtUserCallHwnd(
     _In_ ULONG xpfnProc
     );
 
-// private // before WIN11
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS5)
 NTSYSCALLAPI
 ULONG_PTR
@@ -1661,7 +1634,6 @@ NtUserCallHwndSafe(
     );
 #endif
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1670,7 +1642,6 @@ NtUserCallHwndOpt(
     _In_ ULONG xpfnProc
     );
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1680,7 +1651,6 @@ NtUserCallHwndParam(
     _In_ ULONG xpfnProc
     );
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1689,7 +1659,6 @@ NtUserCallHwndLock(
     _In_ ULONG xpfnProc
     );
 
-// private // before WIN11
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS5)
 NTSYSCALLAPI
 ULONG_PTR
@@ -1700,7 +1669,6 @@ NtUserCallHwndLockSafe(
     );
 #endif
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1710,7 +1678,6 @@ NtUserCallHwndParamLock(
     _In_ ULONG xpfnProc
     );
 
-// private // before WIN11
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS5)
 NTSYSCALLAPI
 ULONG_PTR
@@ -1722,7 +1689,6 @@ NtUserCallHwndParamLockSafe(
     );
 #endif
 
-// private // before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1734,7 +1700,6 @@ NtUserCallTwoParam(
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_11)
 
-// private // NtUserCallNoParam(SFI_CREATEMENU) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -1744,7 +1709,6 @@ NtUserCreateMenu(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_CREATEPOPUPMENU) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -1754,7 +1718,6 @@ NtUserCreatePopupMenu(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_ALLOWFOREGROUNDACTIVATION) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1763,7 +1726,6 @@ NtUserAllowForegroundActivation(
     VOID
     );
 
-// rev // NtUserCallNoParam(SFI_CANCELQUEUEEVENTCOMPLETIONPACKET) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1772,7 +1734,6 @@ NtUserCancelQueueEventCompletionPacket(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_CLEARWAKEMASK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1781,7 +1742,6 @@ NtUserClearWakeMask(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_CREATESYSTEMTHREADS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1790,7 +1750,6 @@ NtUserCreateSystemThreads(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_DESTROYCARET) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1799,7 +1758,6 @@ NtUserDestroyCaret(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_DISABLEPROCESSWINDOWSGHOSTING) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1808,7 +1766,6 @@ NtUserDisableProcessWindowsGhosting(
     VOID
     );
 
-// rev // NtUserCallNoParam(SFI_DRAINTHREADCOREMESSAGINGCOMPLETIONS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1817,7 +1774,6 @@ NtUserDrainThreadCoreMessagingCompletions(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_GETDEVICECHANGEINFO) before WIN11
 _Success_(return != 0)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -1827,7 +1783,6 @@ NtUserGetDeviceChangeInfo(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_GETIMESHOWSTATUS) before WIN11
 _Success_(return != 0)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -1837,7 +1792,6 @@ NtUserGetIMEShowStatus(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_GETINPUTDESKTOP) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -1847,7 +1801,6 @@ NtUserGetInputDesktop(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_GETMESSAGEPOS) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG
@@ -1856,7 +1809,6 @@ NtUserGetMessagePos(
     VOID
     );
 
-// rev // NtUserCallNoParam(SFI_GETQUEUEIOCP) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG_PTR
@@ -1865,7 +1817,6 @@ NtUserGetQueueIocp(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_GETUNPREDICTEDMESSAGEPOS) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG
@@ -1874,7 +1825,6 @@ NtUserGetUnpredictedMessagePos(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_HANDLESYSTEMTHREADCREATIONFAILURE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1883,7 +1833,6 @@ NtUserHandleSystemThreadCreationFailure(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_HIDECURSORNOCAPTURE) before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -1891,7 +1840,6 @@ NtUserHideCursorNoCapture(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_ISQUEUEATTACHED) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 LOGICAL
@@ -1900,7 +1848,6 @@ NtUserIsQueueAttached(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_LOADCURSORSANDICONS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1909,7 +1856,6 @@ NtUserLoadCursorsAndIcons(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_LOADUSERAPIHOOK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1918,7 +1864,6 @@ NtUserLoadUserApiHook(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_PREPAREFORLOGOFF) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1927,7 +1872,6 @@ NtUserPrepareForLogoff(
     VOID
     );
 
-// rev // NtUserCallNoParam(SFI_REASSOCIATEQUEUEEVENTCOMPLETIONPACKET) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1936,7 +1880,6 @@ NtUserReassociateQueueEventCompletionPacket(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_RELEASECAPTURE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1945,7 +1888,6 @@ NtUserReleaseCapture(
     VOID
     );
 
-// rev // NtUserCallNoParam(SFI_REMOVEQUEUECOMPLETION) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1954,7 +1896,6 @@ NtUserRemoveQueueCompletion(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_RESETDBLCLK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1963,7 +1904,6 @@ NtUserResetDblClk(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_ZAPACTIVEANDFOCUS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -1972,7 +1912,6 @@ NtUserZapActiveAndFocus(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_REMOTECONSOLESHADOWSTOP) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1980,7 +1919,6 @@ NtUserRemoteConsoleShadowStop(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_REMOTEDISCONNECT) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1988,7 +1926,6 @@ NtUserRemoteDisconnect(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_REMOTESHADOWSETUP) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1996,7 +1933,6 @@ NtUserRemoteShadowSetup(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_REMOTESHADOWSTOP) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2004,7 +1940,6 @@ NtUserRemoteShadowStop(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_REMOTEPASSTHRUENABLE) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2012,7 +1947,6 @@ NtUserRemotePassthruEnable(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_REMOTEPASSTHRUDISABLE) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2020,14 +1954,12 @@ NtUserRemotePassthruDisable(
     VOID
     );
 
-// private
 #define CTX_W32_CONNECT_STATE_CONSOLE           0
 #define CTX_W32_CONNECT_STATE_IDLE              1
 #define CTX_W32_CONNECT_STATE_EXIT_IN_PROGRESS  2
 #define CTX_W32_CONNECT_STATE_CONNECTED         3
 #define CTX_W32_CONNECT_STATE_DISCONNECTED      4
 
-// private // NtUserCallNoParam(SFI_REMOTECONNECTSTATE) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG
@@ -2036,7 +1968,6 @@ NtUserRemoteConnectState(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_UPDATEPERUSERIMMENABLING) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2045,7 +1976,6 @@ NtUserUpdatePerUserImmEnabling(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_USERPOWERCALLOUTWORKER) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2054,7 +1984,6 @@ NtUserUserPowerCalloutWorker(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_WAKERITFORSHUTDOWN) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2062,7 +1991,6 @@ NtUserWakeRITForShutdown(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_DOINITMESSAGEPUMPHOOK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2071,7 +1999,6 @@ NtUserDoInitMessagePumpHook(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_DOUNINITMESSAGEPUMPHOOK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2080,7 +2007,6 @@ NtUserDoUninitMessagePumpHook(
     VOID
     );
 
-// rev // NtUserCallNoParam(SFI_ENABLEMOUSEINPOINTERFORTHREAD) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2089,7 +2015,6 @@ NtUserEnableMouseInPointerForThread(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_DEFERREDDESKTOPROTATION) before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -2097,7 +2022,6 @@ NtUserDeferredDesktopRotation(
     VOID
     );
 
-// private // NtUserCallNoParam(SFI_ENABLEPERMONITORMENUSCALING) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2106,7 +2030,6 @@ NtUserEnablePerMonitorMenuScaling(
     VOID
     );
 
-// private // NtUserCallOneParam(SFI_BEGINDEFERWINDOWPOS) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -2116,7 +2039,6 @@ NtUserBeginDeferWindowPos(
     _In_ ULONG NumWindowsHint
     );
 
-// private // NtUserCallOneParam(SFI_GETSENDMESSAGERECEIVER) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -2126,7 +2048,6 @@ NtUserGetSendMessageReceiver(
     _In_ ULONG ThreadIdSender
     );
 
-// private // NtUserCallOneParam(SFI_ALLOWSETFOREGROUNDWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2135,7 +2056,6 @@ NtUserAllowSetForegroundWindow(
     _In_ ULONG ProcessId
     );
 
-// private // NtUserCallOneParam(SFI_CSDDEUNINITIALIZE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2144,7 +2064,6 @@ NtUserCsDdeUninitialize(
     _In_ HANDLE hInst
     );
 
-// private // NtUserCallOneParam(SFI_ENUMCLIPBOARDFORMATS) before WIN11
 _Success_(return != 0)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -2154,31 +2073,27 @@ NtUserEnumClipboardFormats(
     _In_ ULONG Format
     );
 
-// private // NtUserCallOneParam(SFI_GETINPUTEVENT) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
 HANDLE
 NTAPI
 NtUserGetInputEvent(
-    _In_ ULONG WakeMask // QS_* WinUser.h
+    _In_ ULONG WakeMask
     );
 
-// rev (MSDN)
 #define KEYBOARD_TYPE           0
 #define KEYBOARD_SUBTYPE        1
 #define KEYBOARD_FUNCTION_KEY   2
 
-// private // NtUserCallOneParam(SFI_GETKEYBOARDTYPE) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG
 NTAPI
 NtUserGetKeyboardType(
-    _In_ ULONG TypeFlag // KEYBOARD_*
+    _In_ ULONG TypeFlag
     );
 
-// private // NtUserCallOneParam(SFI_GETPROCESSDEFAULTLAYOUT) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2187,18 +2102,15 @@ NtUserGetProcessDefaultLayout(
     _Out_ PULONG DefaultLayout
     );
 
-// private
 #define WPROTOCOLNAME_LENGTH    10
 #define WAUDIONAME_LENGTH       10
 
-// private
 typedef struct tagWSINFO
 {
     WCHAR ProtocolName[WPROTOCOLNAME_LENGTH];
     WCHAR AudioDriverName[WAUDIONAME_LENGTH];
 } WSINFO, *PWSINFO;
 
-// private // NtUserCallOneParam(SFI_GETWINSTATIONINFO) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2207,16 +2119,14 @@ NtUserGetWinStationInfo(
     _Out_ PWSINFO WsInfo
     );
 
-// private // NtUserCallOneParam(SFI_LOCKSETFOREGROUNDWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserLockSetForegroundWindow(
-    _In_ ULONG LockCode // LSFW_* WinUser.h
+    _In_ ULONG LockCode
     );
 
-// private // NtUserCallOneParam(SFI_LW_LOADFONTS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2225,7 +2135,6 @@ NtUserLW_LoadFonts(
     _In_ LOGICAL Remote
     );
 
-// private // NtUserCallOneParam(SFI_MAPDESKTOPOBJECT) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 _Ret_maybenull_
@@ -2236,16 +2145,14 @@ NtUserMapDesktopObject(
     _In_ HANDLE h
     );
 
-// private // NtUserCallOneParam(SFI_MESSAGEBEEP) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserMessageBeep(
-    _In_ ULONG Type // MB_* (MB_ICONMASK) WinUser.h
+    _In_ ULONG Type
     );
 
-// private
 #define USER_SOUND_DEFAULT              0
 #define USER_SOUND_SYSTEMHAND           1
 #define USER_SOUND_SYSTEMQUESTION       2
@@ -2261,16 +2168,14 @@ NtUserMessageBeep(
 #define USER_SOUND_MAXIMIZE             12
 #define USER_SOUND_SNAPSHOT             13
 
-// private // NtUserCallOneParam(SFI_PLAYEVENTSOUND) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserPlayEventSound(
-    _In_ ULONG idSound // USER_SOUND_*
+    _In_ ULONG idSound
     );
 
-// private // NtUserCallOneParam(SFI_POSTQUITMESSAGE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2279,7 +2184,6 @@ NtUserPostQuitMessage(
     _In_ LONG ExitCode
     );
 
-// private // NtUserCallOneParam(SFI_REALIZEPALETTE) before WIN11
 NTSYSCALLAPI
 ULONG
 NTAPI
@@ -2287,41 +2191,35 @@ NtUserRealizePalette(
     _In_ HDC hdc
     );
 
-// private
 #define LPK_TABBED_TEXT_OUT 0
 #define LPK_PSM_TEXT_OUT    1
 #define LPK_DRAW_TEXT_EX    2
 #define LPK_EDIT_CONTROL    3
 
-// rev
 #define LPK_FLAG_TABBED_TEXT_OUT (1 << LPK_TABBED_TEXT_OUT)
 #define LPK_FLAG_PSM_TEXT_OUT    (1 << LPK_PSM_TEXT_OUT)
 #define LPK_FLAG_DRAW_TEXT_EX    (1 << LPK_DRAW_TEXT_EX)
 #define LPK_FLAG_EDIT_CONTROL    (1 << LPK_EDIT_CONTROL)
 
-// private // NtUserCallOneParam(SFI_REGISTERLPK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserRegisterLPK(
-    _In_ ULONG LpkEntryPoints // LPK_FLAG_*
+    _In_ ULONG LpkEntryPoints
     );
 
-// private
 #define RST_DONTATTACHQUEUE     0x00000001
 #define RST_DONTJOURNALATTACH   0x00000002
 
-// private // NtUserCallOneParam(SFI_REGISTERSYSTEMTHREAD) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserRegisterSystemThread(
-    _In_ ULONG Flags // RST_*
+    _In_ ULONG Flags
     );
 
-// private // NtUserCallOneParam(SFI_REMOTERECONNECT) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2329,7 +2227,6 @@ NtUserRemoteReconnect(
     _In_ struct _DOCONNECTDATA* DoConnectData
     );
 
-// private // NtUserCallOneParam(SFI_REMOTETHINWIRESTATS) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2337,7 +2234,6 @@ NtUserRemoteThinwireStats(
     _Out_ struct CACHE_STATISTICS* Stats
     );
 
-// private // NtUserCallOneParam(SFI_REMOTENOTIFY) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2345,7 +2241,6 @@ NtUserRemoteNotify(
     _In_ struct _DONOTIFYDATA* DoNotifyData
     );
 
-// private // NtUserCallOneParam(SFI_REPLYMESSAGE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2354,7 +2249,6 @@ NtUserReplyMessage(
     _In_ LRESULT Result
     );
 
-// private // NtUserCallOneParam(SFI_SETCARETBLINKTIME) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2363,7 +2257,6 @@ NtUserSetCaretBlinkTime(
     _In_ ULONG Milliseconds
     );
 
-// private // NtUserCallOneParam(SFI_SETDOUBLECLICKTIME) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2372,7 +2265,6 @@ NtUserSetDoubleClickTime(
     _In_ ULONG Milliseconds
     );
 
-// private // NtUserCallOneParam(SFI_SETMESSAGEEXTRAINFO) before WIN11
 NTSYSCALLAPI
 LPARAM
 NTAPI
@@ -2380,16 +2272,14 @@ NtUserSetMessageExtraInfo(
     _In_ LPARAM Param
     );
 
-// private // NtUserCallOneParam(SFI_SETPROCESSDEFAULTLAYOUT) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserSetProcessDefaultLayout(
-    _In_ ULONG DefaultLayout // LAYOUT_* wingdi.h
+    _In_ ULONG DefaultLayout
     );
 
-// private // NtUserCallOneParam(SFI_SETWATERMARKSTRINGS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2398,7 +2288,6 @@ NtUserSetWatermarkStrings(
     _In_ PCUNICODE_STRING StringTable
     );
 
-// private // NtUserCallOneParam(SFI_SHOWSTARTGLASS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2407,7 +2296,6 @@ NtUserShowStartGlass(
     _In_ ULONG Timeout
     );
 
-// private // NtUserCallOneParam(SFI_SWAPMOUSEBUTTON) before WIN11
 NTSYSCALLAPI
 LOGICAL
 NTAPI
@@ -2415,7 +2303,6 @@ NtUserSwapMouseButton(
     _In_ LOGICAL SwapButtons
     );
 
-// private // NtUserCallOneParam(SFI_WOWMODULEUNLOAD) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2424,7 +2311,6 @@ NtUserWOWModuleUnload(
     _In_ HANDLE Module
     );
 
-// private // NtUserCallOneParam(SFI_DWMLOCKSCREENUPDATES) before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -2432,7 +2318,6 @@ NtUserDwmLockScreenUpdates(
     _In_ LOGICAL LockUpdates
     );
 
-// private // NtUserCallOneParam(SFI_ENABLESESSIONFORMMCSS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 ULONG_PTR
@@ -2441,7 +2326,6 @@ NtUserEnableSessionForMMCSS(
     _In_ LOGICAL Enable
     );
 
-// private // NtUserCallOneParam(SFI_SETWAITFORQUEUEATTACH) before WIN11
 NTSYSCALLAPI
 LOGICAL
 NTAPI
@@ -2449,7 +2333,6 @@ NtUserSetWaitForQueueAttach(
     _In_ LOGICAL Waiting
     );
 
-// private // NtUserCallOneParam(SFI_THREADMESSAGEQUEUEATTACHED) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 LOGICAL
@@ -2458,7 +2341,6 @@ NtUserThreadMessageQueueAttached(
     _In_opt_ ULONG ThreadId
     );
 
-// private // NtUserCallOneParam(SFI_ENSUREDPIDEPSYSMETCACHEFORPLATEAU) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2467,7 +2349,6 @@ NtUserEnsureDpiDepSysMetCacheForPlateau(
     _In_ ULONG Dpi
     );
 
-// private // NtUserCallOneParam(SFI_FORCEENABLENUMPADTRANSLATION) before WIN11
 NTSYSCALLAPI
 UINT_PTR
 NTAPI
@@ -2475,7 +2356,6 @@ NtUserForceEnableNumpadTranslation(
     _In_ LOGICAL ForceNumlockTranslation
     );
 
-// rev // NtUserCallOneParam(SFI_SETTSFEVENTSTATE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2484,7 +2364,6 @@ NtUserSetTSFEventState(
     _In_ ULONG StateFlags
     );
 
-// rev // NtUserCallOneParam(SFI_SETSHELLCHANGENOTIFYHWND) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2493,7 +2372,6 @@ NtUserSetShellChangeNotifyHWND(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwnd(SFI_DEREGISTERSHELLHOOKWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2502,7 +2380,6 @@ NtUserDeregisterShellHookWindow(
     _In_ HWND hwnd
     );
 
-// rev // NtUserCallHwnd(SFI_DWP_GETENABLEDPOPUPOFFSET) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG_PTR
@@ -2511,7 +2388,6 @@ NtUserDWP_GetEnabledPopupOffset(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwnd(SFI_GETMODERNAPPWINDOW) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -2521,7 +2397,6 @@ NtUserGetModernAppWindow(
     _In_ HWND ShellFrame
     );
 
-// private // NtUserCallHwnd(SFI_GETWINDOWCONTEXTHELPID) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG
@@ -2530,7 +2405,6 @@ NtUserGetWindowContextHelpId(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwnd(SFI_REGISTERSHELLHOOKWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2539,7 +2413,6 @@ NtUserRegisterShellHookWindow(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwnd(SFI_SETMSGBOX) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2548,7 +2421,6 @@ NtUserSetMsgBox(
     _In_ HWND hwnd
     );
 
-// rev // NtUserCallHwnd[Safe](SFI_INITTHREADCOREMESSAGINGIOCP) before WIN11
 NTSYSCALLAPI
 ULONG_PTR
 NTAPI
@@ -2556,7 +2428,6 @@ NtUserInitThreadCoreMessagingIocp(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwnd[Safe](SFI_SCHEDULEDISPATCHNOTIFICATION) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2565,7 +2436,6 @@ NtUserScheduleDispatchNotification(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndOpt(SFI_SETPROGMANWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2574,7 +2444,6 @@ NtUserSetProgmanWindow(
     _In_opt_ HWND hwnd
     );
 
-// private // NtUserCallHwndOpt(SFI_SETTASKMANWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2583,7 +2452,6 @@ NtUserSetTaskmanWindow(
     _In_opt_ HWND hwnd
     );
 
-// private // NtUserCallHwndParam(SFI_GETCLASSICOCUR) before WIN11
 _Success_(return != NULL)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -2594,7 +2462,6 @@ NtUserGetClassIcoCur(
     _In_ ULONG Index
     );
 
-// private
 #define WFWIN40COMPAT           0x0502
 #define WFNOANIMATE             0x0710
 #define WEFWINDOWEDGE           0x0901
@@ -2621,27 +2488,24 @@ NtUserGetClassIcoCur(
 #define WFBORDER                0x0E80
 #define WFCLIPCHILDREN          0x0F02
 
-// private // NtUserCallHwndParam(SFI_CLEARWINDOWSTATE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserClearWindowState(
     _In_ HWND hwnd,
-    _In_ ULONG Flag // WF*, WEF*, BF*, DF*, CBF*, EF*, SF*
+    _In_ ULONG Flag
     );
 
-// private // NtUserCallHwndParam(SFI_SETWINDOWSTATE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserSetWindowState(
     _In_ HWND hwnd,
-    _In_ ULONG Flag // WF*, WEF*, BF*, DF*, CBF*, EF*, SF*
+    _In_ ULONG Flag
     );
 
-// private // NtUserCallHwndParam(SFI_KILLSYSTEMTIMER) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2651,7 +2515,6 @@ NtUserKillSystemTimer(
     _In_ UINT_PTR IDEvent
     );
 
-// private // NtUserCallHwndParam(SFI_NOTIFYOVERLAYWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2661,7 +2524,6 @@ NtUserNotifyOverlayWindow(
     _In_ LOGICAL Enable
     );
 
-// private // NtUserCallHwndParam(SFI_SETDIALOGPOINTER) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2671,25 +2533,22 @@ NtUserSetDialogPointer(
     _In_ ULONG_PTR Ptr
     );
 
-// private
 #define SV_UNSET            0x0000
 #define SV_SET              0x0001
 #define SV_CLRFTRUEVIS      0x0002
-#define SV_SKIPCOMPOSE      0x0004 // rev
-#define SV_CLRFULLSCREEN    0x0008 // rev
-#define SV_CLRGHOSTVIS      0x0010 // rev
+#define SV_SKIPCOMPOSE      0x0004
+#define SV_CLRFULLSCREEN    0x0008
+#define SV_CLRGHOSTVIS      0x0010
 
-// private // NtUserCallHwndParam(SFI_SETVISIBLE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserSetVisible(
     _In_ HWND hwnd,
-    _In_ ULONG Flags // SV_*
+    _In_ ULONG Flags
     );
 
-// private // NtUserCallHwndParam(SFI_SETWINDOWCONTEXTHELPID) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2699,7 +2558,6 @@ NtUserSetWindowContextHelpId(
     _In_ ULONG ContextId
     );
 
-// private // NtUserCallHwndParam(SFI_REGISTERWINDOWARRANGEMENTCALLOUT) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2709,7 +2567,6 @@ NtUserRegisterWindowArrangementCallout(
     _In_ LOGICAL Register
     );
 
-// private // NtUserCallHwndParam(SFI_ENABLEMODERNAPPWINDOWKEYBOARDINTERCEPT) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2719,7 +2576,6 @@ NtUserEnableModernAppWindowKeyboardIntercept(
     _In_ LOGICAL Enable
     );
 
-// private // NtUserCallHwndLock(SFI_ARRANGEICONICWINDOWS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 ULONG
@@ -2728,7 +2584,6 @@ NtUserArrangeIconicWindows(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_DRAWMENUBAR) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2737,7 +2592,6 @@ NtUserDrawMenuBar(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock[Safe](SFI_CHECKIMESHOWSTATUSINTHREAD) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2746,7 +2600,6 @@ NtUserCheckImeShowStatusInThread(
     _In_ HWND Ime
     );
 
-// rev // NtUserCallHwndLock(SFI_GETSYSMENUOFFSET) before WIN11
 _Success_(return != 0)
 _Must_inspect_result_
 NTSYSCALLAPI
@@ -2756,7 +2609,6 @@ NtUserGetSysMenuOffset(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_REDRAWFRAME) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2765,7 +2617,6 @@ NtUserRedrawFrame(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_REDRAWFRAMEANDHOOK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2774,7 +2625,6 @@ NtUserRedrawFrameAndHook(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_SETDIALOGSYSTEMMENU) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2783,7 +2633,6 @@ NtUserSetDialogSystemMenu(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_SETFOREGROUNDWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2792,7 +2641,6 @@ NtUserSetForegroundWindow(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_SETSYSMENU) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2801,7 +2649,6 @@ NtUserSetSysMenu(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_UPDATECLIENTRECT) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2810,7 +2657,6 @@ NtUserUpdateClientRect(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_UPDATEWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2819,7 +2665,6 @@ NtUserUpdateWindow(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_SETCANCELROTATIONDELAYHINTWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2828,7 +2673,6 @@ NtUserSetCancelRotationDelayHintWindow(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndLock(SFI_GETWINDOWTRACKINFOASYNC) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 ULONG_PTR
@@ -2837,7 +2681,6 @@ NtUserGetWindowTrackInfoAsync(
     _In_ HWND hwnd
     );
 
-// private // NtUserCallHwndParamLock(SFI_BROADCASTIMESHOWSTATUSCHANGE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2847,7 +2690,6 @@ NtUserBroadcastImeShowStatusChange(
     _In_ LOGICAL Show
     );
 
-// private // NtUserCallHwndParamLock(SFI_SETMODERNAPPWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2857,31 +2699,21 @@ NtUserSetModernAppWindow(
     _In_ HWND App
     );
 
-// private
-// #define DC_ACTIVE    0x0001 // WinUser.h
-// #define DC_SMALLCAP  0x0002 // WinUser.h
-// #define DC_ICON      0x0004 // WinUser.h
-// #define DC_TEXT      0x0008 // WinUser.h
-// #define DC_INBUTTON  0x0010 // WinUser.h
-// #define DC_GRADIENT  0x0020 // WinUser.h
 #define DC_LAMEBUTTON   0x0400
 #define DC_NOVISIBLE    0x0800
-// #define DC_BUTTONS   0x1000 // WinUser.h
 #define DC_NOSENDMSG    0x2000
 #define DC_CENTER       0x4000
 #define DC_FRAME        0x8000
 
-// private // NtUserCallHwndParamLock(SFI_REDRAWTITLE) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserRedrawTitle(
     _In_ HWND hwnd,
-    _In_ ULONG Flags // DC_*
+    _In_ ULONG Flags
     );
 
-// private // NtUserCallHwndParamLock(SFI_SHOWOWNEDPOPUPS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2891,7 +2723,6 @@ NtUserShowOwnedPopups(
     _In_ LOGICAL Show
     );
 
-// private // NtUserCallHwndParamLock(SFI_SWITCHTOTHISWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2901,7 +2732,6 @@ NtUserSwitchToThisWindow(
     _In_ LOGICAL AltTab
     );
 
-// private // NtUserCallHwndParamLock(SFI_UPDATEWINDOWS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2911,7 +2741,6 @@ NtUserUpdateWindows(
     _In_ HRGN hrgn
     );
 
-// private // NtUserCallHwndParamLock(SFI_VALIDATERGN) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2921,7 +2750,6 @@ NtUserValidateRgn(
     _In_ HRGN hrgn
     );
 
-// private // NtUserCallHwndParamLock[Safe](SFI_ENABLEWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2931,31 +2759,27 @@ NtUserEnableWindow(
     _In_ LOGICAL Enable
     );
 
-// private // NtUserCallTwoParam(SFI_CHANGEWINDOWMESSAGEFILTER) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserChangeWindowMessageFilter(
     _In_ ULONG Message,
-    _In_ ULONG Flag // MSGFLT_* WinUser.h
+    _In_ ULONG Flag
     );
 
-// rev
 #define CURSOR_POS_TYPE_LOGICAL 1
 #define CURSOR_POS_TYPE_SAVED   2
 
-// private // NtUserCallTwoParam(SFI_GETCURSORPOS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
 NTAPI
 NtUserGetCursorPos(
     _Out_ PPOINT Point,
-    _In_ ULONG CursorPosType // CURSOR_POS_TYPE_*
+    _In_ ULONG CursorPosType
     );
 
-// private // NtUserCallTwoParam(SFI_INITANSIOEM) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2965,7 +2789,6 @@ NtUserInitAnsiOem(
     _In_reads_(256) PCHAR AnsiToOem
     );
 
-// private // NtUserCallTwoParam(SFI_NLSKBDSENDIMENOTIFICATION) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2975,7 +2798,6 @@ NtUserNlsKbdSendIMENotification(
     _In_ ULONG ImeConversion
     );
 
-// private // NtUserCallTwoParam(SFI_REGISTERGHOSTWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2985,7 +2807,6 @@ NtUserRegisterGhostWindow(
     _In_ HWND Hung
     );
 
-// private // NtUserCallTwoParam(SFI_REGISTERLOGONPROCESS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -2995,7 +2816,6 @@ NtUserRegisterLogonProcess(
     _In_ PLUID LuidConnect
     );
 
-// private // NtUserCallTwoParam(SFI_REGISTERSIBLINGFROSTWINDOW) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -3005,12 +2825,10 @@ NtUserRegisterSiblingFrostWindow(
     _In_ HWND hwnd
     );
 
-// rev
 typedef _Function_class_(FNW32ET)
 VOID APIENTRY FNW32ET(VOID);
 typedef FNW32ET* PFNW32ET;
 
-// private // NtUserCallTwoParam(SFI_REGISTERUSERHUNGAPPHANDLERS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -3020,7 +2838,6 @@ NtUserRegisterUserHungAppHandlers(
     _In_ HANDLE EventWowExec
     );
 
-// private // NtUserCallTwoParam(SFI_REMOTESHADOWCLEANUP) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -3029,7 +2846,6 @@ NtUserRemoteShadowCleanup(
     _In_ ULONG ThinwireDataLength
     );
 
-// private // NtUserCallTwoParam(SFI_REMOTESHADOWSTART) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -3038,7 +2854,6 @@ NtUserRemoteShadowStart(
     _In_ ULONG ThinwireDataLength
     );
 
-// private // NtUserCallTwoParam(SFI_SETCARETPOS) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -3048,7 +2863,6 @@ NtUserSetCaretPos(
     _In_ LONG y
     );
 
-// private // NtUserCallTwoParam(SFI_SETTHREADQUEUEMERGESETTING) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -3058,7 +2872,6 @@ NtUserSetThreadQueueMergeSetting(
     _In_ ULONG Flags
     );
 
-// private // NtUserCallTwoParam(SFI_UNHOOKWINDOWSHOOK) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -3068,7 +2881,6 @@ NtUserUnhookWindowsHook(
     _In_ HOOKPROC FilterProc
     );
 
-// private // NtUserCallTwoParam(SFI_ENABLESHELLWINDOWMANAGEMENTBEHAVIOR) before WIN11
 _Success_(return != 0)
 NTSYSCALLAPI
 LOGICAL
@@ -3078,7 +2890,6 @@ NtUserEnableShellWindowManagementBehavior(
     _In_ ULONG_PTR Param2
     );
 
-// private // NtUserCallTwoParam(SFI_CITSETINFO) before WIN11
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -3087,7 +2898,6 @@ NtUserCitSetInfo(
     _In_ ULONG_PTR Info
     );
 
-// private // NtUserCallTwoParam(SFI_SCALESYSTEMMETRICFORDPIWITHOUTCACHE) before WIN11
 _Must_inspect_result_
 NTSYSCALLAPI
 ULONG_PTR
@@ -3097,7 +2907,7 @@ NtUserScaleSystemMetricForDPIWithoutCache(
     _In_ ULONG ToDpi
     );
 
-#endif // PHNT_VERSION >= PHNT_WINDOWS_11
+#endif
 
 typedef _Function_class_(FN_DISPATCH)
 NTSTATUS NTAPI FN_DISPATCH(
@@ -3105,7 +2915,6 @@ NTSTATUS NTAPI FN_DISPATCH(
     );
 typedef FN_DISPATCH* PFN_DISPATCH;
 
-// Peb!KernelCallbackTable = user32.dll!apfnDispatch
 typedef struct _KERNEL_CALLBACK_TABLE
 {
     PFN_DISPATCH __fnCOPYDATA;
@@ -3250,4 +3059,4 @@ typedef struct _KERNEL_CALLBACK_TABLE
     PFN_DISPATCH __xxxClientTrackInit;
 } KERNEL_CALLBACK_TABLE, *PKERNEL_CALLBACK_TABLE;
 
-#endif // _NTUSER_H
+#endif

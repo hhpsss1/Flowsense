@@ -7,9 +7,6 @@
 #ifndef _NTSAM_H
 #define _NTSAM_H
 
-//
-// Types
-//
 
 #define SAM_MAXIMUM_LOOKUP_COUNT (1000)
 #define SAM_MAXIMUM_LOOKUP_LENGTH (32000)
@@ -45,9 +42,6 @@ typedef struct _SAM_BYTE_ARRAY_32K
 
 typedef SAM_BYTE_ARRAY_32K SAM_SHELL_OBJECT_PROPERTIES, *PSAM_SHELL_OBJECT_PROPERTIES;
 
-//
-// Basic
-//
 
 NTSYSAPI
 NTSTATUS
@@ -123,9 +117,6 @@ SamQueryLapsManagedAccount(
     _Outptr_ PSID *AccountSid
     );
 
-//
-// Server
-//
 
 #define SAM_SERVER_CONNECT 0x0001
 #define SAM_SERVER_SHUTDOWN 0x0002
@@ -156,9 +147,6 @@ SamQueryLapsManagedAccount(
 
 typedef struct _RPC_AUTH_IDENTITY_HANDLE *PRPC_AUTH_IDENTITY_HANDLE;
 
-//
-// Functions
-//
 
 /**
  * The SamConnect method returns a handle to a server.
@@ -200,9 +188,6 @@ SamShutdownSamServer(
     _In_ SAM_HANDLE ServerHandle
     );
 
-//
-// Domain
-//
 
 #define DOMAIN_READ_PASSWORD_PARAMETERS 0x0001
 #define DOMAIN_WRITE_PASSWORD_PARAMS 0x0002
@@ -249,25 +234,22 @@ SamShutdownSamServer(
 #define DOMAIN_PROMOTION_INCREMENT { 0x0, 0x10 }
 #define DOMAIN_PROMOTION_MASK { 0x0, 0xfffffff0 }
 
-//
-// SamQueryInformationDomain/SamSetInformationDomain types
-//
 
 typedef enum _DOMAIN_INFORMATION_CLASS
 {
-    DomainPasswordInformation = 1,      // qs: DOMAIN_PASSWORD_INFORMATION
-    DomainGeneralInformation,           // q: DOMAIN_GENERAL_INFORMATION
-    DomainLogoffInformation,            // qs: DOMAIN_LOGOFF_INFORMATION
-    DomainOemInformation,               // qs: DOMAIN_OEM_INFORMATION
-    DomainNameInformation,              // q: DOMAIN_NAME_INFORMATION
-    DomainReplicationInformation,       // qs: DOMAIN_REPLICATION_INFORMATION
-    DomainServerRoleInformation,        // qs: DOMAIN_SERVER_ROLE_INFORMATION
-    DomainModifiedInformation,          // q: DOMAIN_MODIFIED_INFORMATION
-    DomainStateInformation,             // qs: DOMAIN_STATE_INFORMATION
-    DomainUasInformation,               // qs: DOMAIN_UAS_INFORMATION
-    DomainGeneralInformation2,          // q: DOMAIN_GENERAL_INFORMATION2
-    DomainLockoutInformation,           // qs: DOMAIN_LOCKOUT_INFORMATION
-    DomainModifiedInformation2,         // q: DOMAIN_MODIFIED_INFORMATION2
+    DomainPasswordInformation = 1,
+    DomainGeneralInformation,
+    DomainLogoffInformation,
+    DomainOemInformation,
+    DomainNameInformation,
+    DomainReplicationInformation,
+    DomainServerRoleInformation,
+    DomainModifiedInformation,
+    DomainStateInformation,
+    DomainUasInformation,
+    DomainGeneralInformation2,
+    DomainLockoutInformation,
+    DomainModifiedInformation2,
     DomainMaxInformation
 } DOMAIN_INFORMATION_CLASS;
 
@@ -301,8 +283,8 @@ typedef struct _DOMAIN_GENERAL_INFORMATION
 typedef struct _DOMAIN_GENERAL_INFORMATION2
 {
     DOMAIN_GENERAL_INFORMATION I1;
-    LARGE_INTEGER LockoutDuration; // delta time
-    LARGE_INTEGER LockoutObservationWindow; // delta time
+    LARGE_INTEGER LockoutDuration;
+    LARGE_INTEGER LockoutObservationWindow;
     USHORT LockoutThreshold;
 } DOMAIN_GENERAL_INFORMATION2, *PDOMAIN_GENERAL_INFORMATION2;
 
@@ -311,7 +293,7 @@ typedef struct _DOMAIN_UAS_INFORMATION
     BOOLEAN UasCompatibilityRequired;
 } DOMAIN_UAS_INFORMATION;
 
-#ifndef _DOMAIN_PASSWORD_INFORMATION_DEFINED // defined in ntsecapi.h
+#ifndef _DOMAIN_PASSWORD_INFORMATION_DEFINED
 #define _DOMAIN_PASSWORD_INFORMATION_DEFINED
 
 typedef struct _DOMAIN_PASSWORD_INFORMATION
@@ -323,9 +305,6 @@ typedef struct _DOMAIN_PASSWORD_INFORMATION
     LARGE_INTEGER MinPasswordAge;
 } DOMAIN_PASSWORD_INFORMATION, *PDOMAIN_PASSWORD_INFORMATION;
 
-//
-// PasswordProperties flags
-//
 
 #define DOMAIN_PASSWORD_COMPLEX 0x00000001L
 #define DOMAIN_PASSWORD_NO_ANON_CHANGE 0x00000002L
@@ -335,7 +314,7 @@ typedef struct _DOMAIN_PASSWORD_INFORMATION
 #define DOMAIN_REFUSE_PASSWORD_CHANGE 0x00000020L
 #define DOMAIN_NO_LM_OWF_CHANGE 0x00000040L
 
-#endif // _DOMAIN_PASSWORD_INFORMATION_DEFINED
+#endif
 
 typedef enum _DOMAIN_PASSWORD_CONSTRUCTION
 {
@@ -388,23 +367,20 @@ typedef struct _DOMAIN_STATE_INFORMATION
 
 typedef struct _DOMAIN_LOCKOUT_INFORMATION
 {
-    LARGE_INTEGER LockoutDuration; // delta time
-    LARGE_INTEGER LockoutObservationWindow; // delta time
-    USHORT LockoutThreshold; // zero means no lockout
+    LARGE_INTEGER LockoutDuration;
+    LARGE_INTEGER LockoutObservationWindow;
+    USHORT LockoutThreshold;
 } DOMAIN_LOCKOUT_INFORMATION, *PDOMAIN_LOCKOUT_INFORMATION;
 
-//
-// SamQueryDisplayInformation types
-//
 
 typedef enum _DOMAIN_DISPLAY_INFORMATION
 {
-    DomainDisplayUser = 1,      // DOMAIN_DISPLAY_USER
-    DomainDisplayMachine,       // DOMAIN_DISPLAY_MACHINE
-    DomainDisplayGroup,         // DOMAIN_DISPLAY_GROUP
-    DomainDisplayOemUser,       // DOMAIN_DISPLAY_OEM_USER
-    DomainDisplayOemGroup,      // DOMAIN_DISPLAY_OEM_GROUP
-    DomainDisplayServer,        // DOMAIN_DISPLAY_MACHINE
+    DomainDisplayUser = 1,
+    DomainDisplayMachine,
+    DomainDisplayGroup,
+    DomainDisplayOemUser,
+    DomainDisplayOemGroup,
+    DomainDisplayServer,
     DomainDisplayMax
 } DOMAIN_DISPLAY_INFORMATION, *PDOMAIN_DISPLAY_INFORMATION;
 
@@ -448,9 +424,6 @@ typedef struct _DOMAIN_DISPLAY_OEM_GROUP
     OEM_STRING Group;
 } DOMAIN_DISPLAY_OEM_GROUP, *PDOMAIN_DISPLAY_OEM_GROUP;
 
-//
-// SamQueryLocalizableAccountsInDomain types
-//
 
 typedef enum _DOMAIN_LOCALIZABLE_ACCOUNTS_INFORMATION
 {
@@ -476,9 +449,6 @@ typedef union _DOMAIN_LOCALIZABLE_INFO_BUFFER
     DOMAIN_LOCALIZABLE_ACCOUNTS_BASIC Basic;
 } DOMAIN_LOCALIZABLE_ACCOUNTS_INFO_BUFFER, *PDOMAIN_LOCALIZABLE_ACCOUNTS_INFO_BUFFER;
 
-//
-// Functions
-//
 
 /**
  * The SamLookupDomainInSamServer method obtains the SID of a domain, given the object's name.
@@ -515,7 +485,7 @@ NTAPI
 SamEnumerateDomainsInSamServer(
     _In_ SAM_HANDLE ServerHandle,
     _Inout_ PSAM_ENUMERATE_HANDLE EnumerationContext,
-    _Outptr_ PVOID *Buffer, // PSAM_SID_ENUMERATION *Buffer
+    _Outptr_ PVOID *Buffer,
     _In_ ULONG PreferedMaximumLength,
     _Out_ PULONG CountReturned
     );
@@ -657,9 +627,6 @@ SamQueryLocalizableAccountsInDomain(
     _Outptr_ PVOID *Buffer
     );
 
-//
-// Group
-//
 
 #define GROUP_READ_INFORMATION 0x0001
 #define GROUP_WRITE_ACCOUNT 0x0002
@@ -691,17 +658,14 @@ typedef struct _GROUP_MEMBERSHIP
     ULONG Attributes;
 } GROUP_MEMBERSHIP, *PGROUP_MEMBERSHIP;
 
-//
-// SamQueryInformationGroup/SamSetInformationGroup types
-//
 
 typedef enum _GROUP_INFORMATION_CLASS
 {
-    GroupGeneralInformation = 1,        // q: GROUP_GENERAL_INFORMATION
-    GroupNameInformation,               // qs: GROUP_NAME_INFORMATION
-    GroupAttributeInformation,          // qs: GROUP_ATTRIBUTE_INFORMATION
-    GroupAdminCommentInformation,       // qs: GROUP_ADM_COMMENT_INFORMATION
-    GroupReplicationInformation,        // q: GROUP_REPLICATION_INFORMATION
+    GroupGeneralInformation = 1,
+    GroupNameInformation,
+    GroupAttributeInformation,
+    GroupAdminCommentInformation,
+    GroupReplicationInformation,
     GroupMaxInformation
 } GROUP_INFORMATION_CLASS;
 
@@ -733,9 +697,6 @@ typedef struct _GROUP_REPLICATION_INFORMATION
     LARGE_INTEGER LastWriteTime;
 } GROUP_REPLICATION_INFORMATION, *PGROUP_REPLICATION_INFORMATION;
 
-//
-// Functions
-//
 
 /**
  * The SamEnumerateGroupsInDomain method enumerates all groups.
@@ -754,7 +715,7 @@ NTAPI
 SamEnumerateGroupsInDomain(
     _In_ SAM_HANDLE DomainHandle,
     _Inout_ PSAM_ENUMERATE_HANDLE EnumerationContext,
-    _Outptr_ PVOID *Buffer, // PSAM_RID_ENUMERATION *
+    _Outptr_ PVOID *Buffer,
     _In_ ULONG PreferedMaximumLength,
     _Out_ PULONG CountReturned
     );
@@ -841,9 +802,6 @@ SamSetMemberAttributesOfGroup(
     _In_ ULONG Attributes
     );
 
-//
-// Alias
-//
 
 #define ALIAS_ADD_MEMBER 0x0001
 #define ALIAS_REMOVE_MEMBER 0x0002
@@ -869,17 +827,14 @@ SamSetMemberAttributesOfGroup(
 #define ALIAS_EXECUTE (STANDARD_RIGHTS_EXECUTE | \
     ALIAS_READ_INFORMATION)
 
-//
-// SamQueryInformationAlias/SamSetInformationAlias types
-//
 
 typedef enum _ALIAS_INFORMATION_CLASS
 {
-    AliasGeneralInformation = 1,        // q: ALIAS_GENERAL_INFORMATION
-    AliasNameInformation,               // qs: ALIAS_NAME_INFORMATION
-    AliasAdminCommentInformation,       // qs: ALIAS_ADM_COMMENT_INFORMATION
-    AliasReplicationInformation,        // q: ALIAS_REPLICATION_INFORMATION
-    AliasExtendedInformation,           // q: ALIAS_EXTENDED_INFORMATION
+    AliasGeneralInformation = 1,
+    AliasNameInformation,
+    AliasAdminCommentInformation,
+    AliasReplicationInformation,
+    AliasExtendedInformation,
     AliasMaxInformation
 } ALIAS_INFORMATION_CLASS;
 
@@ -916,9 +871,6 @@ typedef struct _ALIAS_EXTENDED_INFORMATION
     SAM_SHELL_OBJECT_PROPERTIES ShellAdminObjectProperties;
 } ALIAS_EXTENDED_INFORMATION, *PALIAS_EXTENDED_INFORMATION;
 
-//
-// Functions
-//
 
 NTSYSAPI
 NTSTATUS
@@ -926,7 +878,7 @@ NTAPI
 SamEnumerateAliasesInDomain(
     _In_ SAM_HANDLE DomainHandle,
     _Inout_ PSAM_ENUMERATE_HANDLE EnumerationContext,
-    _Outptr_ PVOID *Buffer, // PSAM_RID_ENUMERATION *Buffer
+    _Outptr_ PVOID *Buffer,
     _In_ ULONG PreferedMaximumLength,
     _Out_ PULONG CountReturned
     );
@@ -1030,9 +982,6 @@ SamGetAliasMembership(
     _Out_ PULONG MembershipCount,
     _Out_ _Deref_post_count_(*MembershipCount) PULONG *Aliases
     );
-//
-// Group types
-//
 
 #define GROUP_TYPE_BUILTIN_LOCAL_GROUP 0x00000001
 #define GROUP_TYPE_ACCOUNT_GROUP 0x00000002
@@ -1046,9 +995,6 @@ SamGetAliasMembership(
     GROUP_TYPE_APP_BASIC_GROUP | \
     GROUP_TYPE_APP_QUERY_GROUP)
 
-//
-// User
-//
 
 #define USER_READ_GENERAL 0x0001
 #define USER_READ_PREFERENCES 0x0002
@@ -1090,9 +1036,6 @@ SamGetAliasMembership(
     USER_READ_GENERAL | \
     USER_CHANGE_PASSWORD)
 
-//
-// User account control flags
-//
 
 #define USER_ACCOUNT_DISABLED (0x00000001)
 #define USER_HOME_DIRECTORY_REQUIRED (0x00000002)
@@ -1136,7 +1079,6 @@ SamGetAliasMembership(
     USER_PASSWORD_EXPIRED \
     )
 
-// Logon times may be expressed in day, hour, or minute granularity.
 
 #define SAM_DAYS_PER_WEEK (7)
 #define SAM_HOURS_PER_WEEK (24 * SAM_DAYS_PER_WEEK)
@@ -1146,17 +1088,6 @@ typedef struct _LOGON_HOURS
 {
     USHORT UnitsPerWeek;
 
-    // UnitsPerWeek is the number of equal length time units the week is
-    // divided into. This value is used to compute the length of the bit
-    // string in logon_hours. Must be less than or equal to
-    // SAM_UNITS_PER_WEEK (10080) for this release.
-    //
-    // LogonHours is a bit map of valid logon times. Each bit represents
-    // a unique division in a week. The largest bit map supported is 1260
-    // bytes (10080 bits), which represents minutes per week. In this case
-    // the first bit (bit 0, byte 0) is Sunday, 00:00:00 - 00-00:59; bit 1,
-    // byte 0 is Sunday, 00:01:00 - 00:01:59, etc. A NULL pointer means
-    // DONT_CHANGE for SamSetInformationUser() calls.
 
     PUCHAR LogonHours;
 } LOGON_HOURS, *PLOGON_HOURS;
@@ -1168,48 +1099,45 @@ typedef struct _LOGON_HOURS
  */
 typedef struct _SR_SECURITY_DESCRIPTOR
 {
-    ULONG Length;                   // Indicates the size in bytes of the structure.
-    PUCHAR SecurityDescriptor;      // Indicates the user's security privileges.
+    ULONG Length;
+    PUCHAR SecurityDescriptor;
 } SR_SECURITY_DESCRIPTOR, *PSR_SECURITY_DESCRIPTOR;
 
-//
-// SamQueryInformationUser/SamSetInformationUser types
-//
 
 typedef enum _USER_INFORMATION_CLASS
 {
-    UserGeneralInformation = 1,     // q: USER_GENERAL_INFORMATION
-    UserPreferencesInformation,     // qs: USER_PREFERENCES_INFORMATION
-    UserLogonInformation,           // q: USER_LOGON_INFORMATION
-    UserLogonHoursInformation,      // qs: USER_LOGON_HOURS_INFORMATION
-    UserAccountInformation,         // q: USER_ACCOUNT_INFORMATION
-    UserNameInformation,            // qs: USER_NAME_INFORMATION
-    UserAccountNameInformation,     // qs: USER_ACCOUNT_NAME_INFORMATION
-    UserFullNameInformation,        // qs: USER_FULL_NAME_INFORMATION
-    UserPrimaryGroupInformation,    // qs: USER_PRIMARY_GROUP_INFORMATION
-    UserHomeInformation,            // qs: USER_HOME_INFORMATION // 10
-    UserScriptInformation,          // qs: USER_SCRIPT_INFORMATION
-    UserProfileInformation,         // qs: USER_PROFILE_INFORMATION
-    UserAdminCommentInformation,    // qs: USER_ADMIN_COMMENT_INFORMATION
-    UserWorkStationsInformation,    // qs: USER_WORKSTATIONS_INFORMATION
-    UserSetPasswordInformation,     // s: USER_SET_PASSWORD_INFORMATION
-    UserControlInformation,         // qs: USER_CONTROL_INFORMATION
-    UserExpiresInformation,         // qs: USER_EXPIRES_INFORMATION
-    UserInternal1Information,       // qs: USER_INTERNAL1_INFORMATION
-    UserInternal2Information,       // qs: USER_INTERNAL2_INFORMATION
-    UserParametersInformation,      // qs: USER_PARAMETERS_INFORMATION // 20
-    UserAllInformation,             // qs: USER_ALL_INFORMATION
-    UserInternal3Information,       // qs: USER_INTERNAL3_INFORMATION
-    UserInternal4Information,       // qs: USER_INTERNAL4_INFORMATION
-    UserInternal5Information,       // qs: USER_INTERNAL5_INFORMATION
-    UserInternal4InformationNew,    // qs: USER_INTERNAL4_INFORMATION_NEW
-    UserInternal5InformationNew,    // qs: USER_INTERNAL5_INFORMATION_NEW
-    UserInternal6Information,       // qs: USER_INTERNAL6_INFORMATION
-    UserExtendedInformation,        // qs: USER_EXTENDED_INFORMATION
-    UserLogonUIInformation,         // q: USER_LOGON_UI_INFORMATION // since VISTA
-    UserAuthInformation,            // qs: USER_AUTH_INFORMATION // since WIN10 // 30
-    UserInternal7Information,       // qs: USER_INTERNAL7_INFORMATION // since 20H1
-    UserInternal8Information,       // qs: USER_INTERNAL8_INFORMATION
+    UserGeneralInformation = 1,
+    UserPreferencesInformation,
+    UserLogonInformation,
+    UserLogonHoursInformation,
+    UserAccountInformation,
+    UserNameInformation,
+    UserAccountNameInformation,
+    UserFullNameInformation,
+    UserPrimaryGroupInformation,
+    UserHomeInformation,
+    UserScriptInformation,
+    UserProfileInformation,
+    UserAdminCommentInformation,
+    UserWorkStationsInformation,
+    UserSetPasswordInformation,
+    UserControlInformation,
+    UserExpiresInformation,
+    UserInternal1Information,
+    UserInternal2Information,
+    UserParametersInformation,
+    UserAllInformation,
+    UserInternal3Information,
+    UserInternal4Information,
+    UserInternal5Information,
+    UserInternal4InformationNew,
+    UserInternal5InformationNew,
+    UserInternal6Information,
+    UserExtendedInformation,
+    UserLogonUIInformation,
+    UserAuthInformation,
+    UserInternal7Information,
+    UserInternal8Information,
     UserMaxInformation
 } USER_INFORMATION_CLASS, *PUSER_INFORMATION_CLASS;
 
@@ -1382,9 +1310,6 @@ typedef struct _USER_PARAMETERS_INFORMATION
     UNICODE_STRING Parameters;
 } USER_PARAMETERS_INFORMATION, *PUSER_PARAMETERS_INFORMATION;
 
-//
-// Flags for WhichFields in USER_ALL_INFORMATION
-//
 
 #define USER_ALL_USERNAME 0x00000001
 #define USER_ALL_FULLNAME 0x00000002
@@ -1410,16 +1335,15 @@ typedef struct _USER_PARAMETERS_INFORMATION
 #define USER_ALL_PARAMETERS 0x00200000
 #define USER_ALL_COUNTRYCODE 0x00400000
 #define USER_ALL_CODEPAGE 0x00800000
-#define USER_ALL_NTPASSWORDPRESENT 0x01000000 // field AND boolean
-#define USER_ALL_LMPASSWORDPRESENT 0x02000000 // field AND boolean
-#define USER_ALL_PRIVATEDATA 0x04000000 // field AND boolean
+#define USER_ALL_NTPASSWORDPRESENT 0x01000000
+#define USER_ALL_LMPASSWORDPRESENT 0x02000000
+#define USER_ALL_PRIVATEDATA 0x04000000
 #define USER_ALL_PASSWORDEXPIRED 0x08000000
 #define USER_ALL_SECURITYDESCRIPTOR 0x10000000
-#define USER_ALL_OWFPASSWORD 0x20000000 // boolean
+#define USER_ALL_OWFPASSWORD 0x20000000
 
 #define USER_ALL_UNDEFINED_MASK 0xc0000000
 
-// Fields that require USER_READ_GENERAL access to read.
 
 #define USER_ALL_READ_GENERAL_MASK \
     (USER_ALL_USERNAME | \
@@ -1429,7 +1353,6 @@ typedef struct _USER_PARAMETERS_INFORMATION
     USER_ALL_ADMINCOMMENT | \
     USER_ALL_USERCOMMENT)
 
-// Fields that require USER_READ_LOGON access to read.
 
 #define USER_ALL_READ_LOGON_MASK \
    (USER_ALL_HOMEDIRECTORY | \
@@ -1445,7 +1368,6 @@ typedef struct _USER_PARAMETERS_INFORMATION
     USER_ALL_PASSWORDCANCHANGE | \
     USER_ALL_PASSWORDMUSTCHANGE)
 
-// Fields that require USER_READ_ACCOUNT access to read.
 
 #define USER_ALL_READ_ACCOUNT_MASK \
     (USER_ALL_PASSWORDLASTSET | \
@@ -1453,12 +1375,10 @@ typedef struct _USER_PARAMETERS_INFORMATION
     USER_ALL_USERACCOUNTCONTROL | \
     USER_ALL_PARAMETERS)
 
-// Fields that require USER_READ_PREFERENCES access to read.
 
 #define USER_ALL_READ_PREFERENCES_MASK \
     (USER_ALL_COUNTRYCODE | USER_ALL_CODEPAGE)
 
-// Fields that can only be read by trusted clients.
 
 #define USER_ALL_READ_TRUSTED_MASK \
     (USER_ALL_NTPASSWORDPRESENT | \
@@ -1467,11 +1387,9 @@ typedef struct _USER_PARAMETERS_INFORMATION
     USER_ALL_SECURITYDESCRIPTOR | \
     USER_ALL_PRIVATEDATA)
 
-// Fields that can't be read.
 
 #define USER_ALL_READ_CANT_MASK USER_ALL_UNDEFINED_MASK
 
-// Fields that require USER_WRITE_ACCOUNT access to write.
 
 #define USER_ALL_WRITE_ACCOUNT_MASK \
     (USER_ALL_USERNAME | \
@@ -1488,24 +1406,16 @@ typedef struct _USER_PARAMETERS_INFORMATION
     USER_ALL_USERACCOUNTCONTROL | \
     USER_ALL_PARAMETERS)
 
-// Fields that require USER_WRITE_PREFERENCES access to write.
 
 #define USER_ALL_WRITE_PREFERENCES_MASK \
     (USER_ALL_USERCOMMENT | USER_ALL_COUNTRYCODE | USER_ALL_CODEPAGE)
 
-// Fields that require USER_FORCE_PASSWORD_CHANGE access to write.
-//
-// Note that non-trusted clients only set the NT password as a
-// UNICODE string. The wrapper will convert it to an LM password,
-// OWF and encrypt both versions. Trusted clients can pass in OWF
-// versions of either or both.
 
 #define USER_ALL_WRITE_FORCE_PASSWORD_CHANGE_MASK \
     (USER_ALL_NTPASSWORDPRESENT | \
     USER_ALL_LMPASSWORDPRESENT | \
     USER_ALL_PASSWORDEXPIRED)
 
-// Fields that can only be written by trusted clients.
 
 #define USER_ALL_WRITE_TRUSTED_MASK \
     (USER_ALL_LASTLOGON | \
@@ -1516,7 +1426,6 @@ typedef struct _USER_PARAMETERS_INFORMATION
     USER_ALL_SECURITYDESCRIPTOR | \
     USER_ALL_PRIVATEDATA)
 
-// Fields that can't be written.
 
 #define USER_ALL_WRITE_CANT_MASK \
     (USER_ALL_USERID | \
@@ -1623,7 +1532,6 @@ typedef struct _USER_INTERNAL6_INFORMATION
 
 typedef SAM_BYTE_ARRAY_32K SAM_USER_TILE, *PSAM_USER_TILE;
 
-// 0xff000fff is reserved for internal callers and implementation.
 
 #define USER_EXTENDED_FIELD_USER_TILE (0x00001000L)
 #define USER_EXTENDED_FIELD_PASSWORD_HINT (0x00002000L)
@@ -1639,7 +1547,6 @@ typedef struct _USER_EXTENDED_INFORMATION
     SAM_SHELL_OBJECT_PROPERTIES ShellAdminObjectProperties;
 } USER_EXTENDED_INFORMATION, *PUSER_EXTENDED_INFORMATION;
 
-// For local callers only.
 typedef struct _USER_LOGON_UI_INFORMATION
 {
     BOOLEAN PasswordIsBlank;
@@ -1672,16 +1579,7 @@ typedef struct _USER_INTERNAL8_INFORMATION
     ENCRYPTED_PASSWORD_AES UserPassword;
 } USER_INTERNAL8_INFORMATION, *PUSER_INTERNAL8_INFORMATION;
 
-// SamChangePasswordUser3 types
 
-// Error values:
-// * SAM_PWD_CHANGE_NO_ERROR
-// * SAM_PWD_CHANGE_PASSWORD_TOO_SHORT
-// * SAM_PWD_CHANGE_PWD_IN_HISTORY
-// * SAM_PWD_CHANGE_USERNAME_IN_PASSWORD
-// * SAM_PWD_CHANGE_FULLNAME_IN_PASSWORD
-// * SAM_PWD_CHANGE_MACHINE_PASSWORD_NOT_DEFAULT
-// * SAM_PWD_CHANGE_FAILED_BY_FILTER
 
 typedef struct _USER_PWD_CHANGE_FAILURE_INFORMATION
 {
@@ -1689,9 +1587,6 @@ typedef struct _USER_PWD_CHANGE_FAILURE_INFORMATION
     UNICODE_STRING FilterModuleName;
 } USER_PWD_CHANGE_FAILURE_INFORMATION, *PUSER_PWD_CHANGE_FAILURE_INFORMATION;
 
-//
-// ExtendedFailureReason values
-//
 
 #define SAM_PWD_CHANGE_NO_ERROR 0
 #define SAM_PWD_CHANGE_PASSWORD_TOO_SHORT 1
@@ -1704,9 +1599,6 @@ typedef struct _USER_PWD_CHANGE_FAILURE_INFORMATION
 #define SAM_PWD_CHANGE_PASSWORD_TOO_LONG 8
 #define SAM_PWD_CHANGE_FAILURE_REASON_MAX 8
 
-//
-// Functions
-//
 
 NTSYSAPI
 NTSTATUS
@@ -1715,12 +1607,11 @@ SamEnumerateUsersInDomain(
     _In_ SAM_HANDLE DomainHandle,
     _Inout_ PSAM_ENUMERATE_HANDLE EnumerationContext,
     _In_ ULONG UserAccountControl,
-    _Outptr_ PVOID *Buffer, // PSAM_RID_ENUMERATION *
+    _Outptr_ PVOID *Buffer,
     _In_ ULONG PreferedMaximumLength,
     _Out_ PULONG CountReturned
     );
 
-// rev
 NTSYSAPI
 NTSTATUS
 NTAPI
@@ -1729,7 +1620,7 @@ SamEnumerateUsersInDomain2(
     _Inout_ PSAM_ENUMERATE_HANDLE EnumerationContext,
     _In_ ULONG UserAccountControl,
     _In_ ULONG Flags,
-    _Outptr_ PVOID *Buffer, // PSAM_RID_ENUMERATION *
+    _Outptr_ PVOID *Buffer,
     _In_ ULONG PreferedMaximumLength,
     _Out_ PULONG CountReturned
     );
@@ -1868,9 +1759,6 @@ SamGetDisplayEnumerationIndex(
     _Out_ PULONG Index
     );
 
-//
-// Database replication
-//
 
 typedef enum _SECURITY_DB_DELTA_TYPE
 {
@@ -1954,9 +1842,6 @@ SamUnregisterObjectChangeNotification(
     _In_ HANDLE NotificationEventHandle
     );
 
-//
-// Compatibility mode
-//
 
 #define SAM_SID_COMPATIBILITY_ALL 0
 #define SAM_SID_COMPATIBILITY_LAX 1
@@ -1970,9 +1855,6 @@ SamGetCompatibilityMode(
     _Out_ ULONG *Mode
     );
 
-//
-// Password validation
-//
 
 typedef enum _PASSWORD_POLICY_VALIDATION_TYPE
 {
@@ -1987,7 +1869,6 @@ typedef struct _SAM_VALIDATE_PASSWORD_HASH
     _Field_size_bytes_(Length) PUCHAR Hash;
 } SAM_VALIDATE_PASSWORD_HASH, *PSAM_VALIDATE_PASSWORD_HASH;
 
-// Flags for PresentFields in SAM_VALIDATE_PERSISTED_FIELDS
 
 #define SAM_VALIDATE_PASSWORD_LAST_SET 0x00000001
 #define SAM_VALIDATE_BAD_PASSWORD_TIME 0x00000002
@@ -2040,7 +1921,7 @@ typedef struct _SAM_VALIDATE_PASSWORD_CHANGE_INPUT_ARG
     UNICODE_STRING ClearPassword;
     UNICODE_STRING UserAccountName;
     SAM_VALIDATE_PASSWORD_HASH HashedPassword;
-    BOOLEAN PasswordMatch; // denotes if the old password supplied by user matched or not
+    BOOLEAN PasswordMatch;
 } SAM_VALIDATE_PASSWORD_CHANGE_INPUT_ARG, *PSAM_VALIDATE_PASSWORD_CHANGE_INPUT_ARG;
 
 typedef struct _SAM_VALIDATE_PASSWORD_RESET_INPUT_ARG
@@ -2049,8 +1930,8 @@ typedef struct _SAM_VALIDATE_PASSWORD_RESET_INPUT_ARG
     UNICODE_STRING ClearPassword;
     UNICODE_STRING UserAccountName;
     SAM_VALIDATE_PASSWORD_HASH HashedPassword;
-    BOOLEAN PasswordMustChangeAtNextLogon; // looked at only for password reset
-    BOOLEAN ClearLockout; // can be used clear user account lockout
+    BOOLEAN PasswordMustChangeAtNextLogon;
+    BOOLEAN ClearLockout;
 } SAM_VALIDATE_PASSWORD_RESET_INPUT_ARG, *PSAM_VALIDATE_PASSWORD_RESET_INPUT_ARG;
 
 typedef union _SAM_VALIDATE_INPUT_ARG
@@ -2077,9 +1958,6 @@ SamValidatePassword(
     _Out_ PSAM_VALIDATE_OUTPUT_ARG *OutputArg
     );
 
-//
-// Generic operation
-//
 
 typedef enum _SAM_GENERIC_OPERATION_TYPE
 {
@@ -2119,4 +1997,4 @@ SamPerformGenericOperation(
     _Out_ PSAM_GENERIC_OPERATION_OUTPUT *OperationOut
     );
 
-#endif // _NTSAM_H
+#endif

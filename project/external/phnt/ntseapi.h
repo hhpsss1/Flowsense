@@ -7,53 +7,46 @@
 #ifndef _NTSEAPI_H
 #define _NTSEAPI_H
 
-//
-// Privileges
-//
 
 #define SE_MIN_WELL_KNOWN_PRIVILEGE (2L)
-#define SE_CREATE_TOKEN_PRIVILEGE (2L)              // Required to create a primary token.
-#define SE_ASSIGNPRIMARYTOKEN_PRIVILEGE (3L)        // Required to assign the primary token of a process.
-#define SE_LOCK_MEMORY_PRIVILEGE (4L)               // Required to lock physical pages in memory.
-#define SE_INCREASE_QUOTA_PRIVILEGE (5L)            // Required to increase the quota assigned to a process.
-#define SE_MACHINE_ACCOUNT_PRIVILEGE (6L)           // Required to create a computer account.
-#define SE_TCB_PRIVILEGE (7L)                       // Required to act as part of the Trusted Computer Base.
-#define SE_SECURITY_PRIVILEGE (8L)                  // Required to perform a number of security-related functions, such as controlling and viewing audit messages. // Security operator.
-#define SE_TAKE_OWNERSHIP_PRIVILEGE (9L)            // Required to take ownership of an object without being granted discretionary access.
-#define SE_LOAD_DRIVER_PRIVILEGE (10L)              // Required to load or unload a device driver.
-#define SE_SYSTEM_PROFILE_PRIVILEGE (11L)           // Required to gather profiling information for the entire system.
-#define SE_SYSTEMTIME_PRIVILEGE (12L)               // Required to modify the system time.
-#define SE_PROF_SINGLE_PROCESS_PRIVILEGE (13L)      // Required to gather profiling information for a single process.
-#define SE_INC_BASE_PRIORITY_PRIVILEGE (14L)        // Required to increase the base priority of a process.
-#define SE_CREATE_PAGEFILE_PRIVILEGE (15L)          // Required to create a paging file.
-#define SE_CREATE_PERMANENT_PRIVILEGE (16L)         // Required to create a permanent object.
-#define SE_BACKUP_PRIVILEGE (17L)                   // Required to perform backup operations. This privilege causes the system to grant all read access control to any file.
-#define SE_RESTORE_PRIVILEGE (18L)                  // Required to perform restore operations. This privilege causes the system to grant all write access control to any file.
-#define SE_SHUTDOWN_PRIVILEGE (19L)                 // Required to shut down a local system.
-#define SE_DEBUG_PRIVILEGE (20L)                    // Required to debug and adjust memory of any process, ignoring the DACL for the process.
-#define SE_AUDIT_PRIVILEGE (21L)                    // Required to generate audit-log entries.
-#define SE_SYSTEM_ENVIRONMENT_PRIVILEGE (22L)       // Required to modify UEFI variables of systems that use this type of memory to store configuration information.
-#define SE_CHANGE_NOTIFY_PRIVILEGE (23L)            // Required to receive notifications of changes to files or directories and skip all traversal access checks. It is enabled by default for all users.
-#define SE_REMOTE_SHUTDOWN_PRIVILEGE (24L)          // Required to shut down a system using a network request.
-#define SE_UNDOCK_PRIVILEGE (25L)                   // Required to undock a laptop.
-#define SE_SYNC_AGENT_PRIVILEGE (26L)               // Required for a domain controller to use the Lightweight Directory Access Protocol (LDAP) directory synchronization services.
-#define SE_ENABLE_DELEGATION_PRIVILEGE (27L)        // Required to mark user and computer accounts as trusted for delegation.
-#define SE_MANAGE_VOLUME_PRIVILEGE (28L)            // Required to enable volume management privileges.
-#define SE_IMPERSONATE_PRIVILEGE (29L)              // Required to impersonate a client after authentication.
-#define SE_CREATE_GLOBAL_PRIVILEGE (30L)            // Required to create named file mapping objects in the global namespace during Terminal Services sessions. It is enabled by default for all administrators.
-#define SE_TRUSTED_CREDMAN_ACCESS_PRIVILEGE (31L)   // Required to access Credential Manager as a trusted caller.
-#define SE_RELABEL_PRIVILEGE (32L)                  // Required to modify the mandatory integrity level of an object.
-#define SE_INC_WORKING_SET_PRIVILEGE (33L)          // Required to allocate more memory for applications that run in the context of users.
-#define SE_TIME_ZONE_PRIVILEGE (34L)                // Required to adjust the time zone associated with the computer's internal clock.
-#define SE_CREATE_SYMBOLIC_LINK_PRIVILEGE (35L)     // Required to create a symbolic link.
-#define SE_DELEGATE_SESSION_USER_IMPERSONATE_PRIVILEGE (36L) // Required to obtain an impersonation token for another user in the same session.
+#define SE_CREATE_TOKEN_PRIVILEGE (2L)
+#define SE_ASSIGNPRIMARYTOKEN_PRIVILEGE (3L)
+#define SE_LOCK_MEMORY_PRIVILEGE (4L)
+#define SE_INCREASE_QUOTA_PRIVILEGE (5L)
+#define SE_MACHINE_ACCOUNT_PRIVILEGE (6L)
+#define SE_TCB_PRIVILEGE (7L)
+#define SE_SECURITY_PRIVILEGE (8L)
+#define SE_TAKE_OWNERSHIP_PRIVILEGE (9L)
+#define SE_LOAD_DRIVER_PRIVILEGE (10L)
+#define SE_SYSTEM_PROFILE_PRIVILEGE (11L)
+#define SE_SYSTEMTIME_PRIVILEGE (12L)
+#define SE_PROF_SINGLE_PROCESS_PRIVILEGE (13L)
+#define SE_INC_BASE_PRIORITY_PRIVILEGE (14L)
+#define SE_CREATE_PAGEFILE_PRIVILEGE (15L)
+#define SE_CREATE_PERMANENT_PRIVILEGE (16L)
+#define SE_BACKUP_PRIVILEGE (17L)
+#define SE_RESTORE_PRIVILEGE (18L)
+#define SE_SHUTDOWN_PRIVILEGE (19L)
+#define SE_DEBUG_PRIVILEGE (20L)
+#define SE_AUDIT_PRIVILEGE (21L)
+#define SE_SYSTEM_ENVIRONMENT_PRIVILEGE (22L)
+#define SE_CHANGE_NOTIFY_PRIVILEGE (23L)
+#define SE_REMOTE_SHUTDOWN_PRIVILEGE (24L)
+#define SE_UNDOCK_PRIVILEGE (25L)
+#define SE_SYNC_AGENT_PRIVILEGE (26L)
+#define SE_ENABLE_DELEGATION_PRIVILEGE (27L)
+#define SE_MANAGE_VOLUME_PRIVILEGE (28L)
+#define SE_IMPERSONATE_PRIVILEGE (29L)
+#define SE_CREATE_GLOBAL_PRIVILEGE (30L)
+#define SE_TRUSTED_CREDMAN_ACCESS_PRIVILEGE (31L)
+#define SE_RELABEL_PRIVILEGE (32L)
+#define SE_INC_WORKING_SET_PRIVILEGE (33L)
+#define SE_TIME_ZONE_PRIVILEGE (34L)
+#define SE_CREATE_SYMBOLIC_LINK_PRIVILEGE (35L)
+#define SE_DELEGATE_SESSION_USER_IMPERSONATE_PRIVILEGE (36L)
 #define SE_MAX_WELL_KNOWN_PRIVILEGE SE_DELEGATE_SESSION_USER_IMPERSONATE_PRIVILEGE
 
-//
-// Authz
-//
 
-// begin_rev
 
 #if (PHNT_MODE == PHNT_MODE_KERNEL)
 /**
@@ -64,62 +57,59 @@
  */
 typedef enum _TOKEN_INFORMATION_CLASS
 {
-    TokenUser = 1,                        // q: TOKEN_USER, SE_TOKEN_USER
-    TokenGroups,                          // q: TOKEN_GROUPS
-    TokenPrivileges,                      // q: TOKEN_PRIVILEGES
-    TokenOwner,                           // qs: TOKEN_OWNER
-    TokenPrimaryGroup,                    // qs: TOKEN_PRIMARY_GROUP
-    TokenDefaultDacl,                     // qs: TOKEN_DEFAULT_DACL
-    TokenSource,                          // q: TOKEN_SOURCE
-    TokenType,                            // q: TOKEN_TYPE
-    TokenImpersonationLevel,              // q: SECURITY_IMPERSONATION_LEVEL
-    TokenStatistics,                      // q: TOKEN_STATISTICS // 10
-    TokenRestrictedSids,                  // q: TOKEN_GROUPS
-    TokenSessionId,                       // qs: ULONG (requires SeTcbPrivilege)
-    TokenGroupsAndPrivileges,             // q: TOKEN_GROUPS_AND_PRIVILEGES
-    TokenSessionReference,                // s: ULONG (requires SeTcbPrivilege)
-    TokenSandBoxInert,                    // q: ULONG
-    TokenAuditPolicy,                     // qs: TOKEN_AUDIT_POLICY (requires SeSecurityPrivilege/SeTcbPrivilege)
-    TokenOrigin,                          // qs: TOKEN_ORIGIN (requires SeTcbPrivilege)
-    TokenElevationType,                   // q: TOKEN_ELEVATION_TYPE
-    TokenLinkedToken,                     // qs: TOKEN_LINKED_TOKEN (requires SeCreateTokenPrivilege)
-    TokenElevation,                       // q: TOKEN_ELEVATION // 20
-    TokenHasRestrictions,                 // q: ULONG
-    TokenAccessInformation,               // q: TOKEN_ACCESS_INFORMATION
-    TokenVirtualizationAllowed,           // qs: ULONG (requires SeCreateTokenPrivilege)
-    TokenVirtualizationEnabled,           // qs: ULONG
-    TokenIntegrityLevel,                  // qs: TOKEN_MANDATORY_LABEL
-    TokenUIAccess,                        // qs: ULONG (requires SeTcbPrivilege)
-    TokenMandatoryPolicy,                 // qs: TOKEN_MANDATORY_POLICY (requires SeTcbPrivilege)
-    TokenLogonSid,                        // q: TOKEN_GROUPS
-    TokenIsAppContainer,                  // q: ULONG // since WIN8
-    TokenCapabilities,                    // q: TOKEN_GROUPS // 30
-    TokenAppContainerSid,                 // q: TOKEN_APPCONTAINER_INFORMATION
-    TokenAppContainerNumber,              // q: ULONG
-    TokenUserClaimAttributes,             // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
-    TokenDeviceClaimAttributes,           // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
-    TokenRestrictedUserClaimAttributes,   // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
-    TokenRestrictedDeviceClaimAttributes, // q: CLAIM_SECURITY_ATTRIBUTES_INFORMATION
-    TokenDeviceGroups,                    // q: TOKEN_GROUPS
-    TokenRestrictedDeviceGroups,          // q: TOKEN_GROUPS
-    TokenSecurityAttributes,              // qs: TOKEN_SECURITY_ATTRIBUTES_[AND_OPERATION_]INFORMATION (requires SeTcbPrivilege)
-    TokenIsRestricted,                    // q: ULONG // 40
-    TokenProcessTrustLevel,               // q: TOKEN_PROCESS_TRUST_LEVEL // since WINBLUE
-    TokenPrivateNameSpace,                // qs: ULONG (requires SeTcbPrivilege) // since THRESHOLD
-    TokenSingletonAttributes,             // q: TOKEN_SECURITY_ATTRIBUTES_INFORMATION // since REDSTONE
-    TokenBnoIsolation,                    // q: TOKEN_BNO_ISOLATION_INFORMATION // since REDSTONE2
-    TokenChildProcessFlags,               // s: ULONG  (requires SeTcbPrivilege) // since REDSTONE3
-    TokenIsLessPrivilegedAppContainer,    // q: ULONG // since REDSTONE5
-    TokenIsSandboxed,                     // q: ULONG // since 19H1
-    TokenIsAppSilo,                       // q: ULONG // since WIN11 22H2 // previously TokenOriginatingProcessTrustLevel // q: TOKEN_PROCESS_TRUST_LEVEL
-    TokenLoggingInformation,              // q: TOKEN_LOGGING_INFORMATION // since 24H2
-    TokenLearningMode,                    // q: // since 25H2
+    TokenUser = 1,
+    TokenGroups,
+    TokenPrivileges,
+    TokenOwner,
+    TokenPrimaryGroup,
+    TokenDefaultDacl,
+    TokenSource,
+    TokenType,
+    TokenImpersonationLevel,
+    TokenStatistics,
+    TokenRestrictedSids,
+    TokenSessionId,
+    TokenGroupsAndPrivileges,
+    TokenSessionReference,
+    TokenSandBoxInert,
+    TokenAuditPolicy,
+    TokenOrigin,
+    TokenElevationType,
+    TokenLinkedToken,
+    TokenElevation,
+    TokenHasRestrictions,
+    TokenAccessInformation,
+    TokenVirtualizationAllowed,
+    TokenVirtualizationEnabled,
+    TokenIntegrityLevel,
+    TokenUIAccess,
+    TokenMandatoryPolicy,
+    TokenLogonSid,
+    TokenIsAppContainer,
+    TokenCapabilities,
+    TokenAppContainerSid,
+    TokenAppContainerNumber,
+    TokenUserClaimAttributes,
+    TokenDeviceClaimAttributes,
+    TokenRestrictedUserClaimAttributes,
+    TokenRestrictedDeviceClaimAttributes,
+    TokenDeviceGroups,
+    TokenRestrictedDeviceGroups,
+    TokenSecurityAttributes,
+    TokenIsRestricted,
+    TokenProcessTrustLevel,
+    TokenPrivateNameSpace,
+    TokenSingletonAttributes,
+    TokenBnoIsolation,
+    TokenChildProcessFlags,
+    TokenIsLessPrivilegedAppContainer,
+    TokenIsSandboxed,
+    TokenIsAppSilo,
+    TokenLoggingInformation,
+    TokenLearningMode,
     MaxTokenInfoClass
 } TOKEN_INFORMATION_CLASS, *PTOKEN_INFORMATION_CLASS;
 
-//
-// Token information structures
-//
 
 /**
  * The TOKEN_USER structure identifies the user associated with an access token.
@@ -310,37 +300,26 @@ typedef struct _TOKEN_LOGGING_INFORMATION
     PSID_AND_ATTRIBUTES Groups;
 } TOKEN_LOGGING_INFORMATION, *PTOKEN_LOGGING_INFORMATION;
 
-#endif // (PHNT_MODE == PHNT_MODE_KERNEL)
+#endif
 
-//
-// Types
-//
 
 #define TOKEN_SECURITY_ATTRIBUTE_TYPE_INVALID 0x00
 #define TOKEN_SECURITY_ATTRIBUTE_TYPE_INT64 0x01
 #define TOKEN_SECURITY_ATTRIBUTE_TYPE_UINT64 0x02
-#define TOKEN_SECURITY_ATTRIBUTE_TYPE_STRING 0x03 // Case insensitive attribute value string by default. Unless the flag TOKEN_SECURITY_ATTRIBUTE_VALUE_CASE_SENSITIVE is set.
-#define TOKEN_SECURITY_ATTRIBUTE_TYPE_FQBN 0x04 // Fully-qualified binary name.
+#define TOKEN_SECURITY_ATTRIBUTE_TYPE_STRING 0x03
+#define TOKEN_SECURITY_ATTRIBUTE_TYPE_FQBN 0x04
 #define TOKEN_SECURITY_ATTRIBUTE_TYPE_SID 0x05
 #define TOKEN_SECURITY_ATTRIBUTE_TYPE_BOOLEAN 0x06
 #define TOKEN_SECURITY_ATTRIBUTE_TYPE_OCTET_STRING 0x10
 
-//
-// Flags
-//
 
-// Attribute must not be inherited across process spawns.
 #define TOKEN_SECURITY_ATTRIBUTE_NON_INHERITABLE 0x0001
-// Attribute value is compared in a case sensitive way. It is valid with string value
-// or composite type containing string value. For other types of value, this flag
-// will be ignored. Currently, it is valid with the two types:
-// TOKEN_SECURITY_ATTRIBUTE_TYPE_STRING and TOKEN_SECURITY_ATTRIBUTE_TYPE_FQBN.
 #define TOKEN_SECURITY_ATTRIBUTE_VALUE_CASE_SENSITIVE 0x0002
-#define TOKEN_SECURITY_ATTRIBUTE_USE_FOR_DENY_ONLY 0x0004 // Attribute is considered only for Deny Aces.
-#define TOKEN_SECURITY_ATTRIBUTE_DISABLED_BY_DEFAULT 0x0008 // Attribute is disabled by default.
-#define TOKEN_SECURITY_ATTRIBUTE_DISABLED 0x0010 // Attribute is disabled.
-#define TOKEN_SECURITY_ATTRIBUTE_MANDATORY 0x0020 // Attribute is mandatory.
-#define TOKEN_SECURITY_ATTRIBUTE_COMPARE_IGNORE 0x0040 // Attribute is ignored.
+#define TOKEN_SECURITY_ATTRIBUTE_USE_FOR_DENY_ONLY 0x0004
+#define TOKEN_SECURITY_ATTRIBUTE_DISABLED_BY_DEFAULT 0x0008
+#define TOKEN_SECURITY_ATTRIBUTE_DISABLED 0x0010
+#define TOKEN_SECURITY_ATTRIBUTE_MANDATORY 0x0020
+#define TOKEN_SECURITY_ATTRIBUTE_COMPARE_IGNORE 0x0040
 
 #define TOKEN_SECURITY_ATTRIBUTE_VALID_FLAGS ( \
     TOKEN_SECURITY_ATTRIBUTE_NON_INHERITABLE | \
@@ -350,27 +329,21 @@ typedef struct _TOKEN_LOGGING_INFORMATION
     TOKEN_SECURITY_ATTRIBUTE_DISABLED | \
     TOKEN_SECURITY_ATTRIBUTE_MANDATORY)
 
-// Reserve upper 16 bits for custom flags. These should be preserved but not
-// validated as they do not affect security in any way.
 #define TOKEN_SECURITY_ATTRIBUTE_CUSTOM_FLAGS 0xffff0000
 
-// end_rev
 
-// private // CLAIM_SECURITY_ATTRIBUTE_FQBN_VALUE
 typedef struct _TOKEN_SECURITY_ATTRIBUTE_FQBN_VALUE
 {
     ULONG64 Version;
     UNICODE_STRING Name;
 } TOKEN_SECURITY_ATTRIBUTE_FQBN_VALUE, *PTOKEN_SECURITY_ATTRIBUTE_FQBN_VALUE;
 
-// private // CLAIM_SECURITY_ATTRIBUTE_OCTET_STRING_VALUE
 typedef struct _TOKEN_SECURITY_ATTRIBUTE_OCTET_STRING_VALUE
 {
-    PVOID Value; // Pointer is BYTE aligned.
-    ULONG ValueLength; // In bytes
+    PVOID Value;
+    ULONG ValueLength;
 } TOKEN_SECURITY_ATTRIBUTE_OCTET_STRING_VALUE, *PTOKEN_SECURITY_ATTRIBUTE_OCTET_STRING_VALUE;
 
-// private
 typedef struct _TOKEN_SECURITY_ATTRIBUTE_V1
 {
     UNICODE_STRING Name;
@@ -388,7 +361,6 @@ typedef struct _TOKEN_SECURITY_ATTRIBUTE_V1
     } Values;
 } TOKEN_SECURITY_ATTRIBUTE_V1, *PTOKEN_SECURITY_ATTRIBUTE_V1;
 
-// private
 typedef struct _TOKEN_SECURITY_ATTRIBUTE_RELATIVE_V1
 {
     UNICODE_STRING Name;
@@ -406,12 +378,9 @@ typedef struct _TOKEN_SECURITY_ATTRIBUTE_RELATIVE_V1
     } Values;
 } TOKEN_SECURITY_ATTRIBUTE_RELATIVE_V1, *PTOKEN_SECURITY_ATTRIBUTE_RELATIVE_V1;
 
-// rev
 #define TOKEN_SECURITY_ATTRIBUTES_INFORMATION_VERSION_V1 1
-// rev
 #define TOKEN_SECURITY_ATTRIBUTES_INFORMATION_VERSION TOKEN_SECURITY_ATTRIBUTES_INFORMATION_VERSION_V1
 
-// private
 typedef struct _TOKEN_SECURITY_ATTRIBUTES_INFORMATION
 {
     USHORT Version;
@@ -423,7 +392,6 @@ typedef struct _TOKEN_SECURITY_ATTRIBUTES_INFORMATION
     };
 } TOKEN_SECURITY_ATTRIBUTES_INFORMATION, *PTOKEN_SECURITY_ATTRIBUTES_INFORMATION;
 
-// private
 typedef enum _TOKEN_SECURITY_ATTRIBUTE_OPERATION
 {
     TOKEN_SECURITY_ATTRIBUTE_OPERATION_NONE,
@@ -433,14 +401,12 @@ typedef enum _TOKEN_SECURITY_ATTRIBUTE_OPERATION
     TOKEN_SECURITY_ATTRIBUTE_OPERATION_REPLACE
 } TOKEN_SECURITY_ATTRIBUTE_OPERATION, *PTOKEN_SECURITY_ATTRIBUTE_OPERATION;
 
-// private
 typedef struct _TOKEN_SECURITY_ATTRIBUTES_AND_OPERATION_INFORMATION
 {
     PTOKEN_SECURITY_ATTRIBUTES_INFORMATION Attributes;
     PTOKEN_SECURITY_ATTRIBUTE_OPERATION Operations;
 } TOKEN_SECURITY_ATTRIBUTES_AND_OPERATION_INFORMATION, *PTOKEN_SECURITY_ATTRIBUTES_AND_OPERATION_INFORMATION;
 
-// rev
 /**
  * The TOKEN_PROCESS_TRUST_LEVEL structure contains information about
  * the trust level assigned to a process token. The trust level is
@@ -468,11 +434,8 @@ typedef struct _TOKEN_LOGGING_INFORMATION
     ULONG GroupsLength;
     PSID_AND_ATTRIBUTES Groups;
 } TOKEN_LOGGING_INFORMATION, *PTOKEN_LOGGING_INFORMATION;
-#endif // !defined(NTDDI_WIN11_GE) || (NTDDI_VERSION < NTDDI_WIN11_GE)
+#endif
 
-//
-// Tokens
-//
 /**
  * The NtCreateToken routine creates a new access token.
  *
@@ -540,7 +503,7 @@ NtCreateLowBoxToken(
     _In_ ULONG HandleCount,
     _In_reads_opt_(HandleCount) HANDLE *Handles
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_8)
+#endif
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_8)
 /**
@@ -587,7 +550,7 @@ NtCreateTokenEx(
     _In_opt_ PTOKEN_DEFAULT_DACL DefaultDacl,
     _In_ PTOKEN_SOURCE Source
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_8)
+#endif
 
 /**
  * The NtOpenProcessToken routine opens the access token associated with a process, and returns a handle that can be used to access that token.
@@ -807,11 +770,10 @@ NtAdjustTokenClaimsAndDeviceGroups(
     _Out_opt_ PULONG DeviceReturnLength,
     _Out_opt_ PULONG DeviceGroupsReturnBufferLength
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_8)
+#endif
 
-// NtFilterToken Flags
-#define DISABLE_MAX_PRIVILEGE   0x1 // Disables all privileges in the new token except SE_CHANGE_NOTIFY_PRIVILEGE.
-#define SANDBOX_INERT           0x2 // Stores the TOKEN_SANDBOX_INERT flag in the token.
+#define DISABLE_MAX_PRIVILEGE   0x1
+#define SANDBOX_INERT           0x2
 #define LUA_TOKEN               0x4
 #define WRITE_RESTRICTED        0x8
 
@@ -859,7 +821,7 @@ NtFilterTokenEx(
     _In_opt_ PTOKEN_GROUPS RestrictedDeviceGroups,
     _Out_ PHANDLE NewTokenHandle
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_8)
+#endif
 
 /**
  * The NtCompareTokens routine compares two access tokens to determine whether they are equivalent.
@@ -928,14 +890,11 @@ NtQuerySecurityAttributesToken(
     _In_ HANDLE TokenHandle,
     _In_reads_opt_(NumberOfAttributes) PCUNICODE_STRING Attributes,
     _In_ ULONG NumberOfAttributes,
-    _Out_writes_bytes_(Length) PVOID Buffer, // PTOKEN_SECURITY_ATTRIBUTES_INFORMATION
+    _Out_writes_bytes_(Length) PVOID Buffer,
     _In_ ULONG Length,
     _Out_ PULONG ReturnLength
     );
 
-//
-// Access checking
-//
 /**
  * The NtAccessCheck routine determines whether a security descriptor grants a specified set of access rights to the client represented by an access token.
  *
@@ -1032,9 +991,6 @@ NtAccessCheckByTypeResultList(
     _Out_writes_(ObjectTypeListLength) PNTSTATUS AccessStatus
     );
 
-//
-// Signing
-//
 
 #define SIGNING_LEVEL_FILE_CACHE_FLAG_NOT_VALIDATED  0x01
 #define SIGNING_LEVEL_FILE_CACHE_FLAG_VALIDATE_ONLY  0x04
@@ -1085,16 +1041,14 @@ NtSetCachedSigningLevel(
     _In_ ULONG SourceFileCount,
     _In_opt_ HANDLE TargetFile
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_8)
+#endif
 
-// rev
 typedef struct _SE_FILE_CACHE_CLAIM_INFORMATION
 {
     ULONG Size;
     PVOID Claim;
 } SE_FILE_CACHE_CLAIM_INFORMATION, *PSE_FILE_CACHE_CLAIM_INFORMATION;
 
-// rev
 typedef struct _SE_SET_FILE_CACHE_INFORMATION
 {
     ULONG Size;
@@ -1103,7 +1057,6 @@ typedef struct _SE_SET_FILE_CACHE_INFORMATION
 } SE_SET_FILE_CACHE_INFORMATION, *PSE_SET_FILE_CACHE_INFORMATION;
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS1)
-// rev
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1115,10 +1068,9 @@ NtSetCachedSigningLevel2(
     _In_opt_ HANDLE TargetFile,
     _In_opt_ SE_SET_FILE_CACHE_INFORMATION* CacheInformation
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_10_RS1)
+#endif
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS2)
-// rev
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1126,11 +1078,8 @@ NtCompareSigningLevels(
     _In_ SE_SIGNING_LEVEL FirstSigningLevel,
     _In_ SE_SIGNING_LEVEL SecondSigningLevel
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_10_RS2)
+#endif
 
-//
-// Audit alarm
-//
 
 /**
  * The NtAccessCheckAndAuditAlarm routine determines whether a security descriptor grants a specified set of access rights to the client being impersonated by the calling thread.
@@ -1418,9 +1367,6 @@ NtPrivilegedServiceAuditAlarm(
     _In_ BOOLEAN AccessGranted
     );
 
-//
-// KSecDD FS control definitions
-//
 #define KSEC_DEVICE_NAME L"\\Device\\KSecDD"
 #define IOCTL_KSEC_CONNECT_LSA                      CTL_CODE(FILE_DEVICE_KSEC,  0, METHOD_BUFFERED,     FILE_WRITE_ACCESS )
 #define IOCTL_KSEC_RNG                              CTL_CODE(FILE_DEVICE_KSEC,  1, METHOD_BUFFERED,     FILE_ANY_ACCESS )
@@ -1451,4 +1397,4 @@ NtPrivilegedServiceAuditAlarm(
 #define IOCTL_KSEC_IPC_GET_QUEUED_FUNCTION_CALLS    CTL_CODE(FILE_DEVICE_KSEC, 26, METHOD_OUT_DIRECT,   FILE_ANY_ACCESS)
 #define IOCTL_KSEC_IPC_SET_FUNCTION_RETURN          CTL_CODE(FILE_DEVICE_KSEC, 27, METHOD_NEITHER,      FILE_ANY_ACCESS)
 
-#endif // _NTSEAPI_H
+#endif

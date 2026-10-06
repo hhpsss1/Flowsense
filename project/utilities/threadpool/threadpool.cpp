@@ -21,7 +21,7 @@ namespace threadpool {
 			constexpr std::size_t sbo_buffer {0x50};
 			constexpr std::size_t callable_impl {0x88};
 
-		} // namespace offsets
+		}
 
 		constexpr std::size_t k_job_alloc_size {144};
 		constexpr std::size_t k_name_buffer_len {31};
@@ -36,8 +36,6 @@ namespace threadpool {
 		inline std::mutex g_admission_mutex {};
 
 		inline void job_finished () {
-			// Hold admission lock while signaling so shutdown cannot CloseHandle
-			// the idle event between the last-job transition and SetEvent.
 			if (g_active_jobs.fetch_sub (1, std::memory_order_acq_rel) == 1) {
 				std::lock_guard lock (g_admission_mutex);
 				if (g_idle_event) {
@@ -46,7 +44,7 @@ namespace threadpool {
 			}
 		}
 
-	} // namespace detail
+	}
 
 	job::job (std::uintptr_t ptr, bool add_reference) : m_ptr (ptr) {
 		if (this->m_ptr && add_reference) {
@@ -346,4 +344,4 @@ namespace threadpool {
 		}
 	}
 
-} // namespace threadpool
+}

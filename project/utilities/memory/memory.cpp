@@ -6,18 +6,6 @@ namespace memory {
 
 	namespace detail {
 
-		struct pattern_scan_stats_t
-		{
-			std::size_t total{};
-			std::size_t failed{};
-		};
-
-		inline pattern_scan_stats_t& pattern_scan_stats()
-		{
-			static pattern_scan_stats_t stats{};
-			return stats;
-		}
-
 		[[nodiscard]] inline std::size_t capped_strlen (const char* str, std::size_t max_length) noexcept {
 			__try {
 				std::size_t len {0};
@@ -26,8 +14,6 @@ namespace memory {
 				return len;
 			}
 			__except ( EXCEPTION_EXECUTE_HANDLER ) {
-				// The string lives outside a valid mapping (e.g. an entity torn
-				// down during a map change). Report nothing readable.
 				return 0;
 			}
 		}
@@ -179,7 +165,7 @@ namespace memory {
 			};
 		}
 
-	} // namespace detail
+	}
 
 	std::uintptr_t get_module_base (std::string_view module_name) {
 		return reinterpret_cast<std::uintptr_t>(GetModuleHandleA (std::string (module_name).c_str ()));
@@ -337,12 +323,9 @@ namespace memory {
 
 
 	std::uintptr_t resolve_pattern (std::string_view pattern) {
-		// parse "module.dll:pattern" format
-		detail::pattern_scan_stats().total++;
 		const auto colon = pattern.find (':');
 		if (colon == std::string_view::npos) {
-			detail::pattern_scan_stats().failed++;
-			logging::console::print (xs ("[sig] FAIL | missing module prefix | {}"), pattern);
+			logging::console::print (xs ("[error] pattern missing module prefix | pattern: {}"), pattern);
 			return 0;
 		}
 
@@ -351,16 +334,13 @@ namespace memory {
 
 		const auto module_base = get_module_base (module_name);
 		if (!module_base) {
-			detail::pattern_scan_stats().failed++;
-			logging::console::print (xs ("[sig] FAIL | module not found | {} | {}"), module_name, pattern_str);
+			logging::console::print (xs ("[error] module not found | module: {}"), module_name);
 			return 0;
 		}
 
-		// rest of function unchanged, just swap pattern -> pattern_str and module_base is now local
 		const auto module_size = get_module_size (module_base);
 		if (!module_size) {
-			detail::pattern_scan_stats().failed++;
-			logging::console::print (xs ("[sig] FAIL | invalid module size | {} | {}"), module_name, pattern_str);
+			logging::console::print (xs ("[error] invalid module size | pattern: {}"), pattern_str);
 			return 0;
 		}
 
@@ -368,8 +348,7 @@ namespace memory {
 		const auto info = detail::parse_pattern (pattern_str, parsed);
 
 		if (info.byte_count == 0) {
-			detail::pattern_scan_stats().failed++;
-			logging::console::print (xs ("[sig] FAIL | failed to parse | {} | {}"), module_name, pattern_str);
+			logging::console::print (xs ("[error] failed to parse pattern | pattern: {}"), pattern_str);
 			return 0;
 		}
 
@@ -384,23 +363,26 @@ namespace memory {
 		}
 
 		if (first_byte_idx == -1) {
-			detail::pattern_scan_stats().failed++;
-			logging::console::print (xs ("[sig] FAIL | no first byte | {} | {}"), module_name, pattern_str);
+			logging::console::print (xs ("[error] no first byte | pattern: {}"), pattern_str);
 			return 0;
 		}
 
 		const auto first_byte = parsed [first_byte_idx].byte;
-		const auto first_byte_vec = _mm256_set1_epi8 (static_cast<char>(first_byte));
+
+
+
+
+		const auto first_byte_vec = _mm_set1_epi8 (static_cast<char>(first_byte));
 
 		const auto module_end = module_base + module_size;
-		const auto scan_end = (module_size >= 32) ? module_size - 32 : 0;
+		const auto scan_end = (module_size >= 16) ? module_size - 16 : 0;
 
 		auto match {0ull};
 
-		for (auto i = 0ull; i <= scan_end; i += 32) {
-			const auto memory_chunk = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(module_base + i));
-			const auto comparison = _mm256_cmpeq_epi8 (memory_chunk, first_byte_vec);
-			auto mask = _mm256_movemask_epi8 (comparison);
+		for (auto i = 0ull; i <= scan_end; i += 16) {
+			const auto memory_chunk = _mm_loadu_si128 (reinterpret_cast<const __m128i*>(module_base + i));
+			const auto comparison = _mm_cmpeq_epi8 (memory_chunk, first_byte_vec);
+			auto mask = _mm_movemask_epi8 (comparison);
 
 			while (mask != 0) {
 				auto match_offset {0ul};
@@ -439,8 +421,7 @@ namespace memory {
 
 done_scanning:
 		if (!match) {
-			detail::pattern_scan_stats().failed++;
-			logging::console::print (xs ("[sig] FAIL | pattern not found | {} | {}"), module_name, pattern_str);
+			logging::console::print (xs ("[error] pattern not found | {}"), pattern_str);
 			return 0;
 		}
 
@@ -452,11 +433,7 @@ done_scanning:
 
 			case detail::resolve_op::rel_call: {
 				const auto operand_addr = match + info.op_byte_offset + 1;
-				if (operand_addr + 4 > module_end) {
-					detail::pattern_scan_stats().failed++;
-					logging::console::print (xs ("[sig] FAIL | resolve bounds | {} | {}"), module_name, pattern_str);
-					return 0;
-				}
+				if (operand_addr + 4 > module_end) return 0;
 				const auto rel = *reinterpret_cast<const std::int32_t*>(operand_addr);
 				result = operand_addr + 4 + rel;
 				break;
@@ -464,11 +441,7 @@ done_scanning:
 
 			case detail::resolve_op::rip_relative: {
 				const auto operand_addr = match + info.op_byte_offset;
-				if (operand_addr + 4 > module_end) {
-					detail::pattern_scan_stats().failed++;
-					logging::console::print (xs ("[sig] FAIL | resolve bounds | {} | {}"), module_name, pattern_str);
-					return 0;
-				}
+				if (operand_addr + 4 > module_end) return 0;
 				const auto rel = *reinterpret_cast<const std::int32_t*>(operand_addr);
 				result = operand_addr + 4 + rel;
 				break;
@@ -476,11 +449,7 @@ done_scanning:
 
 			case detail::resolve_op::absolute_ptr: {
 				const auto ptr_addr = match + info.op_byte_offset;
-				if (ptr_addr + sizeof (std::uintptr_t) > module_end) {
-					detail::pattern_scan_stats().failed++;
-					logging::console::print (xs ("[sig] FAIL | resolve bounds | {} | {}"), module_name, pattern_str);
-					return 0;
-				}
+				if (ptr_addr + sizeof (std::uintptr_t) > module_end) return 0;
 				result = *reinterpret_cast<const std::uintptr_t*>(ptr_addr);
 				break;
 			}
@@ -489,22 +458,11 @@ done_scanning:
 		result += info.post_offset;
 
 		if (info.deref_final) {
-			if (result + sizeof (std::uintptr_t) > module_end || result < module_base) {
-				detail::pattern_scan_stats().failed++;
-				logging::console::print (xs ("[sig] FAIL | deref bounds | {} | {}"), module_name, pattern_str);
-				return 0;
-			}
+			if (result + sizeof (std::uintptr_t) > module_end || result < module_base) return 0;
 			result = *reinterpret_cast<const std::uintptr_t*> (result);
 		}
 
-		logging::console::print (xs ("[sig] OK | {:#x} | {} | {}"), result, module_name, pattern_str);
-
 		return result;
-	}
-
-	void print_pattern_scan_summary () {
-		const auto& stats = detail::pattern_scan_stats ();
-		logging::console::print (xs ("[sig] summary | {} resolved, {} failed, {} total"), stats.total - stats.failed, stats.failed, stats.total);
 	}
 
 	std::uintptr_t get_module_export (std::uintptr_t module_base, std::uint16_t ordinal) {
@@ -655,4 +613,4 @@ found_type_descriptor:
 		return std::string (str_ptr, len);
 	}
 
-} // namespace memory
+}

@@ -7,9 +7,6 @@
 #ifndef _NTOBAPI_H
 #define _NTOBAPI_H
 
-//
-// Object Specific Access Rights
-//
 
 #ifndef OBJECT_TYPE_CREATE
 #define OBJECT_TYPE_CREATE 0x0001
@@ -19,9 +16,6 @@
 #define OBJECT_TYPE_ALL_ACCESS (STANDARD_RIGHTS_REQUIRED | OBJECT_TYPE_CREATE)
 #endif
 
-//
-// Directory Object Specific Access Rights
-//
 
 #ifndef DIRECTORY_QUERY
 #define DIRECTORY_QUERY 0x0001
@@ -43,9 +37,6 @@
 #define DIRECTORY_ALL_ACCESS (STANDARD_RIGHTS_REQUIRED | DIRECTORY_QUERY | DIRECTORY_TRAVERSE | DIRECTORY_CREATE_OBJECT | DIRECTORY_CREATE_SUBDIRECTORY)
 #endif
 
-//
-// Symbolic Link Specific Access Rights
-//
 
 #ifndef SYMBOLIC_LINK_QUERY
 #define SYMBOLIC_LINK_QUERY 0x0001
@@ -63,9 +54,6 @@
 #define SYMBOLIC_LINK_ALL_ACCESS_EX (STANDARD_RIGHTS_REQUIRED | SPECIFIC_RIGHTS_ALL)
 #endif
 
-//
-// Object Attribute Flags
-//
 
 #ifndef OBJ_PROTECT_CLOSE
 #define OBJ_PROTECT_CLOSE 0x00000001
@@ -79,21 +67,18 @@
 #define OBJ_AUDIT_OBJECT_CLOSE 0x00000004
 #endif
 
-//
-// Object Information
-//
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
 typedef enum _OBJECT_INFORMATION_CLASS
 {
-    ObjectBasicInformation, // q: OBJECT_BASIC_INFORMATION
-    ObjectNameInformation, // q: OBJECT_NAME_INFORMATION
-    ObjectTypeInformation, // q: OBJECT_TYPE_INFORMATION
-    ObjectTypesInformation, // q: OBJECT_TYPES_INFORMATION
-    ObjectHandleFlagInformation, // qs: OBJECT_HANDLE_FLAG_INFORMATION
-    ObjectSessionInformation, // s: void // change object session // (requires SeTcbPrivilege)
-    ObjectSessionObjectInformation, // s: void // change object session // (requires SeTcbPrivilege)
-    ObjectSetRefTraceInformation, // since 25H2
+    ObjectBasicInformation,
+    ObjectNameInformation,
+    ObjectTypeInformation,
+    ObjectTypesInformation,
+    ObjectHandleFlagInformation,
+    ObjectSessionInformation,
+    ObjectSessionObjectInformation,
+    ObjectSetRefTraceInformation,
     MaxObjectInfoClass
 } OBJECT_INFORMATION_CLASS;
 #else
@@ -106,24 +91,24 @@ typedef enum _OBJECT_INFORMATION_CLASS
 #define ObjectSessionObjectInformation 6
 #define ObjectSetRefTraceInformation 7
 #define MaxObjectInfoClass 8
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
 /**
  * The OBJECT_BASIC_INFORMATION structure contains basic information about an object.
  */
 typedef struct _OBJECT_BASIC_INFORMATION
 {
-    ULONG Attributes;               // The attributes of the object include whether the object is permanent, can be inherited, and other characteristics.
-    ACCESS_MASK GrantedAccess;      // Specifies a mask that represents the granted access when the object was created.
-    ULONG HandleCount;              // The number of handles that are currently open for the object.
-    ULONG PointerCount;             // The number of references to the object from both handles and other references, such as those from the system.
-    ULONG PagedPoolCharge;          // The amount of paged pool memory that the object is using.
-    ULONG NonPagedPoolCharge;       // The amount of non-paged pool memory that the object is using.
-    ULONG Reserved[3];              // Reserved for future use.
-    ULONG NameInfoSize;             // The size of the name information for the object.
-    ULONG TypeInfoSize;             // The size of the type information for the object.
-    ULONG SecurityDescriptorSize;   // The size of the security descriptor for the object.
-    LARGE_INTEGER CreationTime;     // The time when a symbolic link was created. Not supported for other types of objects.
+    ULONG Attributes;
+    ACCESS_MASK GrantedAccess;
+    ULONG HandleCount;
+    ULONG PointerCount;
+    ULONG PagedPoolCharge;
+    ULONG NonPagedPoolCharge;
+    ULONG Reserved[3];
+    ULONG NameInfoSize;
+    ULONG TypeInfoSize;
+    ULONG SecurityDescriptorSize;
+    LARGE_INTEGER CreationTime;
 } OBJECT_BASIC_INFORMATION, *POBJECT_BASIC_INFORMATION;
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
@@ -132,9 +117,9 @@ typedef struct _OBJECT_BASIC_INFORMATION
  */
 typedef struct _OBJECT_NAME_INFORMATION
 {
-    UNICODE_STRING Name; // The object name (when present) includes a NULL-terminator and all path separators "\" in the name.
+    UNICODE_STRING Name;
 } OBJECT_NAME_INFORMATION, *POBJECT_NAME_INFORMATION;
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
 /**
  * The OBJECT_NAME_INFORMATION structure contains various statistics and properties about an object type.
@@ -159,7 +144,7 @@ typedef struct _OBJECT_TYPE_INFORMATION
     ULONG ValidAccessMask;
     BOOLEAN SecurityRequired;
     BOOLEAN MaintainHandleCount;
-    UCHAR TypeIndex; // since WINBLUE
+    UCHAR TypeIndex;
     CHAR ReservedByte;
     ULONG PoolType;
     ULONG DefaultPagedPoolCharge;
@@ -177,9 +162,6 @@ typedef struct _OBJECT_HANDLE_FLAG_INFORMATION
     BOOLEAN ProtectFromClose;
 } OBJECT_HANDLE_FLAG_INFORMATION, *POBJECT_HANDLE_FLAG_INFORMATION;
 
-//
-// Objects, handles
-//
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
 
@@ -224,9 +206,9 @@ NtSetInformationObject(
     _In_ ULONG ObjectInformationLength
     );
 
-#define DUPLICATE_CLOSE_SOURCE 0x00000001       // Close the source handle.
-#define DUPLICATE_SAME_ACCESS 0x00000002        // Instead of using the DesiredAccess parameter, copy the access rights from the source handle to the target handle.
-#define DUPLICATE_SAME_ATTRIBUTES 0x00000004    // Instead of using the HandleAttributes parameter, copy the attributes from the source handle to the target handle.
+#define DUPLICATE_CLOSE_SOURCE 0x00000001
+#define DUPLICATE_SAME_ACCESS 0x00000002
+#define DUPLICATE_SAME_ATTRIBUTES 0x00000004
 
 /**
  * The NtDuplicateObject routine creates a handle that is a duplicate of the specified source handle.
@@ -428,13 +410,10 @@ NtCompareObjects(
     _In_ HANDLE FirstObjectHandle,
     _In_ HANDLE SecondObjectHandle
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_10)
+#endif
 
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
-//
-// Directory objects
-//
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
 
@@ -467,7 +446,7 @@ NtCreateDirectoryObjectEx(
     _In_ HANDLE ShadowDirectoryHandle,
     _In_ ULONG Flags
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_8)
+#endif
 
 /**
  * Opens an existing directory object.
@@ -522,15 +501,11 @@ NtQueryDirectoryObject(
     _Out_opt_ PULONG ReturnLength
     );
 
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
-//
-// Private namespaces
-//
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
 
-// private
 typedef enum _BOUNDARY_ENTRY_TYPE
 {
     BOUNDARY_ENTRY_TYPE_INVALID,
@@ -539,7 +514,6 @@ typedef enum _BOUNDARY_ENTRY_TYPE
     BOUNDARY_ENTRY_TYPE_IL
 } BOUNDARY_ENTRY_TYPE;
 
-// private
 typedef union _OBJECT_BOUNDARY_VALUE
 {
     WCHAR Name[1];
@@ -547,18 +521,14 @@ typedef union _OBJECT_BOUNDARY_VALUE
     PSID IntegrityLabel;
 } OBJECT_BOUNDARY_VALUE, *POBJECT_BOUNDARY_VALUE;
 
-// private
 typedef struct _OBJECT_BOUNDARY_ENTRY
 {
     BOUNDARY_ENTRY_TYPE Type;
     ULONG Size;
-    // OBJECT_BOUNDARY_VALUE Value;
 } OBJECT_BOUNDARY_ENTRY, *POBJECT_BOUNDARY_ENTRY;
 
-// rev
 #define OBJECT_BOUNDARY_DESCRIPTOR_VERSION 1
 
-// private
 typedef struct _OBJECT_BOUNDARY_DESCRIPTOR
 {
     ULONG Version;
@@ -573,7 +543,6 @@ typedef struct _OBJECT_BOUNDARY_DESCRIPTOR
             ULONG Reserved : 31;
         };
     };
-    //OBJECT_BOUNDARY_ENTRY Entries[1];
 } OBJECT_BOUNDARY_DESCRIPTOR, *POBJECT_BOUNDARY_DESCRIPTOR;
 
 /**
@@ -630,11 +599,8 @@ NtDeletePrivateNamespace(
     _In_ HANDLE NamespaceHandle
     );
 
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
-//
-// Symbolic links
-//
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
 
@@ -668,8 +634,8 @@ NtQuerySymbolicLinkObject(
 
 typedef enum _SYMBOLIC_LINK_INFO_CLASS
 {
-    SymbolicLinkGlobalInformation = 1, // s: ULONG
-    SymbolicLinkAccessMask, // s: ACCESS_MASK
+    SymbolicLinkGlobalInformation = 1,
+    SymbolicLinkAccessMask,
     MaxnSymbolicLinkInfoClass
 } SYMBOLIC_LINK_INFO_CLASS;
 
@@ -683,8 +649,8 @@ NtSetInformationSymbolicLink(
     _In_reads_bytes_(SymbolicLinkInformationLength) PVOID SymbolicLinkInformation,
     _In_ ULONG SymbolicLinkInformationLength
     );
-#endif // (PHNT_VERSION >= PHNT_WINDOWS_10)
+#endif
 
-#endif // (PHNT_MODE != PHNT_MODE_KERNEL)
+#endif
 
-#endif // _NTOBAPI_H
+#endif

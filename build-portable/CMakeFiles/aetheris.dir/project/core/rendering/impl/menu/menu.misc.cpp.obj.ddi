@@ -1,0 +1,9 @@
+{
+  "revision": 0,
+  "rules": [
+    {
+      "primary-output": "CMakeFiles\\aetheris.dir\\project\\core\\rendering\\impl\\menu\\menu.misc.cpp.obj"
+    }
+  ],
+  "version": 1
+}

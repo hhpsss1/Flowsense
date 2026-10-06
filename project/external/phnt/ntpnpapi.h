@@ -65,7 +65,7 @@ typedef struct _PLUGPLAY_EVENT_BLOCK
         struct
         {
             PNP_VETO_TYPE VetoType;
-            WCHAR DeviceIdVetoNameBuffer[1]; // DeviceId<null>VetoName<null><null>
+            WCHAR DeviceIdVetoNameBuffer[1];
         } VetoNotification;
         struct
         {
@@ -80,34 +80,33 @@ typedef struct _PLUGPLAY_EVENT_BLOCK
 
 typedef enum _PLUGPLAY_CONTROL_CLASS
 {
-    PlugPlayControlEnumerateDevice, // PLUGPLAY_CONTROL_ENUMERATE_DEVICE_DATA
-    PlugPlayControlRegisterNewDevice, // PLUGPLAY_CONTROL_DEVICE_CONTROL_DATA
-    PlugPlayControlDeregisterDevice, // PLUGPLAY_CONTROL_DEVICE_CONTROL_DATA
-    PlugPlayControlInitializeDevice, // PLUGPLAY_CONTROL_DEVICE_CONTROL_DATA
-    PlugPlayControlStartDevice, // PLUGPLAY_CONTROL_DEVICE_CONTROL_DATA
-    PlugPlayControlUnlockDevice, // PLUGPLAY_CONTROL_DEVICE_CONTROL_DATA
-    PlugPlayControlQueryAndRemoveDevice, // PLUGPLAY_CONTROL_QUERY_AND_REMOVE_DATA
-    PlugPlayControlUserResponse, // PLUGPLAY_CONTROL_USER_RESPONSE_DATA
-    PlugPlayControlGenerateLegacyDevice, // PLUGPLAY_CONTROL_LEGACY_DEVGEN_DATA
-    PlugPlayControlGetInterfaceDeviceList, // PLUGPLAY_CONTROL_INTERFACE_LIST_DATA
-    PlugPlayControlProperty, // PLUGPLAY_CONTROL_PROPERTY_DATA
-    PlugPlayControlDeviceClassAssociation, // PLUGPLAY_CONTROL_CLASS_ASSOCIATION_DATA
-    PlugPlayControlGetRelatedDevice, // PLUGPLAY_CONTROL_RELATED_DEVICE_DATA
-    PlugPlayControlGetInterfaceDeviceAlias, // PLUGPLAY_CONTROL_INTERFACE_ALIAS_DATA
-    PlugPlayControlDeviceStatus, // PLUGPLAY_CONTROL_STATUS_DATA
-    PlugPlayControlGetDeviceDepth, // PLUGPLAY_CONTROL_DEPTH_DATA
-    PlugPlayControlQueryDeviceRelations, // PLUGPLAY_CONTROL_DEVICE_RELATIONS_DATA
-    PlugPlayControlTargetDeviceRelation, // PLUGPLAY_CONTROL_TARGET_RELATION_DATA
-    PlugPlayControlQueryConflictList, // PLUGPLAY_CONTROL_CONFLICT_LIST
-    PlugPlayControlRetrieveDock, // PLUGPLAY_CONTROL_RETRIEVE_DOCK_DATA
-    PlugPlayControlResetDevice, // PLUGPLAY_CONTROL_DEVICE_CONTROL_DATA
-    PlugPlayControlHaltDevice, // PLUGPLAY_CONTROL_DEVICE_CONTROL_DATA
-    PlugPlayControlGetBlockedDriverList, // PLUGPLAY_CONTROL_BLOCKED_DRIVER_DATA
-    PlugPlayControlGetDeviceInterfaceEnabled, // PLUGPLAY_CONTROL_DEVICE_INTERFACE_ENABLED
+    PlugPlayControlEnumerateDevice,
+    PlugPlayControlRegisterNewDevice,
+    PlugPlayControlDeregisterDevice,
+    PlugPlayControlInitializeDevice,
+    PlugPlayControlStartDevice,
+    PlugPlayControlUnlockDevice,
+    PlugPlayControlQueryAndRemoveDevice,
+    PlugPlayControlUserResponse,
+    PlugPlayControlGenerateLegacyDevice,
+    PlugPlayControlGetInterfaceDeviceList,
+    PlugPlayControlProperty,
+    PlugPlayControlDeviceClassAssociation,
+    PlugPlayControlGetRelatedDevice,
+    PlugPlayControlGetInterfaceDeviceAlias,
+    PlugPlayControlDeviceStatus,
+    PlugPlayControlGetDeviceDepth,
+    PlugPlayControlQueryDeviceRelations,
+    PlugPlayControlTargetDeviceRelation,
+    PlugPlayControlQueryConflictList,
+    PlugPlayControlRetrieveDock,
+    PlugPlayControlResetDevice,
+    PlugPlayControlHaltDevice,
+    PlugPlayControlGetBlockedDriverList,
+    PlugPlayControlGetDeviceInterfaceEnabled,
     MaxPlugPlayControl
 } PLUGPLAY_CONTROL_CLASS, *PPLUGPLAY_CONTROL_CLASS;
 
-// private
 typedef enum _DEVICE_RELATION_TYPE
 {
     BusRelations,
@@ -119,25 +118,22 @@ typedef enum _DEVICE_RELATION_TYPE
     TransportRelations
 } DEVICE_RELATION_TYPE, *PDEVICE_RELATION_TYPE;
 
-// private
 typedef enum _BUS_QUERY_ID_TYPE
 {
-    BusQueryDeviceID = 0,           // <Enumerator>\<Enumerator-specific device id>
-    BusQueryHardwareIDs = 1,        // Hardware ids
-    BusQueryCompatibleIDs = 2,      // compatible device ids
-    BusQueryInstanceID = 3,         // persistent id for this instance of the device
-    BusQueryDeviceSerialNumber = 4, // serial number for this device
-    BusQueryContainerID = 5         // unique id of the device's physical container
+    BusQueryDeviceID = 0,
+    BusQueryHardwareIDs = 1,
+    BusQueryCompatibleIDs = 2,
+    BusQueryInstanceID = 3,
+    BusQueryDeviceSerialNumber = 4,
+    BusQueryContainerID = 5
 } BUS_QUERY_ID_TYPE, *PBUS_QUERY_ID_TYPE;
 
-// private
 typedef enum _DEVICE_TEXT_TYPE
 {
-    DeviceTextDescription = 0,        // DeviceDesc property
-    DeviceTextLocationInformation = 1 // DeviceLocation property
+    DeviceTextDescription = 0,
+    DeviceTextLocationInformation = 1
 } DEVICE_TEXT_TYPE, *PDEVICE_TEXT_TYPE;
 
-// private
 typedef enum _DEVICE_USAGE_NOTIFICATION_TYPE
 {
     DeviceUsageTypeUndefined,
@@ -159,7 +155,7 @@ NtGetPlugPlayEvent(
     _Out_writes_bytes_(EventBufferSize) PPLUGPLAY_EVENT_BLOCK EventBlock,
     _In_ ULONG EventBufferSize
     );
-#endif // (PHNT_VERSION < PHNT_WINDOWS_8)
+#endif
 
 NTSYSCALLAPI
 NTSTATUS
@@ -200,4 +196,4 @@ NtReplacePartitionUnit(
     _In_ ULONG Flags
     );
 
-#endif // _NTPNPAPI_H
+#endif

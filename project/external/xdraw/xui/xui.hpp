@@ -82,7 +82,7 @@ namespace xui {
 		[[nodiscard]] float in_out_cubic( float t ) noexcept;
 		[[nodiscard]] float smoothstep( float t ) noexcept;
 
-	} // namespace ease
+	}
 
 	struct input_state
 	{
@@ -135,91 +135,84 @@ namespace xui {
 
 	struct style
 	{
-		float rounding{ 12.0f };
-		float checkbox_rounding{ 4.0f };
+		float rounding{ 4.0f };
+		float checkbox_rounding{ 2.0f };
 		float slider_rounding{ 0.1f };
-		float button_rounding{ 8.0f };
-		float keybind_rounding{ 4.0f };
-		float combo_rounding{ 4.0f };
-		float popup_rounding{ 8.0f };
+		float button_rounding{ 3.0f };
+		float keybind_rounding{ 3.0f };
+		float combo_rounding{ 3.0f };
+		float popup_rounding{ 4.0f };
 		float combo_popup_rounding{ 4.0f };
-		float picker_popup_rounding{ 8.0f };
-		float color_swatch_rounding{ 4.0f };
-		float text_input_rounding{ 6.0f };
+		float picker_popup_rounding{ 4.0f };
+		float color_swatch_rounding{ 2.0f };
+		float text_input_rounding{ 3.0f };
 
-		float window_pad_x{ 10.0f };
-		float window_pad_y{ 10.0f };
+		float window_pad_x{ 8.0f };
+		float window_pad_y{ 7.0f };
 		float item_spacing_x{ 8.0f };
-		float item_spacing_y{ 8.0f };
-		float frame_pad_x{ 8.0f };
-		float frame_pad_y{ 4.0f };
-		float border_thickness{ 0.0f };
+		float item_spacing_y{ 3.0f };
+		float frame_pad_x{ 6.0f };
+		float frame_pad_y{ 3.0f };
+		float border_thickness{ 1.0f };
 
-		float checkbox_size{ 16.0f };
-		float slider_h{ 7.0f };
-		float keybind_w{ 80.0f };
-		float keybind_h{ 22.0f };
-		float combo_h{ 20.0f };
-		float combo_item_h{ 22.0f };
+		float checkbox_size{ 14.0f };
+		float slider_h{ 5.0f };
+		float keybind_w{ 64.0f };
+		float keybind_h{ 18.0f };
+		float combo_h{ 15.0f };
+		float combo_item_h{ 20.0f };
 		float swatch_w{ 26.0f };
-		float swatch_h{ 16.0f };
-		float text_input_h{ 24.0f };
+		float swatch_h{ 12.0f };
+		float text_input_h{ 22.0f };
 
-		// Group box caption punched into the top border of a child panel.
-		float group_title_h{ 17.0f };
-		float group_title_pad{ 4.0f };
+		xdraw::color window_bg{ 14, 14, 14, 255 };
+		xdraw::color window_border{ 38, 38, 38, 255 };
 
-		xdraw::color window_bg{ 35, 35, 40, 175 };
-		xdraw::color window_border{ 0, 0, 0, 0 };
+		xdraw::color child_bg{ 20, 20, 20, 255 };
+		xdraw::color child_border{ 38, 38, 38, 255 };
 
-		xdraw::color child_bg{ 17, 17, 17, 82 };
-		xdraw::color child_border{ 0, 0, 0, 0 };
-		xdraw::color child_title_text{ 170, 170, 170, 255 };
+		xdraw::color checkbox_bg{ 28, 28, 28, 255 };
+		xdraw::color checkbox_border{ 48, 48, 48, 255 };
+		xdraw::color checkbox_mark{ 84, 124, 176, 255 };
+		xdraw::color checkbox_mark_icon{ 235, 235, 235, 255 };
 
-		xdraw::color checkbox_bg{ 17, 17, 17, 82 };
-		xdraw::color checkbox_border{ 0, 0, 0, 0 };
-		xdraw::color checkbox_mark{ 173, 192, 255, 255 };
-		xdraw::color checkbox_mark_icon{ 17, 17, 17, 255 };
+		xdraw::color slider_track{ 30, 30, 30, 255 };
+		xdraw::color slider_fill{ 88, 124, 172, 255 };
 
-		xdraw::color slider_track{ 17, 17, 17, 82 };
-		xdraw::color slider_fill{ 173, 192, 255, 255 };
-		xdraw::color slider_border{ 0, 0, 0, 0 };
-		xdraw::color slider_grab{ 173, 192, 255, 255 };
+		xdraw::color button_bg{ 28, 28, 28, 255 };
+		xdraw::color button_border{ 48, 48, 48, 255 };
+		xdraw::color button_hovered{ 36, 36, 36, 255 };
+		xdraw::color button_active{ 108, 134, 184, 255 };
 
-		xdraw::color button_bg{ 17, 17, 17, 82 };
-		xdraw::color button_border{ 0, 0, 0, 0 };
-		xdraw::color button_hovered{ 17, 17, 17, 120 };
-		xdraw::color button_active{ 173, 192, 255, 255 };
+		xdraw::color keybind_bg{ 28, 28, 28, 255 };
+		xdraw::color keybind_border{ 48, 48, 48, 255 };
+		xdraw::color keybind_waiting{ 108, 134, 184, 255 };
 
-		xdraw::color keybind_bg{ 17, 17, 17, 82 };
-		xdraw::color keybind_border{ 0, 0, 0, 0 };
-		xdraw::color keybind_waiting{ 173, 192, 255, 255 };
+		xdraw::color combo_bg{ 28, 28, 28, 255 };
+		xdraw::color combo_border{ 48, 48, 48, 255 };
+		xdraw::color combo_arrow{ 112, 112, 112, 255 };
+		xdraw::color combo_hovered{ 36, 36, 36, 255 };
+		xdraw::color combo_popup_bg{ 22, 22, 22, 255 };
+		xdraw::color combo_popup_border{ 48, 48, 48, 255 };
+		xdraw::color combo_popup_item_hovered{ 36, 36, 36, 255 };
+		xdraw::color combo_popup_item_selected{ 108, 134, 184, 45 };
 
-		xdraw::color combo_bg{ 17, 17, 17, 82 };
-		xdraw::color combo_border{ 0, 0, 0, 0 };
-		xdraw::color combo_arrow{ 221, 229, 255, 82 };
-		xdraw::color combo_hovered{ 17, 17, 17, 120 };
-		xdraw::color combo_popup_bg{ 17, 17, 17, 120 };
-		xdraw::color combo_popup_border{ 0, 0, 0, 0 };
-		xdraw::color combo_popup_item_hovered{ 17, 17, 17, 120 };
-		xdraw::color combo_popup_item_selected{ 173, 192, 255, 36 };
+		xdraw::color popup_bg{ 22, 22, 22, 255 };
+		xdraw::color popup_border{ 48, 48, 48, 255 };
 
-		xdraw::color popup_bg{ 17, 17, 17, 120 };
-		xdraw::color popup_border{ 0, 0, 0, 0 };
+		xdraw::color picker_bg{ 28, 28, 28, 255 };
+		xdraw::color picker_border{ 48, 48, 48, 255 };
+		xdraw::color picker_popup_bg{ 22, 22, 22, 255 };
+		xdraw::color picker_popup_border{ 48, 48, 48, 255 };
 
-		xdraw::color picker_bg{ 17, 17, 17, 82 };
-		xdraw::color picker_border{ 0, 0, 0, 0 };
-		xdraw::color picker_popup_bg{ 17, 17, 17, 120 };
-		xdraw::color picker_popup_border{ 0, 0, 0, 0 };
+		xdraw::color text_input_bg{ 28, 28, 28, 255 };
+		xdraw::color text_input_border{ 48, 48, 48, 255 };
 
-		xdraw::color text_input_bg{ 17, 17, 17, 82 };
-		xdraw::color text_input_border{ 0, 0, 0, 0 };
+		xdraw::color separator{ 38, 38, 38, 255 };
 
-		xdraw::color separator{ 173, 192, 255, 30 };
-
-		xdraw::color text{ 221, 229, 255, 235 };
-		xdraw::color text_dim{ 173, 192, 255, 82 };
-		xdraw::color accent{ 173, 192, 255, 255 };
+		xdraw::color text{ 178, 178, 178, 255 };
+		xdraw::color text_dim{ 112, 112, 112, 255 };
+		xdraw::color accent{ 84, 124, 176, 255 };
 	};
 
 	enum class style_var
@@ -250,9 +243,7 @@ namespace xui {
 		combo_item_h,
 		swatch_w,
 		swatch_h,
-		text_input_h,
-		group_title_h,
-		group_title_pad
+		text_input_h
 	};
 
 	enum class style_col
@@ -261,15 +252,12 @@ namespace xui {
 		window_border,
 		child_bg,
 		child_border,
-		child_title_text,
 		checkbox_bg,
 		checkbox_border,
 		checkbox_mark,
 		checkbox_mark_icon,
 		slider_track,
 		slider_fill,
-		slider_border,
-		slider_grab,
 		button_bg,
 		button_border,
 		button_hovered,
@@ -313,7 +301,7 @@ namespace xui {
 		void remove( std::uintptr_t id );
 		void clear_all( );
 
-	} // namespace anim
+	}
 
 	enum class bind_mode : int
 	{
@@ -361,7 +349,7 @@ namespace xui {
 
 		[[nodiscard]] const char* mode_name( bind_mode m ) noexcept;
 
-	} // namespace binds
+	}
 
 	inline setting::setting( bool v, bind_info b, std::string n, std::string c ) : value{ v }, bind{ std::move( b ) }, name{ std::move( n ) }, category{ std::move( c ) } { binds::register_setting( this ); }
 	inline setting::~setting( ) { binds::unregister_setting( this ); }
@@ -434,7 +422,7 @@ namespace xui {
 		void sweep( );
 		void add( std::unique_ptr<overlay> ov );
 
-	} // namespace overlays
+	}
 
 	void push_id( std::uintptr_t id );
 	void push_id( std::string_view sv );
@@ -486,7 +474,7 @@ namespace xui {
 		void set_cursor( float x, float y );
 		[[nodiscard]] std::pair<float, float> get_cursor( );
 
-	} // namespace layout
+	}
 
 	namespace draw {
 
@@ -495,7 +483,7 @@ namespace xui {
 		void push_layer( xdraw::layer l );
 		void pop_layer( );
 
-	} // namespace draw
+	}
 
 	struct context
 	{
@@ -593,4 +581,4 @@ namespace xui {
 
 	bool text_input( std::string_view label, std::string& buf, std::size_t max_len = 256, std::string_view hint = "" );
 
-} // namespace xui
+}

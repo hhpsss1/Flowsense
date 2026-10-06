@@ -53,7 +53,7 @@ namespace features::movement {
 			return true;
 		}
 
-	} // namespace
+	}
 
 	void edgebug::on_create_move( systems::input::usercmd* cmd )
 	{
@@ -123,11 +123,19 @@ namespace features::movement {
 		auto trace_mask{ 0ull };
 		{
 			const auto pawn_ptr = memory::read<std::uintptr_t>( movement_services + 56 );
-			trace_mask = memory::read<std::uintptr_t>( pawn_ptr + 0xd48 );
 
-			if ( !pawn_ptr || ( memory::read<std::uint32_t>( pawn_ptr + 0x3f8 ) & 0x10 ) )
+			if ( !pawn_ptr )
 			{
 				trace_mask |= 0x20;
+			}
+			else
+			{
+				trace_mask = memory::read<std::uintptr_t>( pawn_ptr + 0xd48 );
+
+				if ( memory::read<std::uint32_t>( pawn_ptr + 0x3f8 ) & 0x10 )
+				{
+					trace_mask |= 0x20;
+				}
 			}
 		}
 
@@ -178,8 +186,7 @@ namespace features::movement {
 		}
 
 		const auto side_dist = std::max( 14.0f, std::max( std::fabsf( maxs.x ), std::fabsf( maxs.y ) ) * 1.25f );
-		const auto hit_point = result.start_pos + ( result.end_pos - result.start_pos ) * result.fraction;
-		const math::vector3 ground_ref{ hit_point.x, hit_point.y, trace_origin.z };
+		const math::vector3 ground_ref{ result.position.x, result.position.y, trace_origin.z };
 
 		const auto left_ok = side_has_standable_ground( ground_ref, -perp_x * side_dist, -perp_y * side_dist, bbox, filter, movement_services, sv_standable_normal );
 		const auto right_ok = side_has_standable_ground( ground_ref, perp_x * side_dist, perp_y * side_dist, bbox, filter, movement_services, sv_standable_normal );
@@ -201,7 +208,6 @@ namespace features::movement {
 
 		const auto subtick_moves = base->mutable_subtick_moves( );
 
-		// Multiple passes = chained duck tap windows across [0, when] (not duplicate pulses at one time).
 		const float seg = when / static_cast< float >( passes );
 		for ( int p = 0; p < passes; ++p )
 		{
@@ -259,4 +265,4 @@ namespace features::movement {
 		}
 	}
 
-} // namespace features::movement
+}

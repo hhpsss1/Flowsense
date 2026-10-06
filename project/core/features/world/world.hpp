@@ -81,4 +81,4 @@ namespace features::world {
         static inline std::uintptr_t m_token{};
     };
 
-} // namespace features::world
+}

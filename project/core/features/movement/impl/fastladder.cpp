@@ -72,4 +72,4 @@ namespace features::movement {
 		base->mutable_viewangles( )->set_z( 0.0f );
 	}
 
-} // namespace features::movement
+}

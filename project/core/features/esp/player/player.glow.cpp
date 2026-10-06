@@ -125,4 +125,4 @@ namespace features::esp::player {
 		return true;
 	}
 
-} // namespace features::esp::player
+}

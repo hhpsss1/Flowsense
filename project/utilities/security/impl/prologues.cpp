@@ -7,7 +7,7 @@ namespace security::prologues {
 
 		std::vector<hook_info> hooks{};
 
-	} // namespace detail
+	}
 
 	void add( std::uintptr_t target, const std::uint8_t* bytes, std::size_t length )
 	{
@@ -27,4 +27,4 @@ namespace security::prologues {
 		return nullptr;
 	}
 
-} // namespace security::prologues
+}

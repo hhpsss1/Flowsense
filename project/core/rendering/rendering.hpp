@@ -40,110 +40,84 @@ namespace rendering {
         void initialize_graphics( );
 
         void draw( );
-        void shutdown( ) const;
+        void shutdown( );
 
         void toggle( ) { this->m_open = !this->m_open; }
 		[[nodiscard]] bool is_open( ) const { return this->m_open; }
 		[[nodiscard]] float pos_x( ) const { return this->m_x; }
 		[[nodiscard]] float pos_y( ) const { return this->m_y; }
 		void apply_saved_cursor( );
+		void handle_open_state( );
 
         void sync_theme_style( ) const;
 
         enum class tab : int
         {
-            ragebot, legitbot, player, world, skins, misc, config, count
+            ragebot, player, world, skins, misc, config, lua, count
         };
-
-        // Wordmark shown in the header bar, on the intro splash and in the
-        // in-game watermark, so the brand lives in exactly one place.
-        static constexpr std::string_view k_brand_name{ "Flowsense" };
 
     private:
 		bool draw_intro( );
-        void draw_header( float w );
-        void draw_nav( float w );
-        void draw_subtabs( float w );
-        void draw_accent_line( float x, float y, float w, float thickness, float fade_ratio );
-        void draw_scrollbar( float x, float y, float w, float h, float max_scroll );
-        void draw_search_results( float x, float y, float w, float h );
-        void rebuild_search_index( );
-        void close_search( );
-        void activate_search_result( std::size_t index );
+        void draw_header( );
+        void draw_side_bar( float h );
+        void draw_top_bar( float w );
+        void try_load_user_avatar( );
 
         void draw_ragebot( float group_w ) const;
-        void draw_legitbot( float group_w ) const;
         void draw_player( float group_w ) const;
         void draw_world( float group_w ) const;
         void draw_skins( float group_w ) const;
         void draw_misc( float group_w ) const;
         void draw_config( float group_w );
+        void draw_lua( float group_w ) const;
+        void handle_resize( );
 
         bool m_open{ true };
         bool m_config_modal_open{};
         bool m_config_cloud_refresh_pending{};
         bool m_config_advanced_open{};
         bool m_last_open{ true };
-        bool m_centered_once{};
         float m_open_anim{ 1.0f };
-        int m_tab_entry_from{ -1 };
-        float m_tab_entry_anim{ 1.0f };
         std::uint8_t m_saved_relative_mouse{};
 		bool m_has_saved_cursor{};
 		int m_saved_cursor_x{};
 		int m_saved_cursor_y{};
 
-        float m_x{ 120.0f };
-        float m_y{ 80.0f };
-        float m_w{ 940.0f };
-        float m_h{ 540.0f };
+        float m_x{ 100.0f };
+        float m_y{ 60.0f };
+		float m_w{ 620.0f };
+		float m_h{ 455.0f };
+
+        bool m_resizing{};
+        float m_resize_start_x{};
+        float m_resize_start_y{};
+        float m_resize_start_w{};
+        float m_resize_start_h{};
         float m_body_x{};
         float m_body_y{};
         float m_body_w{};
         float m_body_h{};
 
-        float m_nav_x{};
-        float m_nav_y{};
-        float m_nav_w{};
-        float m_nav_h{};
         float m_content_x{};
         float m_content_y{};
         float m_content_w{};
         float m_content_h{};
         float m_col_w{};
 
-        float m_scroll{};
-        float m_scroll_target{};
-        float m_scrollbar_anim{};
-        bool m_scrollbar_dragging{};
-        float m_scrollbar_drag_offset{};
-        int m_scroll_tab{ -1 };
-
         int m_tab{};
         int m_subtab{};
         int m_subtab_pill_tab{ -1 };
         float m_subtab_pill_x{ -1.0f };
-        float m_subtab_pill_w{ 0.0f };
+		int m_weapon_content_tab{ -1 };
+		int m_weapon_content_subtab{ -1 };
+		int m_weapon_content_direction{ 1 };
+		float m_weapon_content_anim{ 1.0f };
 		float m_intro_elapsed{};
 		float m_intro_assets_ready_at{ -1.0f };
 		float m_intro_bar_phase{};
 		bool m_intro_base_graphics_ready{};
 		bool m_intro_finished{};
-		bool m_search_open{};
-		std::string m_search_query{};
-		std::vector<std::size_t> m_search_visible_indices{};
-
-		struct search_entry
-		{
-			std::string name{};
-			std::string category{};
-			std::string name_lower{};
-			std::string category_lower{};
-			int tab{};
-			int subtab{};
-			int bind_key{};
-		};
-		std::vector<search_entry> m_search_entries{};
+		float m_user_avatar_retry_delay{};
 
         struct textures
         {
@@ -154,12 +128,9 @@ namespace rendering {
                 int height{};
             };
 
+            entry brand{};
+            entry user{};
             entry tabs[ 7 ]{};
-            entry search{};
-            entry settings{};
-            entry save{};
-            entry globe{};
-            entry folder{};
             entry cfg_folder_on{};
             entry cfg_folder_off{};
             entry cfg_cloud_on{};
@@ -178,18 +149,13 @@ namespace rendering {
 
         static constexpr subtab_info k_subtab_defs[ static_cast< int >( tab::count ) ]
         {
-            { { "pistol", "smg", "rifle", "shotgun", "sniper", "lmg" }, 6 },
-            { { "pistol", "smg", "rifle", "shotgun", "sniper", "lmg" }, 6 },
-            { { "enemies", "teammates", "local" },                  3 },
-            { { "esp", "weather" },                                 2 },
-            { { "weapons", "knives", "gloves", "agents" },          4 },
-            { { "general", "view" },                                2 },
-            { { "general", "settings" },                            2 }
-        };
-
-        static constexpr const char* k_tab_labels[ static_cast< int >( tab::count ) ]
-        {
-            "ragebot", "legitbot", "visuals", "world", "inventory", "misc", "settings"
+            { { "Pistol", "Smg", "Rifle", "Shotgun", "Sniper", "Lmg" }, 6 },
+            { { "Enemies", "Teammates", "Local" },                   3 },
+            { { "Esp", "Weather" },                                     2 },
+            { { "Weapons", "Knives", "Gloves", "Agents" },              4 },
+            { { "General", "View" },                                    2 },
+            { { "General", "Settings" },                                2 },
+            { { "General" },                                            1 }
         };
     };
 
@@ -202,6 +168,8 @@ namespace rendering {
 
 	private:
 		void watermark( xdraw::draw_list& draw_list );
+		void indicators( xdraw::draw_list& draw_list );
+		void manual_aa( xdraw::draw_list& draw_list );
 		void keybinds( xdraw::draw_list& draw_list );
 	};
 
@@ -240,4 +208,4 @@ namespace rendering {
 	inline widgets g_widgets{};
 	inline fonts g_fonts{};
 
-} // namespace rendering
+}

@@ -9,9 +9,6 @@ namespace systems {
 
 	namespace detail {
 
-		// "metallic" = chrome that reflects the baked environment cubemap of the surrounding
-		// scene (sky, walls, ambient) via g_flMetalness + the flat mirror normal
-		// (default_normal_1b833b2a). F_PAINT_VERTEX_COLORS lets the menu colour tint apply.
 		static constexpr char metallic[ ] = R"#(<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:generic:version{7412167c-06e9-4698-aff2-e63eb59037e7} -->
 {
 	shader = "csgo_complex.vfx"
@@ -38,8 +35,6 @@ namespace systems {
 	g_tNormal = resource:"materials/default/default_normal_tga_1b833b2a.vtex"
 })#";
 
-		// Occluded twin: identical to the visible chrome but with depth buffering
-		// disabled so it draws through walls.
 		static constexpr char metallic_ignorez[ ] = R"#(<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:generic:version{7412167c-06e9-4698-aff2-e63eb59037e7} -->
 {
 	shader = "csgo_complex.vfx"
@@ -78,7 +73,6 @@ namespace systems {
                 g_tNormal = resource:"materials/default/default_normal_tga_7652cb.vtex"
             })#";
 
-		// TODO
 		static constexpr char matte_ignorez[ ] = R"#(<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d}
             format:generic:version{7412167c-06e9-4698-aff2-e63eb59037e7} -->
             {
@@ -545,7 +539,7 @@ namespace systems {
                 g_tAmbientOcclusion = resource:"materials/default/default_ao_tga_559f1ac6.vtex"
             })#";
 
-	} // namespace detail
+	}
 
 	bool materials::initialize( )
 	{
@@ -834,7 +828,6 @@ namespace systems {
 			memory::call<void*>( material_create, nullptr, &handle, name, &kv3, 0, true );
 		}
 
-		// CreateMaterial copies the parsed tree; release the parser-owned value.
 		memory::call<void>( kv3_destroy, &kv3, 0u );
 
 		if ( !loaded || !handle.binding )
@@ -906,4 +899,4 @@ namespace systems {
 		}
 	}
 
-} // namespace systems
+}

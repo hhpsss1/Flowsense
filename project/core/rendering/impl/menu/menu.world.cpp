@@ -8,8 +8,6 @@ namespace rendering {
 
 	namespace detail {
 
-		// Cham material combo with "Flat 2" hidden. The visible list maps back
-		// onto settings::esp::cham_ids so the stored enum values stay aligned.
 		inline static bool cham_material_combo( std::string_view label, settings::esp::cham_ids& value )
 		{
 			static constexpr const char* names[ ]{
@@ -41,7 +39,7 @@ namespace rendering {
 			return false;
 		}
 
-	} // namespace detail
+	}
 
 	void menu::draw_world( float group_w ) const
 	{
@@ -81,7 +79,7 @@ namespace rendering {
 
 			xui::layout::set_cursor( content_x - wx, body_y - wy );
 
-			if ( xui::begin_child( "world items", col_w ) )
+			if ( xui::begin_child( "Items##esp_items", col_w ) )
 			{
 				static int item_group{};
 				xui::combo( "Group##item_sel", item_group, settings::esp::item::k_group_names, settings::esp::item::k_group_count );
@@ -136,7 +134,7 @@ namespace rendering {
 
 			xui::layout::set_cursor( right_x - wx, body_y - wy );
 
-			if ( xui::begin_child( "projectiles", col_w ) )
+			if ( xui::begin_child( "Projectiles##esp_projectiles", col_w ) )
 			{
 				static auto proj_group{ 0 };
 				xui::combo( "Group##proj_sel", proj_group, settings::esp::projectile::k_group_names, settings::esp::projectile::k_group_count );
@@ -210,7 +208,7 @@ namespace rendering {
 				xui::end_child( );
 			}
 
-			if ( xui::begin_child( "world overlays", col_w ) )
+			if ( xui::begin_child( "Other##esp_other", col_w ) )
 			{
 				xui::checkbox( "Bomb timer", other.bomb_timer );
 				xui::checkbox( "Spectator list", other.spectator_list );
@@ -224,7 +222,7 @@ namespace rendering {
 			auto& scene = w.m_scene;
 			auto& weather = w.m_weather;
 
-			if ( xui::begin_child( "scene", col_w ) )
+			if ( xui::begin_child( "World##world_scene_left", col_w ) )
 			{
 				xui::checkbox( "Skybox material", scene.skybox.custom_skybox );
 				if ( xui::begin_popup( "##skybox_popup", 220.0f ) )
@@ -332,7 +330,7 @@ namespace rendering {
 
 			xui::layout::set_cursor( right_x - wx, body_y - wy );
 
-			if ( xui::begin_child( "scene lighting", col_w ) )
+			if ( xui::begin_child( "Effects##world_scene_right", col_w ) )
 			{
 				xui::checkbox( "Depth of field", scene.dof );
 				if ( xui::begin_popup( "##dof_popup", 220.0f ) )
@@ -349,4 +347,4 @@ namespace rendering {
 		}
 	}
 
-} // namespace rendering
+}

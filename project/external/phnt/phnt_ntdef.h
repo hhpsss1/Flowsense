@@ -10,16 +10,11 @@
 #ifndef _NTDEF_
 #define _NTDEF_
 
-// This header file provides basic NT types not included in Win32. If you have included winnt.h
-// (perhaps indirectly), you must use this file instead of ntdef.h.
 
 #ifndef NOTHING
 #define NOTHING
 #endif
 
-//
-// Basic types
-//
 
 /**
  * The QUAD structure is a union used for 64-bit values or double precision.
@@ -62,9 +57,6 @@ typedef ULONG *PLOGICAL;
 typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
 typedef NTSTATUS *PNTSTATUS;
 
-//
-// Cardinal types
-//
 
 typedef char CCHAR;
 typedef short CSHORT;
@@ -89,9 +81,6 @@ typedef PVOID* PPVOID;
  */
 typedef CONST VOID *PCVOID;
 
-//
-// Specific
-//
 
 /**
  * The KIRQL type is an unsigned char used by the NT API for kernel IRQL (Interrupt Request Level).
@@ -129,23 +118,17 @@ typedef struct _ULARGE_INTEGER_128
     ULONGLONG QuadPart[2];
 } ULARGE_INTEGER_128, *PULARGE_INTEGER_128;
 
-//
-// Limits
-//
 
-#define MINCHAR     0x80        // winnt
-#define MAXCHAR     0x7f        // winnt
-#define MINSHORT    0x8000      // winnt
-#define MAXSHORT    0x7fff      // winnt
-#define MINLONG     0x80000000  // winnt
-#define MAXLONG     0x7fffffff  // winnt
-#define MAXUCHAR    0xff        // winnt
-#define MAXUSHORT   0xffff      // winnt
-#define MAXULONG    0xffffffff  // winnt
+#define MINCHAR     0x80
+#define MAXCHAR     0x7f
+#define MINSHORT    0x8000
+#define MAXSHORT    0x7fff
+#define MINLONG     0x80000000
+#define MAXLONG     0x7fffffff
+#define MAXUCHAR    0xff
+#define MAXUSHORT   0xffff
+#define MAXULONG    0xffffffff
 
-//
-// NT status macros
-//
 
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 #define NT_INFORMATION(Status) ((((ULONG)(Status)) >> 30) == 1)
@@ -162,9 +145,6 @@ typedef struct _ULARGE_INTEGER_128
 #define NT_NTWIN32(Status) (NT_FACILITY(Status) == FACILITY_NTWIN32)
 #define WIN32_FROM_NTSTATUS(Status) (((ULONG)(Status)) & 0xffff)
 
-//
-// Functions
-//
 
 #if defined(_WIN64)
 #define FASTCALL
@@ -202,9 +182,6 @@ typedef struct _ULARGE_INTEGER_128
 #define DECLSPEC_EXPORT __declspec(dllexport)
 #endif
 
-//
-// Synchronization enumerations
-//
 
 /**
  * Event types used with kernel synchronization objects.
@@ -236,9 +213,6 @@ typedef enum _WAIT_TYPE
     WaitDpc,
 } WAIT_TYPE;
 
-//
-// Strings
-//
 
 /**
  * The ANSI_STRING structure defines a counted string used for ANSI strings.
@@ -279,7 +253,6 @@ extern "C++"
 {
 template <size_t N> char _RTL_CONSTANT_STRING_type_check(const char  (&s)[N]);
 template <size_t N> char _RTL_CONSTANT_STRING_type_check(const WCHAR (&s)[N]);
-// __typeof would be desirable here instead of sizeof.
 template <size_t N> class _RTL_CONSTANT_STRING_remove_const_template_class;
 template <> class _RTL_CONSTANT_STRING_remove_const_template_class<sizeof(char)>  {public: typedef  char T; };
 template <> class _RTL_CONSTANT_STRING_remove_const_template_class<sizeof(WCHAR)> {public: typedef WCHAR T; };
@@ -308,9 +281,6 @@ extern const DECLSPEC_SELECTANY UNICODE_STRING _var = RTL_CONSTANT_STRING(_str)
 WCHAR _var ## _buffer[_size]; \
 UNICODE_STRING _var = { 0, (_size) * sizeof(WCHAR) , _var ## _buffer }
 
-//
-// Balanced tree node
-//
 
 #ifndef RTL_BALANCED_NODE_RESERVED_PARENT_MASK
 #define RTL_BALANCED_NODE_RESERVED_PARENT_MASK 3
@@ -340,9 +310,6 @@ typedef struct _RTL_BALANCED_NODE
     ((PRTL_BALANCED_NODE)((Node)->ParentValue & ~RTL_BALANCED_NODE_RESERVED_PARENT_MASK))
 #endif
 
-//
-// Portability
-//
 
 typedef struct _SINGLE_LIST_ENTRY32
 {
@@ -385,9 +352,6 @@ typedef STRING64 ANSI_STRING64, *PANSI_STRING64;
 typedef const STRING64 *PCUNICODE_STRING64;
 typedef const STRING64 *PCANSI_STRING64;
 
-//
-// Object attributes
-//
 
 /**
  * Protects the object from being closed by certain APIs (platform specific).
@@ -515,9 +479,6 @@ typedef const OBJECT_ATTRIBUTES *PCOBJECT_ATTRIBUTES;
 #define OBJ_NAME_PATH_SEPARATOR ((WCHAR)L'\\')
 #define OBJ_NAME_ALTPATH_SEPARATOR ((WCHAR)L'/')
 
-//
-// Portability
-//
 
 /**
  * The OBJECT_ATTRIBUTES64 structure is a 64-bit thunked representation of OBJECT_ATTRIBUTES.
@@ -551,9 +512,6 @@ typedef struct _OBJECT_ATTRIBUTES32
 
 typedef const OBJECT_ATTRIBUTES32 *PCOBJECT_ATTRIBUTES32;
 
-//
-// Product types
-//
 
 /**
  * The NT_PRODUCT_TYPE enum identifies the Windows product family for the operating system.
@@ -590,9 +548,6 @@ typedef enum _SUITE_TYPE
     MaxSuiteType
 } SUITE_TYPE;
 
-//
-// Specific
-//
 
 /**
  * The CLIENT_ID structure contains identifiers of a process and a thread.
@@ -991,7 +946,7 @@ typedef struct _KSYSTEM_TIME
 #define BYTES_TO_PAGES(Size) (((Size) >> PAGE_SHIFT) + (((Size) & PAGE_MASK) != 0))
 #endif
 
-#endif // defined(__INTELLISENSE__) || defined(DOXYGEN)
+#endif
 
 #ifdef _DEBUG
 
@@ -1037,7 +992,7 @@ typedef struct _KSYSTEM_TIME
 #define RTL_SOFT_VERIFYMSG RTL_SOFT_ASSERTMSG
 #endif
 
-#else // _DEBUG
+#else
 
 #ifndef ASSERT
 #define ASSERT( exp )         ((void) 0)
@@ -1067,7 +1022,7 @@ typedef struct _KSYSTEM_TIME
 #define RTL_SOFT_VERIFYMSG(msg, _exp) ((_exp) ? TRUE : FALSE)
 #endif
 
-#endif // _DEBUG
+#endif
 
 #ifndef RTL_ASSERT
 #define RTL_ASSERT    ASSERT
@@ -1080,14 +1035,14 @@ typedef struct _KSYSTEM_TIME
 #ifndef NT_ANALYSIS_ASSUME
 #if defined(_PREFAST_)
 #define NT_ANALYSIS_ASSUME(_exp) _Analysis_assume_(_exp)
-#else // _PREFAST_
+#else
 #ifdef _DEBUG
 #define NT_ANALYSIS_ASSUME(_exp) ((void) 0)
-#else // _DEBUG
+#else
 #define NT_ANALYSIS_ASSUME(_exp) __noop(_exp)
-#endif // _DEBUG
-#endif // _PREFAST_
-#endif // NT_ANALYSIS_ASSUME
+#endif
+#endif
+#endif
 
 #ifndef NT_ASSERT_ACTION
 #define NT_ASSERT_ACTION(_exp) \
@@ -1148,7 +1103,7 @@ typedef struct _KSYSTEM_TIME
 #define NT_VERIFYMSGW NT_ASSERTMSGW
 #endif
 
-#else // _DEBUG
+#else
 
 #ifndef NT_ASSERT_ASSUME
 #define NT_ASSERT_ASSUME(_exp)           (NT_ANALYSIS_ASSUME(_exp), 0)
@@ -1180,7 +1135,7 @@ typedef struct _KSYSTEM_TIME
 #define NT_VERIFYMSGW(_msg, _exp) (NT_ANALYSIS_ASSUME(_exp), ((_exp) ? TRUE : FALSE))
 #endif
 
-#endif // _DEBUG
+#endif
 
 #ifndef NT_FRE_ASSERT
 #define NT_FRE_ASSERT(_exp)           (NT_ANALYSIS_ASSUME(_exp), NT_ASSERT_ACTION(_exp))
@@ -1204,7 +1159,7 @@ typedef struct _KSYSTEM_TIME
 #define NT_ASSERTMSGW NT_ASSERTMSGW_ASSUME
 #endif
 
-#else // NT_ASSERT_ALWAYS_ASSUMES
+#else
 
 #ifndef NT_ASSERT
 #define NT_ASSERT     NT_ASSERT_NOASSUME
@@ -1216,8 +1171,8 @@ typedef struct _KSYSTEM_TIME
 #define NT_ASSERTMSGW NT_ASSERTMSGW_NOASSUME
 #endif
 
-#endif // NT_ASSERT_ALWAYS_ASSUMES
+#endif
 
-#endif // _NTDEF_
+#endif
 
-#endif // _PHNT_NTDEF_H
+#endif

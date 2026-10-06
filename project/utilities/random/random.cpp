@@ -80,6 +80,6 @@ namespace random {
 			return memory::call<std::int32_t>(MODULE_EXPORT ("tier0.dll:MD5_PseudoRandom"), seed );
 		}
 
-	} // namespace engine
+	}
 
-} // namespace random
+}

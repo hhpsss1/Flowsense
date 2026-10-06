@@ -11,7 +11,6 @@ namespace systems {
     {
         set result{};
 
-        // CSkeletonInstance moved its model handle in the current client.
         auto model_handle = seh ? memory::safe_read<std::uintptr_t>( game_scene_node + 0x1E0 ).value_or( 0 ) : memory::read<std::uintptr_t>( game_scene_node + 0x1E0 );
         if ( !model_handle )
         {
@@ -43,8 +42,6 @@ namespace systems {
 
         std::uintptr_t hitbox_set{};
 
-        // Hitbox sets now live in the render mesh's set container. Player
-        // models use the first set; retain the old direct pointer as fallback.
         const auto set_count = memory::read<int>( render_meshes + 0x174 );
         if ( set_count > 0 && set_count <= 32 )
         {
@@ -159,4 +156,4 @@ namespace systems {
 		return hitgroup < 9 ? k_names[ hitgroup ] : "body";
 	}
 
-} // namespace systems
+}

@@ -148,4 +148,4 @@ namespace hooks {
 		inline static hooking::jmp m_add_to_tail{};
 	};
 
-} // namespace hooks
+}

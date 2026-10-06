@@ -16,7 +16,7 @@ namespace {
 		window_class.cbSize = sizeof( window_class );
 		window_class.lpfnWndProc = DefWindowProcA;
 		window_class.hInstance = GetModuleHandleA( nullptr );
-		window_class.lpszClassName = "nexoria_dummy_window";
+		window_class.lpszClassName = "aetheris_dummy_window";
 
 		if ( !RegisterClassExA( &window_class ) )
 		{
@@ -104,7 +104,7 @@ namespace {
 		return present && resize_buffers;
 	}
 
-} // namespace
+}
 
 namespace addresses::functions {
 
@@ -113,4 +113,4 @@ namespace addresses::functions {
 		return acquire_swap_chain_functions( present, resize_buffers );
 	}
 
-} // namespace addresses::functions
+}

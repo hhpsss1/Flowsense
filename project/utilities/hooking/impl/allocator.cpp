@@ -15,7 +15,7 @@ namespace hooking::allocator {
 			return reinterpret_cast<LONG (__stdcall*)(HANDLE, PVOID*, PSIZE_T, ULONG)>(MODULE_EXPORT ("ntdll.dll:NtFreeVirtualMemory")) (process, base_addr, region_size, free_type);
 		}
 
-	} // namespace detail
+	}
 
 	void* allocate (std::size_t size, void* near_) {
 		const auto target = reinterpret_cast<std::uintptr_t>(near_);
@@ -54,4 +54,4 @@ namespace hooking::allocator {
 		detail::nt_free_virtual_memory (GetCurrentProcess (), &base, &region, MEM_RELEASE);
 	}
 
-} // namespace hooking::allocator
+}

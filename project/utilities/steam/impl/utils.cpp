@@ -9,7 +9,7 @@ namespace steam {
 
 		inline std::uintptr_t utils_interface {};
 
-	} // namespace detail
+	}
 
 	bool utils::initialize () {
 		detail::utils_interface = memory::call<std::uintptr_t> (MODULE_EXPORT ("steam_api64.dll:SteamAPI_SteamUtils_v010"));
@@ -32,4 +32,4 @@ namespace steam {
 		return memory::call<bool> (MODULE_EXPORT ("steam_api64.dll:SteamAPI_ISteamUtils_GetImageRGBA"), detail::utils_interface, image, dest, dest_size);
 	}
 
-} // namespace steam
+}

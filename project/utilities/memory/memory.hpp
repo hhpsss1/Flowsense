@@ -35,14 +35,13 @@ namespace memory {
 			}
 		}
 
-	} // namespace detail
+	}
 
 	[[nodiscard]] std::uintptr_t get_module_base( std::string_view module_name );
 	[[nodiscard]] std::uintptr_t get_module_export( std::string_view export_name );
 	[[nodiscard]] std::uintptr_t get_module_interface( std::string_view interface_name );
 	[[nodiscard]] std::uintptr_t get_module_export_with_base (std::uintptr_t module_base, std::string_view export_name);
 	[[nodiscard]] std::uintptr_t resolve_pattern( std::string_view pattern );
-	void print_pattern_scan_summary();
 
 	[[nodiscard]] std::uintptr_t get_module_export( std::uintptr_t module_base, std::uint16_t ordinal );
 	[[nodiscard]] std::uintptr_t get_module_size( std::uintptr_t module_base );
@@ -121,4 +120,4 @@ namespace memory {
 	[[nodiscard]] std::uintptr_t get_vfunc( std::uintptr_t instance, std::size_t index );
 	[[nodiscard]] std::string read_string( std::uintptr_t address, std::size_t max_length = 256 );
 
-} // namespace memory
+}

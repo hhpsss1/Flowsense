@@ -80,9 +80,6 @@ namespace hooks {
 				unavailable_hooks);
 		}
 
-		// ICsgoInput vtable slot 8 (AllowCameraAngles). Fixes WASD being eaten
-		// by the engine's camera-angle revalidation under sv_quantize_input 1
-		// while anti-aim is spoofing view angles.
 		if (addresses::globals::csgo_input)
 		{
 			const auto allow_camera_angles_addr = memory::get_vfunc (addresses::globals::csgo_input, 8);
@@ -163,8 +160,6 @@ namespace hooks {
 
 	HRESULT __fastcall cheat::present( IDXGISwapChain* thisptr, UINT sync_interval, UINT flags )
 	{
-		// Refresh the strafer's view angles on the render thread where they are
-		// guaranteed to be the real angles (anti-aim restores them via handle_view_angles).
 		features::movement::g_airstrafe.store_angles( );
 
 		rendering::g_context.on_present( thisptr );
@@ -215,15 +210,68 @@ namespace hooks {
 			rendering::g_menu.apply_saved_cursor( );
 		}
 
-		if ( msg == WM_KEYDOWN && !( lparam & ( 1 << 30 ) ) && static_cast< int >( wparam ) == settings::g_misc.menu_key )
+		if ( ( msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN ) && !( lparam & ( 1 << 30 ) ) && static_cast< int >( wparam ) == settings::g_misc.menu_key )
 		{
 			rendering::g_menu.toggle( );
 
-			// Drop any open popups (skin editors, combos, pickers, bind
-			// dialogs) so they do not linger after the menu closes.
 			xui::overlays::close_all( );
 
 			return 0;
+		}
+
+		if ( ( msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN ) && !( lparam & ( 1 << 30 ) ) && static_cast< int >( wparam ) == settings::g_misc.unload_key )
+		{
+			diag::request_unload( );
+
+			return 0;
+		}
+
+		if ( msg == WM_APPCOMMAND )
+		{
+
+
+			auto appcmd_to_vk = [ ]( int cmd ) -> int
+			{
+				switch ( cmd )
+				{
+				case APPCOMMAND_VOLUME_MUTE: return VK_VOLUME_MUTE;
+				case APPCOMMAND_VOLUME_DOWN: return VK_VOLUME_DOWN;
+				case APPCOMMAND_VOLUME_UP: return VK_VOLUME_UP;
+				case APPCOMMAND_MEDIA_NEXTTRACK: return VK_MEDIA_NEXT_TRACK;
+				case APPCOMMAND_MEDIA_PREVIOUSTRACK: return VK_MEDIA_PREV_TRACK;
+				case APPCOMMAND_MEDIA_STOP: return VK_MEDIA_STOP;
+				case APPCOMMAND_MEDIA_PLAY_PAUSE: return VK_MEDIA_PLAY_PAUSE;
+				case APPCOMMAND_LAUNCH_MAIL: return VK_LAUNCH_MAIL;
+				case APPCOMMAND_LAUNCH_MEDIA_SELECT: return VK_LAUNCH_MEDIA_SELECT;
+				case APPCOMMAND_LAUNCH_APP1: return VK_LAUNCH_APP1;
+				case APPCOMMAND_LAUNCH_APP2: return VK_LAUNCH_APP2;
+				case APPCOMMAND_BROWSER_BACKWARD: return VK_BROWSER_BACK;
+				case APPCOMMAND_BROWSER_FORWARD: return VK_BROWSER_FORWARD;
+				case APPCOMMAND_BROWSER_REFRESH: return VK_BROWSER_REFRESH;
+				case APPCOMMAND_BROWSER_STOP: return VK_BROWSER_STOP;
+				case APPCOMMAND_BROWSER_SEARCH: return VK_BROWSER_SEARCH;
+				case APPCOMMAND_BROWSER_FAVORITES: return VK_BROWSER_FAVORITES;
+				case APPCOMMAND_BROWSER_HOME: return VK_BROWSER_HOME;
+				default: return 0;
+				}
+			};
+
+			const auto vk = appcmd_to_vk( GET_APPCOMMAND_LPARAM( lparam ) );
+			if ( vk != 0 )
+			{
+				if ( vk == settings::g_misc.menu_key )
+				{
+					rendering::g_menu.toggle( );
+					xui::overlays::close_all( );
+					return 0;
+				}
+
+				if ( vk == settings::g_misc.unload_key )
+				{
+					diag::request_unload( );
+					return 0;
+				}
+			}
 		}
 
 		xui::wndproc( msg, wparam, lparam );
@@ -300,8 +348,6 @@ namespace hooks {
 			}
 		}
 
-		// Source 2 copies dynamic-light entries into scene objects during this stage.
-		// Publish our entry first, while keeping all manager mutations on the game thread.
 		if ( stage == 6 )
 		{
 			features::misc::g_dlight.on_frame_stage_notify( );
@@ -309,8 +355,6 @@ namespace hooks {
 
 		m_frame_stage_notify.call<void>( thisptr, stage );
 
-		// The current frame's world-to-projection matrix is published by the
-		// engine during render-start stage 12.
 		if ( stage == 12 )
 		{
 			systems::g_view.update_matrix( );
@@ -319,8 +363,6 @@ namespace hooks {
 
 		if (systems::g_local.get ().is_valid () && systems::g_view.has_camera ()) {
 			if (stage == 6) {
-				// Capture lag records only after Source 2 has committed this network update,
-				// so the simulation timestamp, world origin and evaluated bones agree.
 				features::combat::g_shared.lc( ).run( );
 				features::esp::player::g_chams.bt( ).update( );
 				features::esp::player::g_chams.os ().update ();
@@ -351,7 +393,6 @@ namespace hooks {
 
 		{
 			features::combat::g_shared.invalidate_if_needed( );
-			features::combat::g_legit.invalidate_if_needed( );
 			features::combat::g_misc.quickpeek( ).reset_if_needed( );
 		}
 
@@ -410,9 +451,6 @@ namespace hooks {
 				features::movement::g_edgejump.on_create_move( current_cmd );
 				features::movement::g_edgestop.on_create_move( current_cmd );
 				features::movement::g_jumpbug.on_create_move( current_cmd );
-				// Стрейфер ДО бхопа: ему нужен оригинальный зажатый in_jump
-				// (гейт), а бхоп ниже срезает jump-бит в воздухе под edge.
-				features::movement::g_test_strafer.on_create_move( current_cmd );
 				features::movement::g_bhop.on_create_move( current_cmd );
 				features::movement::g_fastladder.on_create_move( current_cmd );
 				if ( trace )
@@ -427,20 +465,13 @@ namespace hooks {
 					if ( trace )
 					{
 						diag::step( "create_move: rage end" );
-						diag::step( "create_move: legit begin" );
-					}
-					diag::set_exception_phase( "create_move: legit" );
-					features::combat::g_legit.on_create_move( current_cmd );
-					if ( trace )
-					{
-						diag::step( "create_move: legit end" );
 					}
 				}
 
 				diag::set_exception_phase( "create_move: post-combat movement" );
 				features::combat::g_misc.duckpeek( ).on_create_move( current_cmd );
-				features::movement::g_airstrafe.on_create_move( current_cmd );
-				// Apply after airstrafe so rage autostop owns the final air-movement command.
+			features::movement::g_test_strafer.on_create_move( current_cmd );
+			features::movement::g_airstrafe.on_create_move( current_cmd );
 				features::combat::g_misc.autostop( ).on_create_move( current_cmd );
 				features::misc::g_projectile_trajectory.on_create_move( current_cmd );
 				features::misc::g_other.on_create_move( current_cmd );
@@ -458,49 +489,25 @@ namespace hooks {
 				diag::step( "create_move: final subtick begin" );
 			}
 
-			diag::set_exception_phase( "create_move: final subtick" );
-			const auto final_base = current_cmd->csgo_user_cmd.mutable_base( );
-			// Зероим базовые мувы только если реально есть аналоговые
-			// subtick-дельты движения. Jump-only степы бхопа (кнопки, без
-			// аналоговых дельт) иначе убивали бы WASD на тике приземления -
-			// в воздухе нечем рулить и хоп рассыпается. Биты как в
-			// input::apply::has_move_subticks: 0x8/0x10 = analog deltas.
-			auto has_move_subtick = false;
-			if ( final_base )
-			{
-				for ( auto i = 0; i < final_base->subtick_moves_size( ); ++i )
-				{
-					if ( const auto step = final_base->mutable_subtick_moves( i ) )
-					{
-						if ( step->m_has_bits.test( 0x8 ) || step->m_has_bits.test( 0x10 ) )
-						{
-							has_move_subtick = true;
-							break;
-						}
-					}
-				}
-			}
-			if ( final_base && has_move_subtick
-				&& !features::movement::g_test_strafer.handled_this_tick( )
-				&& !features::combat::g_rage.should_stop( )
-				&& !features::combat::g_rage.should_stop_between_shots( ) )
-			{
-				final_base->set_forwardmove( 0.0f );
-				final_base->set_leftmove( 0.0f );
-			}
+		diag::set_exception_phase( "create_move: final subtick" );
+		const auto final_base = current_cmd->csgo_user_cmd.mutable_base( );
+		if ( final_base && final_base->subtick_moves_size( ) > 0
+			&& !features::movement::g_test_strafer.handled_this_tick( )
+			&& !features::combat::g_rage.should_stop( ) )
+		{
+			final_base->set_forwardmove( 0.0f );
+			final_base->set_leftmove( 0.0f );
+		}
 			if ( trace )
 			{
 				diag::step( "create_move: final subtick end" );
 			}
 
-			diag::set_exception_phase( "create_move: vac emitter" );
-			features::combat::g_vac.on_create_move( current_cmd );
+diag::set_exception_phase( "create_move: vac emitter" );
+		features::combat::g_vac.on_create_move( current_cmd );
 
-			// Doubletap rewrites the input history entries at the very end of
-			// the pipeline so the shot lands on the earliest legal weapon tick.
-			features::combat::g_rage.run_double_tap( current_cmd );
-
-			//systems::g_legit_input.on_create_move( current_cmd );
+		diag::set_exception_phase( "create_move: lua" );
+		features::misc::g_lua.on_create_move( current_cmd );
 		}
 		static std::atomic_bool first_input_apply_traced{};
 		const auto trace_apply =
@@ -510,15 +517,9 @@ namespace hooks {
 			diag::step( "create_move: input apply begin" );
 		}
 		diag::exception_scope exception_scope{ "create_move: input apply" };
-		// Suppress the ag2 alignment delta while antiaim re-bases movement
-		// onto fake viewangles - the delta would inject the rotation
-		// difference as an extra impulse and bleed speed. Rage autostops
-		// still get the alignment so they can zero out services-driven
-		// movement reliably.
 		const auto& antiaim = features::combat::g_misc.antiaim( );
 		const auto suppress_alignment = antiaim.is_rotating_command( )
-			&& !features::combat::g_rage.should_stop( )
-			&& !features::combat::g_rage.should_stop_between_shots( );
+			&& !features::combat::g_rage.should_stop( );
 		systems::g_input.apply( suppress_alignment );
 		if ( trace_apply )
 		{
@@ -685,9 +686,6 @@ namespace hooks {
 				const auto owner_entity = systems::g_entities.lookup( owner_handle );
 				if ( owner_entity )
 				{
-					// The preview player spawned by the MapPlayerPreviewPanel copy
-					// is submitted through the same GeneratePrimitives path; capture
-					// it here so the menu preview ESP can read its finalized bones.
 					systems::g_model_preview.capture_preview_player( owner_entity );
 
 					const auto owner_hash = fnv1a::runtime_hash( systems::g_entities.get_schema_name( owner_entity ) );
@@ -712,7 +710,6 @@ namespace hooks {
 
 	std::uintptr_t __fastcall cheat::parse_report_hit( std::uintptr_t thisptr, std::uint8_t deleting )
 	{
-		// Capture the protobuf fields before the deleting destructor can free them.
 		features::misc::g_impacts.on_report_hit( thisptr );
 
 		return m_parse_report_hit.call<std::uintptr_t>( thisptr, deleting );
@@ -739,8 +736,6 @@ namespace hooks {
 	{
 		constexpr std::uint32_t dof_ranges{ 0x2ACAB07C };
 
-		// The engine only publishes DofRanges when the active camera enables DOF.
-		// Insert it alongside any post-process vector, matching Artisan's live path.
 		if ( settings::g_world.m_scene.dof.value && hash != dof_ranges )
 		{
 			__m128i* dof_value{};
@@ -853,8 +848,6 @@ namespace hooks {
 			return false;
 		}
 
-		// The client dereferences every resolved transform without checking the
-		// backing cache. Reject a stale scene node instead of faulting in it.
 		for ( auto i = 0; i < count; ++i )
 		{
 			const auto shape_ptr = shape_array + 16ull * i;
@@ -944,8 +937,6 @@ namespace hooks {
 	{
 		const auto result = m_get_interpolated_shoot_position.call<float*>( thisptr, out, tick_frac );
 
-		// Prediction calls this helper while building the next command as well.
-		// Only the call made for an actual rage shot is its authoritative origin.
 		if ( features::combat::g_rage.is_firing_this_tick( ) )
 		{
 			features::misc::g_impacts.on_get_interpolated_shoot_position( thisptr, out );
@@ -975,17 +966,6 @@ namespace hooks {
 
 	void __fastcall cheat::viewmodel_bob( std::uintptr_t viewmodel, std::uintptr_t a2, std::uintptr_t a3 )
 	{
-		const auto& cfg = settings::g_misc.m_viewmodel_adjust;
-
-		if ( cfg.no_hand_movement.value && viewmodel )
-		{
-			memory::write<float>( viewmodel + 0x1270, 0.0f );
-			memory::write<math::vector3>( viewmodel + 0x1274, {} );
-			memory::write<float>( viewmodel + 0x1280, 0.0f );
-			memory::write<math::vector3>( viewmodel + 0x1284, {} );
-			return;
-		}
-
 		m_viewmodel_bob.call<void>( viewmodel, a2, a3 );
 	}
 
@@ -1013,22 +993,15 @@ namespace hooks {
 	{
 		rendering::g_widgets.s_map_name.clear();
 
-		// Release feature-owned scene objects before Source 2 tears their parents down.
 		features::misc::g_dlight.on_level_shutdown( );
 
-		// clear all local player data on level shutdown
 		systems::g_local.reset();
 
-		// Drop the cached entity list and lag records now. Source 2 tears down the
-		// entire entity set during a level change, so every cached pointer would
-		// dangle until the next map finishes loading. Clearing here prevents the
-		// render and game threads from dereferencing freed entities on the next map.
 		systems::g_entities.clear();
 		features::combat::g_shared.lc( ).clear_records( );
 		features::esp::player::g_overlay.clear_animations( );
 
 		features::combat::g_shared.invalidate_if_needed( );
-		features::combat::g_legit.invalidate_if_needed( );
 
 		return m_level_shutdown.call<std::uintptr_t>( a1 );
 	}
@@ -1040,7 +1013,6 @@ namespace hooks {
 
 	void __fastcall cheat::process_input_event( std::uintptr_t csgo_input, int slot, float frametime )
 	{
-		systems::g_legit_input.on_process_input_event( csgo_input, slot );
 		m_process_input_event.call<void>( csgo_input, slot, frametime );
 	}
 
@@ -1141,28 +1113,6 @@ namespace hooks {
 
 	std::int64_t __fastcall cheat::panorama_event( void* unk, const char* event_name, void* unk1, float unk2 )
 	{
-		// Fired for every panorama UI event with its name as a plain string.
-		// "popup_accept_match_found" pops when the GC found a match - accept
-		// it automatically and flash the window so the user notices.
-		if ( event_name && settings::g_misc.autoaccept.value
-			&& fnv1a::runtime_hash( event_name ) == "popup_accept_match_found"_hash )
-		{
-			// Use SetPlayerReady with "accept" string - NOT "deferred" which
-			// silently fails. "accept" sets ready state 2 and tells the GC
-			// we are in.
-			const auto set_player_ready = PATTERN( patterns::set_player_ready );
-			if ( set_player_ready )
-			{
-				memory::call<bool>( set_player_ready, nullptr, "accept" );
-			}
-
-			FLASHWINFO fi{};
-			fi.cbSize = sizeof( fi );
-			fi.hwnd = FindWindowA( "Valve001", nullptr );
-			fi.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
-			FlashWindowEx( &fi );
-		}
-
 		return m_panorama_event.call<std::int64_t>( unk, event_name, unk1, unk2 );
 	}
 
@@ -1175,7 +1125,7 @@ namespace hooks {
 			{
 				memory::write<float>( view_pawn + SCHEMA( "C_CSPlayerPawnBase", "m_flFlashMaxAlpha"_hash ), 0.0f );
 			}
-			return; // skip drawing the flash effect entirely
+			return;
 		}
 
 		m_draw_flash_effect.call<void>( a1, a2, a3, a4, a5 );
@@ -1188,7 +1138,6 @@ namespace hooks {
 		if ( !srv || a4 != 0 )
 			return srv;
 
-		// Texture name lives at *(*(texture + 1)), not in the a5 parameter.
 		const char* texture_name = nullptr;
 
 		__try
@@ -1213,4 +1162,4 @@ namespace hooks {
 		return srv;
 	}
 
-} // namespace hooks
+}

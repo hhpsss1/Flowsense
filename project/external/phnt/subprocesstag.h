@@ -9,9 +9,9 @@
 
 typedef enum _TAG_INFO_LEVEL
 {
-    eTagInfoLevelNameFromTag = 1, // TAG_INFO_NAME_FROM_TAG
-    eTagInfoLevelNamesReferencingModule, // TAG_INFO_NAMES_REFERENCING_MODULE
-    eTagInfoLevelNameTagMapping, // TAG_INFO_NAME_TAG_MAPPING
+    eTagInfoLevelNameFromTag = 1,
+    eTagInfoLevelNamesReferencingModule,
+    eTagInfoLevelNameTagMapping,
     eTagInfoLevelMax
 } TAG_INFO_LEVEL;
 

@@ -64,7 +64,6 @@ namespace features::world {
 			return;
 		}
 
-		// FIX: "xs" returning a const char* will break here, its a dangling pointer. we use std::string's memory management to avoid this.
 		std::string particle_path = "";
 
 		switch ( settings::g_world.m_weather.type )
@@ -208,4 +207,4 @@ namespace features::world {
 		this->m_particle_loaded = false;
 	}
 
-} // namespace features::world
+}

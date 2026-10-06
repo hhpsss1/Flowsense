@@ -59,7 +59,7 @@ namespace features::esp::other {
 			}
 		};
 
-	} // namespace detail
+	}
 
 	void overlay::on_render( xdraw::draw_list& draw_list )
 	{
@@ -175,16 +175,13 @@ namespace features::esp::other {
 		const auto [screen_w, screen_h] = xdraw::viewport_size( );
 		const auto& s = xui::ctx( ).style;
 
-		constexpr auto h{ 20.0f };
+		constexpr auto h{ 24.0f };
 		constexpr auto top_offset{ 175.0f };
-		constexpr auto r{ 0.0f };
-		constexpr auto inner_r{ 0.0f };
-		constexpr auto inner_pad{ 1.0f };
+		constexpr auto r{ 4.0f };
+		constexpr auto inner_pad{ 2.0f };
 		constexpr auto text_pad_x{ 8.0f };
 		constexpr auto text_nudge{ 0.5f };
-		constexpr auto section_spacing{ 6.0f };
-
-		const auto inner_h = h - inner_pad * 2.0f;
+		constexpr auto section_spacing{ 8.0f };
 
 		auto timer_color = [ & ]( ) -> xdraw::color
 			{
@@ -300,22 +297,19 @@ namespace features::esp::other {
 		}
 
 		draw_list.rect_filled( x, y, total_w, h, s.window_bg, xdraw::corner_radius{ r } );
-		draw_list.rect( x, y, total_w, h, tokens::col_border, xdraw::corner_radius{ r }, 1.0f );
+		draw_list.rect( x, y, total_w, h, s.child_border, xdraw::corner_radius{ r }, 1.0f );
 
 		auto cx = x + inner_pad;
 
-		draw_list.rect_filled( cx, y + inner_pad, site_pill_w, inner_h, s.child_bg, xdraw::corner_radius{ inner_r } );
 		draw_list.text( cx + text_pad_x, y + ( h - site_th ) * 0.5f + text_nudge, site_label, s.accent );
 		cx += site_pill_w + section_spacing;
 
 		const auto health_unit_col = xdraw::color{ health_col.r, health_col.g, health_col.b, 120 };
-		draw_list.rect_filled( cx, y + inner_pad, health_pill_w, inner_h, s.child_bg, xdraw::corner_radius{ inner_r } );
 		draw_list.text( cx + text_pad_x, y + ( h - health_vh ) * 0.5f + text_nudge, health_buf, health_col );
 		draw_list.text( cx + text_pad_x + health_vw, y + ( h - health_uh ) * 0.5f + text_nudge, " health", health_unit_col );
 		cx += health_pill_w + section_spacing;
 
 		const auto timer_unit_col = xdraw::color{ timer_color.r, timer_color.g, timer_color.b, 120 };
-		draw_list.rect_filled( cx, y + inner_pad, timer_pill_w, inner_h, s.child_bg, xdraw::corner_radius{ inner_r } );
 		draw_list.text( cx + text_pad_x, y + ( h - timer_vh ) * 0.5f + text_nudge, timer_buf, timer_color );
 		draw_list.text( cx + text_pad_x + timer_vw, y + ( h - timer_uh ) * 0.5f + text_nudge, timer_unit, timer_unit_col );
 	}
@@ -346,12 +340,14 @@ namespace features::esp::other {
 		const auto& s = xui::ctx( ).style;
 
 		constexpr auto margin{ 10.0f };
-		constexpr auto row_spacing{ 0.0f };
-		constexpr auto row_h{ 18.0f };
-		constexpr auto header_h{ hud::caption_h };
-		constexpr auto pad_x{ 8.0f };
+		constexpr auto row_gap{ 2.0f };
+		constexpr auto row_h{ 22.0f };
+		constexpr auto header_h{ 20.0f };
+		constexpr auto r{ 4.0f };
+		constexpr auto pad{ 6.0f };
+		constexpr auto avatar_size{ 16.0f };
+		constexpr auto avatar_gap{ 5.0f };
 		constexpr auto text_nudge{ 0.5f };
-		constexpr auto avatar_size{ 14.0f };
 
 		struct spectator_entry
 		{
@@ -427,18 +423,21 @@ namespace features::esp::other {
 
 		static detail::avatar_cache avatars{};
 
+
 		const auto [header_tw, header_th] = xdraw::measure_text( "spectators" );
 
-		// One flat frame sized to the widest row, matching the keybind list.
-		auto panel_w = header_tw + pad_x * 2.0f + hud::caption_gap * 2.0f + tokens::pad * 2.0f;
+		auto max_content_w{ header_tw };
 		for ( auto i = 0; i < count; ++i )
 		{
 			const auto [nw, nh] = xdraw::measure_text( entries[ i ].name );
+			(void)nh;
 			const auto has_avatar = avatars.get( entries[ i ].steam_id ) != nullptr;
-			panel_w = std::max( panel_w, nw + pad_x * 2.0f + tokens::pad * 2.0f + ( has_avatar ? avatar_size + pad_x : 0.0f ) );
+			max_content_w = std::max( max_content_w, ( has_avatar ? avatar_size + avatar_gap : 0.0f ) + nw );
 		}
 
-		const auto panel_h = header_h + row_h * static_cast< float >( count );
+		const auto panel_w = pad * 2.0f + max_content_w;
+		const auto rows_h = count > 0 ? ( static_cast< float >( count ) * ( row_h + row_gap ) - row_gap ) : 0.0f;
+		const auto panel_h = pad + header_h + 4.0f + rows_h + ( count > 0 ? pad : 0.0f );
 
 		auto& sp_x = settings::g_esp.m_other.spectator_x.value;
 		auto& sp_y = settings::g_esp.m_other.spectator_y.value;
@@ -447,7 +446,7 @@ namespace features::esp::other {
 		float ry = sp_y >= 0.0f ? sp_y : std::max( margin, rendering::g_menu.pos_y( ) + tokens::window_h - panel_h - margin );
 
 		const auto& input = xui::ctx( ).input;
-		const auto header_rect = xui::rect{ x, ry, panel_w, std::min( header_h, panel_h ) };
+		const auto header_rect = xui::rect{ x, ry, panel_w, pad + header_h };
 
 		static bool dragging{};
 		static float grab_dx{}, grab_dy{};
@@ -475,37 +474,32 @@ namespace features::esp::other {
 			}
 		}
 
-		if ( panel_h <= 0.0f )
-		{
-			return;
-		}
+		draw_list.rect_filled( x, ry, panel_w, panel_h, s.window_bg, xdraw::corner_radius{ r } );
+		draw_list.rect( x, ry, panel_w, panel_h, s.child_border, xdraw::corner_radius{ r }, 1.0f );
 
-		hud::list_frame( draw_list, x, ry, panel_w, panel_h, "spectators", 1.0f );
+		draw_list.text( x + pad, ry + pad + ( header_h - header_th ) * 0.5f, "spectators", s.text );
+		const auto div_y = ry + pad + header_h + 2.0f;
+		draw_list.line( x + pad, div_y, x + panel_w - pad, div_y, s.child_border, 1.0f );
 
-		ry += header_h;
-
+		auto row_y = div_y + 3.0f;
 		for ( auto i = 0; i < count; ++i )
 		{
 			const auto& e = entries[ i ];
 			const auto [nw, nh] = xdraw::measure_text( e.name );
+			(void)nw;
 			const auto avatar_tex = avatars.get( e.steam_id );
-			const auto has_avatar = avatar_tex != nullptr;
-			const auto u8 = hud::fade_alpha( 1.0f );
 
-			draw_list.rect_filled( x + 1.0f, ry + row_h - 1.0f, panel_w - 2.0f, 1.0f, tokens::col_border_soft.alpha( u8 ) );
-
-			const auto text_x = x + tokens::pad + pad_x;
-			draw_list.text( std::floor( text_x ), std::floor( ry + ( row_h - nh ) * 0.5f + text_nudge ), e.name, tokens::col_text.alpha( u8 ) );
-
-			if ( has_avatar )
+			auto cx = x + pad;
+			if ( avatar_tex )
 			{
-				const auto ax = x + panel_w - tokens::pad - pad_x - avatar_size;
-				const auto ay = ry + ( row_h - avatar_size ) * 0.5f;
-				draw_list.image( std::floor( ax ), std::floor( ay ), avatar_size, avatar_size, avatar_tex, xdraw::corner_radius{ 0.0f } );
+				const auto ay = row_y + ( row_h - avatar_size ) * 0.5f;
+				draw_list.image( cx, ay, avatar_size, avatar_size, avatar_tex, xdraw::corner_radius{ 3.0f }, xdraw::color{ 255, 255, 255, 255 } );
+				cx += avatar_size + avatar_gap;
 			}
 
-			ry += row_h + row_spacing;
+			draw_list.text( cx, row_y + ( row_h - nh ) * 0.5f + text_nudge, e.name, s.text );
+			row_y += row_h + row_gap;
 		}
 	}
 
-} // namespace features::esp::other
+}

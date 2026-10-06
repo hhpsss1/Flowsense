@@ -1,6 +1,5 @@
 #pragma once
 
-// Complete crash report system with full settings snapshot
 
 #include <windows.h>
 #include <dbghelp.h>
@@ -13,7 +12,6 @@
 
 namespace crash_report {
 
-// Helper to convert hex
 inline std::string to_hex_string(std::uintptr_t value) {
     char buffer[32] = {};
     sprintf_s(buffer, "%llX", (unsigned long long)value);
@@ -36,12 +34,10 @@ inline std::wstring to_wstring(const std::string& str) {
     return wstr;
 }
 
-// Crash severity levels
 enum class severity {
     low, medium, high, critical
 };
 
-// Exception category
 enum class crash_category {
     unknown,
     memory_violation,
@@ -55,7 +51,6 @@ enum class crash_category {
     network_error
 };
 
-// Exception information
 struct exception_info {
     DWORD exception_code = 0;
     std::uintptr_t exception_address = 0;
@@ -68,7 +63,6 @@ struct exception_info {
     std::string exception_name;
 };
 
-// System information
 struct system_info {
     OSVERSIONINFOW os_version = {};
     SYSTEM_INFO cpu_info = {};
@@ -78,7 +72,6 @@ struct system_info {
     std::wstring user_name;
 };
 
-// Register state
 struct register_state {
     std::uintptr_t rip = 0, rsp = 0, rbp = 0;
     std::uintptr_t rax = 0, rbx = 0, rcx = 0, rdx = 0;
@@ -87,7 +80,6 @@ struct register_state {
     std::uintptr_t r12 = 0, r13 = 0, r14 = 0, r15 = 0;
 };
 
-// Stack frame
 struct stack_frame_info {
     std::uintptr_t address = 0;
     std::string module_name;
@@ -96,14 +88,12 @@ struct stack_frame_info {
     int source_line = 0;
 };
 
-// Fix suggestion
 struct fix_suggestion {
     std::string title;
     std::string description;
     std::vector<std::string> steps;
 };
 
-// Enabled feature/setting
 struct enabled_setting {
     std::string category;
     std::string name;
@@ -111,7 +101,6 @@ struct enabled_setting {
     bool is_critical;
 };
 
-// Main crash report
 struct crash_report_data {
     exception_info exception;
     system_info system;
@@ -129,15 +118,12 @@ struct crash_report_data {
     std::uintptr_t dll_size = 0;
     std::string crash_time_str;
     severity crash_severity = severity::medium;
-    bool is_in_nexoria_module = false;
+    bool is_in_aetheris_module = false;
     std::string faulting_module;
     std::string game_process_info;
     DWORD game_process_id = 0;
 };
 
-// ============================================================================
-// Settings Snapshot - Capture what was enabled
-// ============================================================================
 
 struct settings_snapshot {
     std::vector<enabled_setting> enabled_features;
@@ -161,7 +147,6 @@ struct settings_snapshot {
     }
 };
 
-// Global settings accessor - this will be called to capture current state
 typedef settings_snapshot(*get_settings_fn)();
 get_settings_fn g_settings_getter = nullptr;
 
@@ -176,9 +161,6 @@ inline settings_snapshot get_current_settings() {
     return settings_snapshot{};
 }
 
-// ============================================================================
-// Helper functions
-// ============================================================================
 
 inline const char* severity_to_string(severity s) {
     switch (s) {
@@ -230,18 +212,14 @@ inline const char* exception_code_to_name(DWORD code) {
     }
 }
 
-inline bool is_nexoria_address(std::uintptr_t addr, std::uintptr_t base, std::uintptr_t size) {
+inline bool is_aetheris_address(std::uintptr_t addr, std::uintptr_t base, std::uintptr_t size) {
     return addr >= base && addr < base + size;
 }
 
-// ============================================================================
-// Directory Creation - uses Windows API for reliability
-// ============================================================================
 
 inline bool create_directory_recursive(const std::wstring& path) {
     if (path.empty()) return false;
 
-    // Try Windows API first (more reliable than std::filesystem in crash context)
     if (CreateDirectoryW(path.c_str(), nullptr) == TRUE) {
         return true;
     }
@@ -251,14 +229,11 @@ inline bool create_directory_recursive(const std::wstring& path) {
         return true;
     }
 
-    // If failed because parent doesn't exist, try to create parent
     if (err == ERROR_PATH_NOT_FOUND) {
-        // Find the parent path
         size_t pos = path.find_last_of(L"\\/");
         if (pos != std::wstring::npos) {
             std::wstring parent = path.substr(0, pos);
             if (!parent.empty() && create_directory_recursive(parent)) {
-                // Now try to create the full path again
                 return CreateDirectoryW(path.c_str(), nullptr) == TRUE;
             }
         }
@@ -268,29 +243,23 @@ inline bool create_directory_recursive(const std::wstring& path) {
 }
 
 inline std::wstring get_crash_directory() {
-    // Try primary directory first
-    constexpr wchar_t k_primary_dir[] = L"C:\\nexoria\\log";
+    constexpr wchar_t k_primary_dir[] = L"C:\\aetheris\\log";
 
     if (create_directory_recursive(k_primary_dir)) {
         return std::wstring{ k_primary_dir };
     }
 
-    // Fallback to temp directory if primary fails
     wchar_t temp_path[MAX_PATH] = {};
     if (GetTempPathW(MAX_PATH, temp_path)) {
-        std::wstring fallback = std::wstring{temp_path} + L"nexoria_crashes\\";
+        std::wstring fallback = std::wstring{temp_path} + L"aetheris_crashes\\";
         if (create_directory_recursive(fallback)) {
             return fallback;
         }
     }
 
-    // Last resort - current directory
     return std::wstring{ L"." };
 }
 
-// ============================================================================
-// System Information Collection
-// ============================================================================
 
 inline void collect_system_info(system_info& info) {
     info.os_version.dwOSVersionInfoSize = sizeof(OSVERSIONINFOW);
@@ -299,7 +268,6 @@ inline void collect_system_info(system_info& info) {
     info.memory.dwLength = sizeof(MEMORYSTATUSEX);
     GlobalMemoryStatusEx(&info.memory);
 
-    // Get computer and user name
     DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
     wchar_t computer_name[MAX_COMPUTERNAME_LENGTH + 1] = {};
     GetComputerNameW(computer_name, &size);
@@ -322,7 +290,6 @@ inline void collect_system_info(system_info& info) {
     }
 }
 
-// Collect registers
 inline void collect_registers(register_state& regs, CONTEXT* ctx) {
 #if defined(_M_X64)
     regs.rip = ctx->Rip; regs.rsp = ctx->Rsp; regs.rbp = ctx->Rbp;
@@ -333,7 +300,6 @@ inline void collect_registers(register_state& regs, CONTEXT* ctx) {
 #endif
 }
 
-// Stack walking
 inline void capture_stack_trace(std::vector<stack_frame_info>& frames, CONTEXT* ctx) {
     static constexpr int MAX_FRAMES = 32;
     static char sym_buf[sizeof(SYMBOL_INFO) + MAX_SYM_NAME];
@@ -390,9 +356,6 @@ inline void capture_stack_trace(std::vector<stack_frame_info>& frames, CONTEXT* 
     }
 }
 
-// ============================================================================
-// Generate fixes based on category
-// ============================================================================
 
 inline std::vector<fix_suggestion> generate_fixes(crash_category cat, exception_info& exc) {
     std::vector<fix_suggestion> fixes;
@@ -487,39 +450,34 @@ inline std::vector<fix_suggestion> generate_fixes(crash_category cat, exception_
     }
     fixes.push_back(specific);
 
-    // General fix
     fix_suggestion general = {};
     general.title = "General Troubleshooting";
     general.description = "Steps that often resolve crash issues.";
     general.steps = {
-        "1. Update to the latest version of Nexoria",
-        "2. Run game and Nexoria as administrator",
+        "1. Update to the latest version of Aetheris",
+        "2. Run game and Aetheris as administrator",
         "3. Disable antivirus/firewall temporarily",
         "4. Verify game files integrity (Steam)",
         "5. Update graphics drivers",
         "6. Disable other injected mods/overlays",
-        "7. Try reducing Nexoria quality settings"
+        "7. Try reducing Aetheris quality settings"
     };
     fixes.push_back(general);
 
     return fixes;
 }
 
-// ============================================================================
-// Report Generation
-// ============================================================================
 
 inline std::string generate_report(const crash_report_data& r) {
     std::string out;
 
     out += "================================================================================\n";
-    out += "                    NEXORIA CS2 CRASH REPORT\n";
+    out += "                    AETHERIS CS2 CRASH REPORT\n";
     out += "================================================================================\n\n";
 
-    out += "[!] IMPORTANT: This report contains the state of Nexoria at crash time.\n";
+    out += "[!] IMPORTANT: This report contains the state of Aetheris at crash time.\n";
     out += "    Please include this file when reporting crashes.\n\n";
 
-    // Header
     out += "CRASH SUMMARY\n";
     out += "--------------------------------------------------------------------------------\n";
     out += "  Timestamp:      " + r.crash_time_str + "\n";
@@ -530,29 +488,26 @@ inline std::string generate_report(const crash_report_data& r) {
     out += "  Thread ID:      " + std::to_string(r.exception.thread_id) + "\n";
     out += "  Process ID:     " + std::to_string(r.exception.process_id) + "\n\n";
 
-    // Game Info
     out += "GAME INFORMATION\n";
     out += "--------------------------------------------------------------------------------\n";
     out += "  Game:           Counter-Strike 2\n";
     out += "  Game Version:   " + r.game_version + "\n";
-    out += "  Nexoria Ver:    " + r.build_version + " (" + r.build_config + ")\n";
+    out += "  Aetheris Ver:    " + r.build_version + " (" + r.build_config + ")\n";
     out += "  DLL Path:       " + r.dll_path + "\n";
     out += "  DLL Base:       0x" + to_hex_string(r.dll_base) + "\n";
     out += "  DLL Size:       0x" + to_hex_string(r.dll_size) + "\n";
     out += "  Game PID:       " + std::to_string(r.game_process_id) + "\n\n";
 
-    // Fault Location
     out += "FAULT LOCATION\n";
     out += "--------------------------------------------------------------------------------\n";
     out += "  Faulting Module: " + r.faulting_module + "\n";
-    out += "  In Nexoria DLL:  " + std::string(r.is_in_nexoria_module ? "YES [Likely Nexoria bug]" : "NO [May be game/other mod]") + "\n";
+    out += "  In Aetheris DLL:  " + std::string(r.is_in_aetheris_module ? "YES [Likely Aetheris bug]" : "NO [May be game/other mod]") + "\n";
     if (r.exception.access_type) {
         out += "  Access Type:     " + std::string(r.exception.access_type == 1 ? "WRITE" : "READ") + "\n";
         out += "  Accessed Addr:    0x" + to_hex_string(r.exception.accessed_address) + "\n";
     }
     out += "\n";
 
-    // Enabled Settings - THE IMPORTANT PART
     out += "================================================================================\n";
     out += "                    ENABLED FEATURES AT CRASH TIME\n";
     out += "================================================================================\n";
@@ -562,7 +517,6 @@ inline std::string generate_report(const crash_report_data& r) {
     if (r.enabled_settings.empty()) {
         out += "  [Settings snapshot not available]\n\n";
     } else {
-        // Group by category
         std::unordered_map<std::string, std::vector<const enabled_setting*>> grouped;
         for (const auto& s : r.enabled_settings) {
             grouped[s.category].push_back(&s);
@@ -579,7 +533,6 @@ inline std::string generate_report(const crash_report_data& r) {
         }
     }
 
-    // Register State
     out += "REGISTER STATE (x64)\n";
     out += "--------------------------------------------------------------------------------\n";
 #if defined(_M_X64)
@@ -595,7 +548,6 @@ inline std::string generate_report(const crash_report_data& r) {
 #endif
     out += "\n";
 
-    // Stack Trace
     out += "STACK TRACE\n";
     out += "--------------------------------------------------------------------------------\n";
     if (r.stack_trace.empty()) {
@@ -612,7 +564,6 @@ inline std::string generate_report(const crash_report_data& r) {
     }
     out += "\n";
 
-    // Loaded Modules (filtered to relevant)
     out += "LOADED MODULES (Game Related)\n";
     out += "--------------------------------------------------------------------------------\n";
     std::vector<std::string> game_modules = {"cs2", "engine2", "shaderapidx9", "tier0", "vstdlib",
@@ -628,7 +579,6 @@ inline std::string generate_report(const crash_report_data& r) {
     }
     out += "\n";
 
-    // System Information
     out += "SYSTEM INFORMATION\n";
     out += "--------------------------------------------------------------------------------\n";
     char buf[256] = {};
@@ -649,7 +599,6 @@ inline std::string generate_report(const crash_report_data& r) {
         r.system.memory.ullAvailPhys / (1024 * 1024));
     out += buf; out += "\n\n";
 
-    // Fix Suggestions
     out += "================================================================================\n";
     out += "                          FIX SUGGESTIONS\n";
     out += "================================================================================\n\n";
@@ -666,37 +615,30 @@ inline std::string generate_report(const crash_report_data& r) {
         out += "\n";
     }
 
-    // Files
     out += "================================================================================\n";
     out += "                          FILES GENERATED\n";
     out += "================================================================================\n\n";
     out += "  Full Report:  " + r.report_path + "\n";
     out += "  Minidump:     " + r.minidump_path + "\n\n";
     out += "================================================================================\n";
-    out += "           Generated by Nexoria Crash Reporter\n";
+    out += "           Generated by Aetheris Crash Reporter\n";
     out += "           Please include this file when reporting bugs\n";
     out += "================================================================================\n";
 
     return out;
 }
 
-// Write crash report file
 inline bool write_report(const crash_report_data& data) {
-    // Try primary path first
     std::string final_path = data.report_path;
 
-    // Ensure directory exists
     std::wstring dir_path = get_crash_directory();
 
-    // Generate report content
     std::string content = generate_report(data);
 
-    // Try writing with the original path
     HANDLE file = CreateFileA(final_path.c_str(), GENERIC_WRITE, FILE_SHARE_READ,
         nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
     if (file == INVALID_HANDLE_VALUE) {
-        // Try in temp directory as fallback
         wchar_t temp_path[MAX_PATH] = {};
         if (GetTempPathW(MAX_PATH, temp_path)) {
             char filename[MAX_PATH] = {};
@@ -708,11 +650,10 @@ inline bool write_report(const crash_report_data& data) {
             }
 
             char fallback_path[MAX_PATH] = {};
-            sprintf_s(fallback_path, "%lsnexoria_crashes\\%s", temp_path, filename);
+            sprintf_s(fallback_path, "%lsaetheris_crashes\\%s", temp_path, filename);
             final_path = fallback_path;
 
-            // Ensure fallback directory exists
-            std::wstring fallback_dir = std::wstring{temp_path} + L"nexoria_crashes";
+            std::wstring fallback_dir = std::wstring{temp_path} + L"aetheris_crashes";
             create_directory_recursive(fallback_dir);
 
             file = CreateFileA(fallback_path, GENERIC_WRITE, FILE_SHARE_READ,
@@ -721,7 +662,6 @@ inline bool write_report(const crash_report_data& data) {
     }
 
     if (file == INVALID_HANDLE_VALUE) {
-        // Last resort - write to current directory
         const char* name = strrchr(final_path.c_str(), '\\');
         if (name) name++;
         else name = final_path.c_str();
@@ -731,7 +671,6 @@ inline bool write_report(const crash_report_data& data) {
     }
 
     if (file == INVALID_HANDLE_VALUE) {
-        // Can't write file - try to at least show debug output
         OutputDebugStringA("[CRASH_REPORT] Failed to write crash report file!\n");
         OutputDebugStringA(content.c_str());
         return false;
@@ -742,22 +681,18 @@ inline bool write_report(const crash_report_data& data) {
     FlushFileBuffers(file);
     CloseHandle(file);
 
-    // Update path in data for the report
     const_cast<crash_report_data&>(data).report_path = final_path;
 
     return true;
 }
 
-// Write minidump
 inline bool write_minidump(const char* path, EXCEPTION_POINTERS* info) {
-    // Ensure directory exists first
     std::wstring dir_path = get_crash_directory();
 
     HANDLE file = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ,
         nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
     if (file == INVALID_HANDLE_VALUE) {
-        // Try fallback path
         wchar_t temp_path[MAX_PATH] = {};
         if (GetTempPathW(MAX_PATH, temp_path)) {
             char filename[MAX_PATH] = {};
@@ -769,16 +704,15 @@ inline bool write_minidump(const char* path, EXCEPTION_POINTERS* info) {
             }
 
             char fallback_path[MAX_PATH] = {};
-            sprintf_s(fallback_path, "%lsnexoria_crashes\\%s", temp_path, filename);
+            sprintf_s(fallback_path, "%lsaetheris_crashes\\%s", temp_path, filename);
 
-            std::wstring fallback_dir = std::wstring{temp_path} + L"nexoria_crashes";
+            std::wstring fallback_dir = std::wstring{temp_path} + L"aetheris_crashes";
             create_directory_recursive(fallback_dir);
 
             file = CreateFileA(fallback_path, GENERIC_WRITE, FILE_SHARE_READ,
                 nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
             if (file != INVALID_HANDLE_VALUE) {
-                // Update path in info (will need to be returned separately)
                 OutputDebugStringA("[CRASH_REPORT] Minidump written to fallback path\n");
             }
         }
@@ -802,7 +736,6 @@ inline bool write_minidump(const char* path, EXCEPTION_POINTERS* info) {
     return res != FALSE;
 }
 
-// Create and save crash report
 inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
                         HMODULE module, const char* version = "1.0.0",
                         const char* config = "Release", const char* game = "CS2") {
@@ -815,7 +748,6 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
 
     crash_report_data r = {};
 
-    // Timestamp
     time_t now = time(nullptr);
     char time_str[128] = {};
     struct tm tm_info = {};
@@ -824,7 +756,6 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
     }
     r.crash_time_str = time_str;
 
-    // DLL info
     r.dll_base = (std::uintptr_t)module;
     wchar_t dll_path[MAX_PATH] = {};
     GetModuleFileNameW(module, dll_path, MAX_PATH);
@@ -842,7 +773,6 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
     r.build_config = config;
     r.game_version = game;
 
-    // Exception info
     r.exception.exception_code = info->ExceptionRecord->ExceptionCode;
     r.exception.exception_address = (std::uintptr_t)info->ExceptionRecord->ExceptionAddress;
     r.exception.thread_id = GetCurrentThreadId();
@@ -860,13 +790,11 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
     r.crash_severity = (r.exception.category == crash_category::stack_overflow) ?
         severity::critical : severity::high;
 
-    // Registers
     if (info->ContextRecord) {
         collect_registers(r.registers, info->ContextRecord);
     }
 
-    // Check fault location
-    r.is_in_nexoria_module = is_nexoria_address(r.exception.exception_address, r.dll_base, r.dll_size);
+    r.is_in_aetheris_module = is_aetheris_address(r.exception.exception_address, r.dll_base, r.dll_size);
 
     HMODULE fault_mod = nullptr;
     if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -877,22 +805,17 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
         r.faulting_module = n ? n + 1 : name;
     }
 
-    // Stack trace
     if (info->ContextRecord) {
         capture_stack_trace(r.stack_trace, info->ContextRecord);
     }
 
-    // System info
     collect_system_info(r.system);
 
-    // Capture enabled settings
     settings_snapshot snapshot = get_current_settings();
     r.enabled_settings = snapshot.enabled_features;
 
-    // Fix suggestions
     r.suggestions = generate_fixes(r.exception.category, r.exception);
 
-    // Get crash directory (fixed location)
     std::wstring crash_dir = get_crash_directory();
     OutputDebugStringA("[CRASH_REPORT] Crash directory: ");
     OutputDebugStringW((std::wstring(crash_dir) + L"\n").c_str());
@@ -902,7 +825,6 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
         OutputDebugStringA("[CRASH_REPORT] WARNING: Failed to create directory, using fallback\n");
     }
 
-    // File paths with timestamp
     wchar_t report_path[MAX_PATH] = {};
     swprintf_s(report_path, MAX_PATH, L"%s\\crash_report_%04d%02d%02d_%02d%02d%02d.txt",
         crash_dir.c_str(), tm_info.tm_year + 1900, tm_info.tm_mon + 1, tm_info.tm_mday,
@@ -917,7 +839,6 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
 
     OutputDebugStringA("[CRASH_REPORT] Writing report...\n");
 
-    // Write files
     bool report_ok = write_report(r);
     bool dump_ok = write_minidump(r.minidump_path.c_str(), info);
 
@@ -934,4 +855,4 @@ inline void handle_crash(EXCEPTION_POINTERS* info, const char* stage,
     }
 }
 
-} // namespace crash_report
+}
